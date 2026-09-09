@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolsa Acadêmica - Graduação - FEALQ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#004F71',
+            secondary: '#00A3A1',
+            background: '#F8FAFC',
+            surface: '#FFFFFF',
+            'outline-variant': '#E2E8F0',
+            'on-surface': '#0F172A',
+            'on-surface-variant': '#475569',
+            'surface-container-lowest': '#FFFFFF',
+            'surface-container-low': '#F8FAFC',
+            'primary-container': '#004F71',
+            'secondary-fixed': '#00A3A1',
+            'on-secondary-fixed': '#FFFFFF',
+            'on-secondary': '#FFFFFF',
+          },
+          spacing: {
+            'xs': '4px',
+            'sm': '8px',
+            'md': '16px',
+            'lg': '24px',
+            'xl': '32px',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-sans">
+  
+  <div class="print:hidden">
+    <header class="bg-surface border-b border-outline-variant h-[56px] flex justify-between items-center px-4 sticky top-0 z-30">
+      <div class="flex-1"></div>
+      <div class="flex-1 text-[16px] font-bold text-primary truncate text-center flex items-center justify-center">
+        FealqFlow - Portal de Formulários
+      </div>
+      <div class="flex-1"></div>
+    </header>
+  </div>
+
+  <!-- Aumentamos o pb-[80px] para pb-[120px] para garantir que o rodape nunca fique em cima do conteúdo -->
+  <main class="flex-1 w-full max-w-[1200px] mx-auto px-md md:px-xl pt-md md:pt-lg pb-[120px] print:pb-0 print:px-0">
+    <div class="mb-lg border-b border-outline-variant pb-sm">
+      <div class="flex items-center gap-xs text-on-surface-variant text-[12px] mb-xs print:hidden">
+        <span class="material-symbols-outlined text-[14px]">home</span>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <span class="text-on-surface-variant">Programa de Apoios</span>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <span class="text-primary font-bold">Bolsa Acadêmica - Graduação</span>
+      </div>
+      <h1 class="text-[20px] text-on-surface font-bold flex items-center flex-wrap gap-sm">
+        Bolsa Acadêmica - Graduação
+        <span class="text-on-surface-variant text-[12px] font-normal">(APO-BOL-G)</span>
+      </h1>
+    </div>
+
+    <form id="formulario_bolsa_graduacao" class="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start print:block">
+      
+      <!-- Coluna Esquerda: Formulário -->
+      <div class="flex flex-col gap-lg print:col-span-12 print:block lg:col-span-8">
+        
+        <!-- 0. Normas do Edital -->
+        <section class="bg-surface-container-lowest border border-outline-variant rounded shadow-sm p-lg">
+          <button type="button" id="btn-normas-bolsa-graduacao" class="w-full flex items-center justify-between gap-sm text-left pb-xs border-b border-surface-variant">
+            <div class="flex items-center gap-sm min-w-0">
+              <span class="material-symbols-outlined text-primary-container">gavel</span>
+              <h2 class="text-[16px] font-semibold text-primary-container">0. Normas do Edital</h2>
+            </div>
+            <div class="flex items-center gap-sm shrink-0">
+              <span class="text-[12px] text-on-surface-variant whitespace-nowrap">
+                Teto: <strong class="text-primary font-bold">Tabela de Bolsas</strong>
+              </span>
+              <span id="icon-normas-bolsa-graduacao" class="material-symbols-outlined text-[20px] text-on-surface-variant transition-transform">
+                expand_more
+              </span>
+            </div>
+          </button>
+          
+          <!-- Oculto por padrão (hidden) igual ao React -->
+          <div id="content-normas-bolsa-graduacao" class="hidden mt-md">
+            <p class="text-[13px] leading-relaxed text-on-surface-variant">
+              Destinada a alunos de graduação com vulnerabilidade socioeconômica mediante encaminhamento realizado pela Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade. Poderá ser concedida por até 12 meses.
+            </p>
+          </div>
+        </section>
+
+        <!-- Sessões Específicas do Formulário -->
+        
+    <section class="bg-surface-container-lowest border border-outline-variant rounded shadow-sm p-lg mb-lg">
+      <div class="flex items-center justify-between gap-sm mb-md pb-xs border-b border-surface-variant">
+        <div class="flex items-center gap-sm min-w-0">
+          <span class="material-symbols-outlined text-primary-container">
+            school
+          </span>
+          <h2 class="text-[16px] font-semibold text-primary-container">
+            1. Dados do Bolsista
+          </h2>
+        </div>
+      </div>
+      <div class="grid grid-cols-12 gap-md">
+        
+    <div class="col-span-12 md:col-span-12">
+      <label class="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide" for="nome-completo-do-aluno">
+        Nome Completo do Aluno
+      </label>
+      <input id="nome-completo-do-aluno" type="text" placeholder="Ex: João da Silva" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" />
+    </div>
+  
+    <div class="col-span-12 md:col-span-6">
+      <label class="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide" for="cpf">
+        CPF
+      </label>
+      <input id="cpf" type="text" placeholder="000.000.000-00" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" />
+    </div>
+  
+    <div class="col-span-12 md:col-span-6">
+      <label class="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide" for="curso">
+        Curso
+      </label>
+      <input id="curso" type="text" placeholder="Ex: Agronomia" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" />
+    </div>
+  
+    <div class="col-span-12 md:col-span-6">
+      <label class="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide" for="período/semestre-atual">
+        Período/Semestre Atual
+      </label>
+      
+      <select id="período/semestre-atual" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors">
+        
+        <option value="1º Semestre">1º Semestre</option><option value="2º Semestre">2º Semestre</option><option value="3º Semestre">3º Semestre</option><option value="4º Semestre">4º Semestre</option><option value="5º Semestre">5º Semestre</option><option value="6º Semestre">6º Semestre</option><option value="7º Semestre">7º Semestre</option><option value="8º Semestre">8º Semestre</option><option value="9º Semestre">9º Semestre</option><option value="10º Semestre">10º Semestre</option>
+      </select>
+    
+    </div>
+  
+    <div class="col-span-12 md:col-span-6">
+      <label class="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide" for="número-usp-/-matrícula">
+        Número USP / Matrícula
+      </label>
+      <input id="número-usp-/-matrícula" type="text" placeholder="0000000" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" />
+    </div>
+  
+      </div>
+    </section>
+  
+    <section class="bg-surface-container-lowest border border-outline-variant rounded shadow-sm p-lg mb-lg">
+      <div class="flex items-center justify-between gap-sm mb-md pb-xs border-b border-surface-variant">
+        <div class="flex items-center gap-sm min-w-0">
+          <span class="material-symbols-outlined text-primary-container">
+            schedule
+          </span>
+          <h2 class="text-[16px] font-semibold text-primary-container">
+            2. Detalhes da Bolsa
+          </h2>
+        </div>
+      </div>
+      <div class="grid grid-cols-12 gap-md">
+        
+    <div class="col-span-12 md:col-span-12">
+      <label class="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide" for="título-do-plano-de-trabalho">
+        Título do Plano de Trabalho
+      </label>
+      <input id="título-do-plano-de-trabalho" type="text" placeholder="" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" />
+    </div>
+  
+    <div class="col-span-12 md:col-span-12">
+      <label class="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide" for="projeto-guarda-chuva-(se-houver)">
+        Projeto Guarda-Chuva (Se houver)
+      </label>
+      <input id="projeto-guarda-chuva-(se-houver)" type="text" placeholder="" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" />
+    </div>
+  
+    <div class="col-span-12 md:col-span-6">
+      <label class="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide" for="início-da-bolsa">
+        Início da Bolsa
+      </label>
+      <input id="início-da-bolsa" type="month" placeholder="" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" />
+    </div>
+  
+    <div class="col-span-12 md:col-span-6">
+      <label class="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide" for="fim-previsto">
+        Fim Previsto
+      </label>
+      <input id="fim-previsto" type="month" placeholder="" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" />
+    </div>
+  
+      </div>
+    </section>
+  
+      </div>
+
+      <!-- Coluna Direita: Kit Documental -->
+      <div class="lg:col-span-4 flex flex-col gap-lg print:hidden">
+        
+    <section class="bg-surface-container-low border border-outline-variant rounded shadow-sm p-lg">
+      <div class="flex items-center justify-between gap-sm mb-md pb-xs border-b border-surface-variant">
+        <div class="flex items-center gap-sm min-w-0">
+          <span class="material-symbols-outlined text-primary-container">attach_file</span>
+          <h2 class="text-[16px] font-semibold text-primary-container">Kit de Documentos</h2>
+        </div>
+        <span class="bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold px-xs py-[2px] rounded uppercase whitespace-nowrap" id="kit-progresso">
+          0/7
+        </span>
+      </div>
+      
+      <div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden mb-md">
+        <div class="bg-secondary h-full transition-all w-0" id="kit-bar"></div>
+      </div>
+      
+      <div class="flex flex-col gap-sm">
+        
+            <div data-tipo="gerado" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant doc-card concluido">
+              <div class="flex items-start justify-between gap-sm">
+                <div class="flex items-start gap-sm min-w-0">
+                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
+                  <span class="text-[13px] text-on-surface-variant doc-label">Formulário de Solicitação de Apoio</span>
+                </div>
+                <span class="text-[#F17C58] text-[11px] font-bold uppercase shrink-0">Pendente</span>
+              </div>
+              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
+                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
+                </div>
+                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
+              </div>
+              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Preenchimento digital gerado pelo sistema.</p>
+              
+              
+            </div>
+          
+            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-start justify-between gap-sm">
+                <div class="flex items-start gap-sm min-w-0">
+                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
+                  <span class="text-[13px] text-on-surface-variant doc-label">Justificativa da necessidade do recurso</span>
+                </div>
+                
+              <div class="flex items-center gap-sm shrink-0">
+                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
+                <div class="relative cursor-pointer">
+                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="justificativa">
+                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
+                </div>
+              </div>
+            
+              </div>
+              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
+                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
+                </div>
+                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
+              </div>
+              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Assinada pelo aluno e orientador. Limitada a uma página.</p>
+              
+              
+            </div>
+          
+            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-start justify-between gap-sm">
+                <div class="flex items-start gap-sm min-w-0">
+                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
+                  <span class="text-[13px] text-on-surface-variant doc-label">Declaração de que não recebe bolsa</span>
+                </div>
+                
+              <div class="flex items-center gap-sm shrink-0">
+                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
+                <div class="relative cursor-pointer">
+                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="declaracao-sem-bolsa">
+                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
+                </div>
+              </div>
+            
+              </div>
+              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
+                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
+                </div>
+                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
+              </div>
+              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Declaração do aluno, assinada em conjunto com o orientador.</p>
+              
+              
+            </div>
+          
+            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-start justify-between gap-sm">
+                <div class="flex items-start gap-sm min-w-0">
+                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
+                  <span class="text-[13px] text-on-surface-variant doc-label">Currículo Lattes do orientador (PDF)</span>
+                </div>
+                
+              <div class="flex items-center gap-sm shrink-0">
+                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
+                <div class="relative cursor-pointer">
+                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="lattes-orientador">
+                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
+                </div>
+              </div>
+            
+              </div>
+              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
+                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
+                </div>
+                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
+              </div>
+              
+              
+              
+            </div>
+          
+            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-start justify-between gap-sm">
+                <div class="flex items-start gap-sm min-w-0">
+                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
+                  <span class="text-[13px] text-on-surface-variant doc-label">Histórico escolar atualizado da graduação</span>
+                </div>
+                
+              <div class="flex items-center gap-sm shrink-0">
+                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
+                <div class="relative cursor-pointer">
+                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="historico">
+                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
+                </div>
+              </div>
+            
+              </div>
+              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
+                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
+                </div>
+                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
+              </div>
+              
+              
+              
+            </div>
+          
+            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-start justify-between gap-sm">
+                <div class="flex items-start gap-sm min-w-0">
+                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
+                  <span class="text-[13px] text-on-surface-variant doc-label">Carta de recomendação ao aluno</span>
+                </div>
+                
+              <div class="flex items-center gap-sm shrink-0">
+                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
+                <div class="relative cursor-pointer">
+                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="carta-recomendacao">
+                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
+                </div>
+              </div>
+            
+              </div>
+              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
+                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
+                </div>
+                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
+              </div>
+              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Limitada a uma página.</p>
+              
+              
+            </div>
+          
+            <div data-tipo="externo" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-start justify-between gap-sm">
+                <div class="flex items-start gap-sm min-w-0">
+                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">forward_to_inbox</span>
+                  <span class="text-[13px] text-on-surface-variant doc-label">Formulário de Avaliação Social</span>
+                </div>
+                <span class="text-on-surface-variant text-[11px] font-bold uppercase shrink-0">Externo</span>
+              </div>
+              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
+                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
+                </div>
+                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
+              </div>
+              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Solicite à Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade. Após entrevista com o candidato, a DVATCOM encaminha o formulário diretamente à Fealq.</p>
+              
+                <a href="mailto:social.lq@usp.br" class="inline-flex items-center gap-1 mt-xs ml-[26px] text-[11px] font-medium text-primary hover:text-primary-container transition-colors">
+                  <span class="material-symbols-outlined text-[14px]">mail</span>
+                  e-mail da DVATCOM: social.lq@usp.br
+                </a>
+              
+              
+            </div>
+          
+      </div>
+      <p class="text-[10px] text-on-surface-variant mt-sm leading-tight">
+        Anexe os documentos obrigatórios para liberar o envio da solicitação. 7 documentos previstos.
+      </p>
+    </section>
+  
+      </div>
+
+    </form>
+  </main>
+
+  <footer class="fixed bottom-0 right-0 z-30 border-t border-outline-variant bg-surface-container-lowest print:hidden left-0">
+    <div class="w-full max-w-[1200px] mx-auto px-md md:px-xl py-sm md:py-md flex justify-between items-center gap-sm md:gap-md">
+      <div class="flex items-center">
+        <button type="button" class="px-sm md:px-lg h-[36px] rounded border border-transparent text-on-surface text-[13px] hover:bg-surface-container-low transition-colors whitespace-nowrap">
+          Cancelar
+        </button>
+      </div>
+
+      <div class="flex-1 flex justify-center items-center gap-md px-md">
+        <div id="footer-warning" class="hidden lg:flex items-center justify-center gap-2 bg-[#F17C58] text-white text-xs px-3 h-[26px] rounded-md shadow-xs whitespace-nowrap animate-pulse">
+          <span class="material-symbols-outlined text-[16px]">warning</span>
+          <span>
+            <strong>Trava de Envio Ativa:</strong> O sistema bloqueia envios incompletos. Regularize as pendências.
+          </span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-sm">
+        <button type="button" class="px-sm md:px-lg h-[36px] rounded border border-outline-variant text-on-surface-variant text-[13px] hover:bg-surface-container-low transition-colors whitespace-nowrap">
+          <span class="hidden sm:inline">Salvar Rascunho</span>
+          <span class="sm:hidden">Salvar</span>
+        </button>
+
+        <button type="submit" form="formulario_bolsa_graduacao" id="submit-btn" class="px-sm md:px-lg h-[36px] rounded text-[13px] font-medium flex items-center gap-xs transition-colors whitespace-nowrap bg-surface-container-highest text-[#F17C58] cursor-not-allowed">
+          <span class="hidden sm:inline">Submeter Pedido</span>
+          <span class="sm:hidden">Bloqueado</span>
+          <span class="material-symbols-outlined text-[18px]">warning</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Toggle Normas do Edital
+      const btnNormas = document.getElementById('btn-normas-bolsa-graduacao');
+      const iconNormas = document.getElementById('icon-normas-bolsa-graduacao');
+      const contentNormas = document.getElementById('content-normas-bolsa-graduacao');
+      
+      btnNormas.addEventListener('click', () => {
+        const isHidden = contentNormas.classList.contains('hidden');
+        if (isHidden) {
+          contentNormas.classList.remove('hidden');
+          iconNormas.classList.add('rotate-180');
+          btnNormas.classList.add('mb-md');
+        } else {
+          contentNormas.classList.add('hidden');
+          iconNormas.classList.remove('rotate-180');
+          btnNormas.classList.remove('mb-md');
+        }
+      });
+
+      // Lógica Kit Documental
+      const form = document.getElementById('formulario_bolsa_graduacao');
+      const uploads = document.querySelectorAll('.doc-upload');
+      const submitBtn = document.getElementById('submit-btn');
+      const footerWarning = document.getElementById('footer-warning');
+      const kitProgresso = document.getElementById('kit-progresso');
+      const kitBar = document.getElementById('kit-bar');
+      
+      const totalDocs = 7;
+      
+      const updateKitStatus = () => {
+        let concluidos = 0;
+        let pendencias = 0;
+        
+        // Check form validity
+        const form = document.querySelector('form');
+        const formValido = form ? form.checkValidity() : true;
+        
+        document.querySelectorAll('.doc-card').forEach(card => {
+          if (card.dataset.tipo === 'gerado') {
+             if (formValido) {
+                concluidos++;
+                card.classList.add('border-outline-variant');
+                card.classList.remove('border-dashed', 'hover:border-primary-container');
+                card.querySelector('.doc-icon').innerText = 'check_circle';
+                card.querySelector('.doc-icon').classList.replace('text-outline', 'text-secondary');
+                card.querySelector('.doc-label').classList.replace('text-on-surface-variant', 'text-on-surface');
+                card.querySelector('.doc-label').classList.add('font-medium');
+                const actionSpan = card.querySelector('div > span:last-child');
+                if (actionSpan) {
+                  actionSpan.innerText = 'Concluído';
+                  actionSpan.className = 'text-secondary text-[11px] font-bold uppercase shrink-0';
+                }
+             } else {
+                pendencias++;
+                card.classList.remove('border-outline-variant');
+                card.classList.add('border-outline-variant', 'border-dashed', 'hover:border-primary-container');
+                card.querySelector('.doc-icon').innerText = 'radio_button_unchecked';
+                card.querySelector('.doc-icon').classList.replace('text-secondary', 'text-outline');
+                card.querySelector('.doc-label').classList.replace('text-on-surface', 'text-on-surface-variant');
+                card.querySelector('.doc-label').classList.remove('font-medium');
+                const actionSpan = card.querySelector('div > span:last-child');
+                if (actionSpan) {
+                  actionSpan.innerText = 'Pendente';
+                  actionSpan.className = 'text-[#F17C58] text-[11px] font-bold uppercase shrink-0';
+                }
+             }
+          } else if (card.classList.contains('concluido')) {
+            concluidos++;
+          } else {
+             if (card.innerHTML.includes('required') || card.innerHTML.includes('Anexar')) {
+               pendencias++;
+             }
+          }
+        });
+        
+        const progresso = (concluidos / totalDocs) * 100;
+        kitProgresso.innerText = concluidos + '/' + totalDocs;
+        kitBar.style.width = progresso + '%';
+        
+        if (pendencias === 0) {
+          submitBtn.className = "px-sm md:px-lg h-[36px] rounded text-[13px] font-medium flex items-center gap-xs transition-colors whitespace-nowrap bg-secondary text-on-secondary hover:opacity-90";
+          submitBtn.querySelector('.hidden.sm\\:inline').innerText = "Submeter Pedido";
+          submitBtn.querySelector('.sm\\:hidden').innerText = "Enviar";
+          submitBtn.querySelector('.material-symbols-outlined').innerText = "send";
+          footerWarning.classList.replace('lg:flex', 'hidden');
+        } else {
+          submitBtn.className = "px-sm md:px-lg h-[36px] rounded text-[13px] font-medium flex items-center gap-xs transition-colors whitespace-nowrap bg-surface-container-highest text-[#F17C58] cursor-not-allowed";
+          submitBtn.querySelector('.hidden.sm\\:inline').innerText = "Submeter Pedido";
+          submitBtn.querySelector('.sm\\:hidden').innerText = "Bloqueado";
+          submitBtn.querySelector('.material-symbols-outlined').innerText = "warning";
+          footerWarning.classList.replace('hidden', 'lg:flex');
+        }
+      };
+
+      uploads.forEach(input => {
+        input.addEventListener('change', (e) => {
+          const card = e.target.closest('.doc-card');
+          const fileInfo = card.querySelector('.doc-file-info');
+          const filename = card.querySelector('.doc-filename');
+          const icon = card.querySelector('.doc-icon');
+          const label = card.querySelector('.doc-label');
+          
+          if (e.target.files.length > 0) {
+            filename.innerText = e.target.files[0].name;
+            fileInfo.classList.remove('hidden');
+            card.classList.add('concluido');
+            card.classList.remove('border-dashed');
+            icon.innerText = 'check_circle';
+            icon.classList.replace('text-outline', 'text-secondary');
+            label.classList.replace('text-on-surface-variant', 'text-on-surface');
+            label.classList.add('font-medium');
+          }
+          updateKitStatus();
+        });
+      });
+
+      document.querySelectorAll('.doc-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const card = e.target.closest('.doc-card');
+          const input = card.querySelector('.doc-upload');
+          const fileInfo = card.querySelector('.doc-file-info');
+          const icon = card.querySelector('.doc-icon');
+          const label = card.querySelector('.doc-label');
+          
+          input.value = '';
+          fileInfo.classList.add('hidden');
+          card.classList.remove('concluido');
+          card.classList.add('border-dashed');
+          icon.innerText = 'radio_button_unchecked';
+          icon.classList.replace('text-secondary', 'text-outline');
+          label.classList.replace('text-on-surface', 'text-on-surface-variant');
+          label.classList.remove('font-medium');
+          updateKitStatus();
+        });
+      });
+
+      document.querySelector("form")?.addEventListener("input", updateKitStatus);
+      document.querySelector("form")?.addEventListener("change", updateKitStatus);
+      updateKitStatus(); // Initial call
+      
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const allUploaded = Array.from(uploads).every(u => u.files.length > 0);
+        if (!allUploaded) {
+          alert('A trava de envio está ativa. Anexe todos os documentos.');
+          return;
+        }
+        
+        const textSpan = submitBtn.querySelector('.hidden.sm\\:inline');
+        textSpan.innerText = 'Enviando...';
+        submitBtn.style.opacity = '0.7';
+        
+        setTimeout(() => {
+          alert('✅ Sucesso! O formulário estático [APO-BOL-G] foi submetido nativamente.');
+          textSpan.innerText = 'Submeter Pedido';
+          submitBtn.style.opacity = '1';
+          this.reset();
+          document.querySelectorAll('.doc-remove').forEach(b => b.click());
+        }, 1000);
+      });
+    });
+  </script>
+</body>
+</html>
