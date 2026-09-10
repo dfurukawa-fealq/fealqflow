@@ -655,7 +655,7 @@ const generateHtml = (programa: ProgramaApoio) => {
         submitBtn.style.opacity = '0.7';
         
         setTimeout(() => {
-          alert('✅ Sucesso! O formulário estático [${programa.codigo}] foi submetido nativamente.');
+          alert('✅ Solicitação enviada com sucesso!');
           textSpan.innerText = 'Submeter Pedido';
           submitBtn.style.opacity = '1';
           this.reset();

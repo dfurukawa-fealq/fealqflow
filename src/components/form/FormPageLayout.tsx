@@ -45,9 +45,10 @@ export const FormPageLayout = ({
   const navigate = useNavigate();
   const { showSidebar } = useLayout();
   
-  // Modais de Aviso de Trava e Confirmação de Cancelamento
+  // Modais de Aviso de Trava e Confirmação de Cancelamento e Sucesso
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   // Estado de Rascunho
   const storageKey = `fealqflow_draft_${codigo || titulo.replace(/\s+/g, '_')}`;
@@ -152,8 +153,7 @@ export const FormPageLayout = ({
       setShowWarningModal(true);
     } else {
       limparRascunho();
-      alert('Solicitação enviada com sucesso! O rascunho foi concluído e removido.');
-      navigate('/programas');
+      setShowSuccessModal(true);
     }
   };
 
@@ -400,6 +400,38 @@ export const FormPageLayout = ({
                 className="px-3 py-2 rounded bg-error text-on-error text-xs font-bold hover:opacity-90"
               >
                 Sair sem Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal 3: Sucesso ao Enviar */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200">
+          <div className="bg-surface rounded-xl p-lg w-[90vw] sm:w-[440px] max-w-[440px] shadow-2xl flex flex-col gap-lg border border-outline-variant animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center gap-md text-center">
+              <div className="w-[64px] h-[64px] rounded-full bg-secondary/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[32px] text-secondary">
+                  check_circle
+                </span>
+              </div>
+              <h2 className="text-[20px] font-bold text-on-surface">
+                Solicitação enviada com sucesso!
+              </h2>
+              <p className="text-[14px] text-on-surface-variant">
+                Seu formulário e kit documental foram recebidos pelo sistema e estão em processamento.
+              </p>
+            </div>
+            
+            <div className="flex justify-center pt-xs">
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate('/programas');
+                }}
+                className="bg-secondary text-on-secondary px-xl h-[40px] rounded text-[14px] font-bold hover:opacity-90 transition-opacity shadow-sm cursor-pointer w-full sm:w-auto"
+              >
+                Voltar para Programas
               </button>
             </div>
           </div>
