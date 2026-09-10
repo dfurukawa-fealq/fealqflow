@@ -377,7 +377,7 @@ export const FormPageLayout = ({
                 onClick={() => setShowCancelModal(false)}
                 className="px-3 py-2 rounded border border-outline-variant text-on-surface text-xs font-bold hover:bg-surface-container-low"
               >
-                Permanecer no Formulário
+                Permanecer
               </button>
               
               <button
@@ -388,7 +388,7 @@ export const FormPageLayout = ({
                 }}
                 className="px-3 py-2 rounded bg-surface-container-high border border-outline-variant text-on-surface text-xs font-bold hover:bg-surface-container-highest"
               >
-                Salvar Rascunho e Sair
+                Salvar e Sair
               </button>
 
               <button

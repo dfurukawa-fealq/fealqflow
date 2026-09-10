@@ -17,7 +17,7 @@ const formatarTamanho = (bytes: number) => {
 };
 
 const ACAO =
-  'text-primary-container hover:bg-surface-variant flex items-center justify-center w-8 h-8 rounded-full transition-colors shrink-0';
+  'text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0';
 
 /**
  * Seleção de arquivo simulada: abre o seletor real do sistema, mas o
@@ -54,13 +54,13 @@ export const AnexarArquivo = ({
 
       {arquivo ? (
         <div className="flex items-center shrink-0">
-          <button type="button" onClick={remover} className="text-error hover:bg-error-container/20 flex items-center justify-center w-8 h-8 rounded-full transition-colors shrink-0" title="Remover anexo">
-            <span className="material-symbols-outlined text-[18px]">delete</span>
+          <button type="button" onClick={remover} className="text-error hover:bg-error-container/20 flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Remover anexo">
+            <span className="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">delete</span>
           </button>
         </div>
       ) : (
         <label htmlFor={id} className={ACAO} title="Anexar arquivo">
-          <span className="material-symbols-outlined text-[18px]">attach_file</span>
+          <span className="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">attach_file</span>
         </label>
       )}
     </>
@@ -74,7 +74,7 @@ export const ArquivoSelecionado = ({ arquivo }: { arquivo: File }) => {
 
   return (
     <p className="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
-      <span className="material-symbols-outlined text-[14px] shrink-0 text-primary-container">
+      <span className="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center shrink-0 text-primary-container">
         description
       </span>
       <span className="truncate">

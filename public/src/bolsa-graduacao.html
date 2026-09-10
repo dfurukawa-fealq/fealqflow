@@ -267,189 +267,381 @@
       
       <div class="flex flex-col gap-sm">
         
-            <div data-tipo="gerado" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant doc-card concluido">
-              <div class="flex items-start justify-between gap-sm">
-                <div class="flex items-start gap-sm min-w-0">
-                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
-                  <span class="text-[13px] text-on-surface-variant doc-label">Formulário de Solicitação de Apoio</span>
+            <div data-tipo="gerado" class="doc-card bg-surface-container-lowest border rounded transition-colors border-outline-variant doc-card concluido">
+              <div class="flex items-stretch min-h-[72px]">
+                <!-- Coluna 1: Status / Ícone -->
+                <div class="w-[32px] shrink-0 flex flex-col items-center justify-center border-r border-outline-variant/30">
+                  <span class="material-symbols-outlined text-[18px] text-outline doc-icon">radio_button_unchecked</span>
                 </div>
-                <span class="text-[#F17C58] text-[11px] font-bold uppercase shrink-0">Pendente</span>
-              </div>
-              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
-                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
+
+                <!-- Coluna 2: Conteúdo Central -->
+                <div class="flex-1 flex flex-col justify-center py-xs px-sm min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="text-[13px] text-on-surface-variant doc-label">Formulário de Solicitação de Apoio</span>
+                    <span class="text-[#F17C58] text-[10px] font-bold uppercase shrink-0">Pendente</span>
+                  </div>
+
+                  <div class="doc-file-info hidden -ml-[26px]">
+                    <p class="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
+                      <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center shrink-0 text-primary-container">description</span>
+                      <span class="truncate">
+                        Anexado: 
+                        <a href="#" target="_blank" rel="noreferrer" class="text-primary-container font-semibold hover:underline doc-filename-link" title="Visualizar arquivo">
+                          Tipo: <span class="doc-file-ext"></span> - Tam: <span class="doc-file-size"></span>
+                        </a>
+                      </span>
+                    </p>
+                  </div>
+
+                  <p class="text-[10px] text-on-surface-variant mt-0.5 leading-tight pr-2">Preenchimento digital gerado pelo sistema.</p>
+                  
+                  
                 </div>
-                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
-              </div>
-              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Preenchimento digital gerado pelo sistema.</p>
-              
-              
-            </div>
-          
-            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
-              <div class="flex items-start justify-between gap-sm">
-                <div class="flex items-start gap-sm min-w-0">
-                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
-                  <span class="text-[13px] text-on-surface-variant doc-label">Justificativa da necessidade do recurso</span>
-                </div>
+
+                <!-- Coluna 3: Ações -->
                 
-              <div class="flex items-center gap-sm shrink-0">
-                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
-                <div class="relative cursor-pointer">
-                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="justificativa">
-                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
-                </div>
               </div>
-            
-              </div>
-              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
-                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
-                </div>
-                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
-              </div>
-              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Assinada pelo aluno e orientador. Limitada a uma página.</p>
-              
-              
             </div>
           
-            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
-              <div class="flex items-start justify-between gap-sm">
-                <div class="flex items-start gap-sm min-w-0">
-                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
-                  <span class="text-[13px] text-on-surface-variant doc-label">Declaração de que não recebe bolsa</span>
+            <div data-tipo="upload" class="doc-card bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-stretch min-h-[72px]">
+                <!-- Coluna 1: Status / Ícone -->
+                <div class="w-[32px] shrink-0 flex flex-col items-center justify-center border-r border-outline-variant/30">
+                  <span class="material-symbols-outlined text-[18px] text-outline doc-icon">radio_button_unchecked</span>
                 </div>
+
+                <!-- Coluna 2: Conteúdo Central -->
+                <div class="flex-1 flex flex-col justify-center py-xs px-sm min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="text-[13px] text-on-surface-variant doc-label">Justificativa da necessidade do recurso</span>
+                    
+                  </div>
+
+                  <div class="doc-file-info hidden -ml-[26px]">
+                    <p class="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
+                      <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center shrink-0 text-primary-container">description</span>
+                      <span class="truncate">
+                        Anexado: 
+                        <a href="#" target="_blank" rel="noreferrer" class="text-primary-container font-semibold hover:underline doc-filename-link" title="Visualizar arquivo">
+                          Tipo: <span class="doc-file-ext"></span> - Tam: <span class="doc-file-size"></span>
+                        </a>
+                      </span>
+                    </p>
+                  </div>
+
+                  <p class="text-[10px] text-on-surface-variant mt-0.5 leading-tight pr-2">Assinada pelo aluno e orientador. Limitada a uma página.</p>
+                  
+                  
+                </div>
+
+                <!-- Coluna 3: Ações -->
                 
-              <div class="flex items-center gap-sm shrink-0">
-                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
-                <div class="relative cursor-pointer">
-                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="declaracao-sem-bolsa">
-                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
-                </div>
-              </div>
-            
-              </div>
-              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
-                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
-                </div>
-                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
-              </div>
-              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Declaração do aluno, assinada em conjunto com o orientador.</p>
-              
-              
-            </div>
-          
-            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
-              <div class="flex items-start justify-between gap-sm">
-                <div class="flex items-start gap-sm min-w-0">
-                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
-                  <span class="text-[13px] text-on-surface-variant doc-label">Currículo Lattes do orientador (PDF)</span>
-                </div>
+                  <div class="w-[40px] shrink-0 flex flex-col items-center justify-between border-l border-outline-variant/30 py-1">
+                    
+                    <div class="flex flex-col items-center">
+                      <div class="flex items-center shrink-0 doc-upload-container">
+                        <div class="relative cursor-pointer w-7 h-7">
+                          <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload z-10" data-id="justificativa" title="Anexar arquivo" accept=".pdf,.png,.jpg,.jpeg">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors absolute inset-0">attach_file</span>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center shrink-0 doc-remove-container hidden">
+                        <button type="button" class="doc-remove text-error hover:bg-error-container/20 flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Remover anexo">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">delete</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    
+                      <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" rel="noreferrer" class="text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Baixar Modelo">
+                        <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">file_download</span>
+                      </a>
+                    
+                  </div>
                 
-              <div class="flex items-center gap-sm shrink-0">
-                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
-                <div class="relative cursor-pointer">
-                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="lattes-orientador">
-                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
-                </div>
               </div>
-            
-              </div>
-              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
-                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
-                </div>
-                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
-              </div>
-              
-              
-              
             </div>
           
-            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
-              <div class="flex items-start justify-between gap-sm">
-                <div class="flex items-start gap-sm min-w-0">
-                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
-                  <span class="text-[13px] text-on-surface-variant doc-label">Histórico escolar atualizado da graduação</span>
+            <div data-tipo="upload" class="doc-card bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-stretch min-h-[72px]">
+                <!-- Coluna 1: Status / Ícone -->
+                <div class="w-[32px] shrink-0 flex flex-col items-center justify-center border-r border-outline-variant/30">
+                  <span class="material-symbols-outlined text-[18px] text-outline doc-icon">radio_button_unchecked</span>
                 </div>
+
+                <!-- Coluna 2: Conteúdo Central -->
+                <div class="flex-1 flex flex-col justify-center py-xs px-sm min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="text-[13px] text-on-surface-variant doc-label">Declaração de que não recebe bolsa</span>
+                    
+                  </div>
+
+                  <div class="doc-file-info hidden -ml-[26px]">
+                    <p class="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
+                      <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center shrink-0 text-primary-container">description</span>
+                      <span class="truncate">
+                        Anexado: 
+                        <a href="#" target="_blank" rel="noreferrer" class="text-primary-container font-semibold hover:underline doc-filename-link" title="Visualizar arquivo">
+                          Tipo: <span class="doc-file-ext"></span> - Tam: <span class="doc-file-size"></span>
+                        </a>
+                      </span>
+                    </p>
+                  </div>
+
+                  <p class="text-[10px] text-on-surface-variant mt-0.5 leading-tight pr-2">Declaração do aluno, assinada em conjunto com o orientador.</p>
+                  
+                  
+                </div>
+
+                <!-- Coluna 3: Ações -->
                 
-              <div class="flex items-center gap-sm shrink-0">
-                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
-                <div class="relative cursor-pointer">
-                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="historico">
-                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
-                </div>
-              </div>
-            
-              </div>
-              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
-                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
-                </div>
-                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
-              </div>
-              
-              
-              
-            </div>
-          
-            <div data-tipo="upload" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
-              <div class="flex items-start justify-between gap-sm">
-                <div class="flex items-start gap-sm min-w-0">
-                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">radio_button_unchecked</span>
-                  <span class="text-[13px] text-on-surface-variant doc-label">Carta de recomendação ao aluno</span>
-                </div>
+                  <div class="w-[40px] shrink-0 flex flex-col items-center justify-between border-l border-outline-variant/30 py-1">
+                    
+                    <div class="flex flex-col items-center">
+                      <div class="flex items-center shrink-0 doc-upload-container">
+                        <div class="relative cursor-pointer w-7 h-7">
+                          <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload z-10" data-id="declaracao-sem-bolsa" title="Anexar arquivo" accept=".pdf,.png,.jpg,.jpeg">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors absolute inset-0">attach_file</span>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center shrink-0 doc-remove-container hidden">
+                        <button type="button" class="doc-remove text-error hover:bg-error-container/20 flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Remover anexo">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">delete</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    
+                      <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" rel="noreferrer" class="text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Baixar Modelo">
+                        <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">file_download</span>
+                      </a>
+                    
+                  </div>
                 
-              <div class="flex items-center gap-sm shrink-0">
-                <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" class="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0">Modelo</a>
-                <div class="relative cursor-pointer">
-                  <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload" data-id="carta-recomendacao">
-                  <span class="text-secondary text-[11px] font-bold uppercase hover:underline">Anexar</span>
-                </div>
               </div>
-            
-              </div>
-              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
-                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
-                </div>
-                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
-              </div>
-              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Limitada a uma página.</p>
-              
-              
             </div>
           
-            <div data-tipo="externo" class="doc-card p-sm bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
-              <div class="flex items-start justify-between gap-sm">
-                <div class="flex items-start gap-sm min-w-0">
-                  <span class="material-symbols-outlined text-[18px] shrink-0 text-outline doc-icon">forward_to_inbox</span>
-                  <span class="text-[13px] text-on-surface-variant doc-label">Formulário de Avaliação Social</span>
+            <div data-tipo="upload" class="doc-card bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-stretch min-h-[72px]">
+                <!-- Coluna 1: Status / Ícone -->
+                <div class="w-[32px] shrink-0 flex flex-col items-center justify-center border-r border-outline-variant/30">
+                  <span class="material-symbols-outlined text-[18px] text-outline doc-icon">radio_button_unchecked</span>
                 </div>
-                <span class="text-on-surface-variant text-[11px] font-bold uppercase shrink-0">Externo</span>
-              </div>
-              <div class="doc-file-info hidden mt-2 flex items-center justify-between px-3 py-2 bg-surface-container-low border border-outline-variant rounded">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="material-symbols-outlined text-[16px] text-on-surface-variant">description</span>
-                  <span class="text-[11px] font-bold text-on-surface truncate doc-filename">arquivo.pdf</span>
+
+                <!-- Coluna 2: Conteúdo Central -->
+                <div class="flex-1 flex flex-col justify-center py-xs px-sm min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="text-[13px] text-on-surface-variant doc-label">Currículo Lattes do orientador (PDF)</span>
+                    
+                  </div>
+
+                  <div class="doc-file-info hidden -ml-[26px]">
+                    <p class="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
+                      <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center shrink-0 text-primary-container">description</span>
+                      <span class="truncate">
+                        Anexado: 
+                        <a href="#" target="_blank" rel="noreferrer" class="text-primary-container font-semibold hover:underline doc-filename-link" title="Visualizar arquivo">
+                          Tipo: <span class="doc-file-ext"></span> - Tam: <span class="doc-file-size"></span>
+                        </a>
+                      </span>
+                    </p>
+                  </div>
+
+                  
+                  
+                  
                 </div>
-                <button type="button" class="doc-remove text-on-surface-variant hover:text-[#F17C58] transition-colors material-symbols-outlined text-[16px]">close</button>
+
+                <!-- Coluna 3: Ações -->
+                
+                  <div class="w-[40px] shrink-0 flex flex-col items-center justify-between border-l border-outline-variant/30 py-1">
+                    
+                    <div class="flex flex-col items-center">
+                      <div class="flex items-center shrink-0 doc-upload-container">
+                        <div class="relative cursor-pointer w-7 h-7">
+                          <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload z-10" data-id="lattes-orientador" title="Anexar arquivo" accept=".pdf,.png,.jpg,.jpeg">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors absolute inset-0">attach_file</span>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center shrink-0 doc-remove-container hidden">
+                        <button type="button" class="doc-remove text-error hover:bg-error-container/20 flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Remover anexo">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">delete</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    
+                      <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" rel="noreferrer" class="text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Baixar Modelo">
+                        <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">file_download</span>
+                      </a>
+                    
+                  </div>
+                
               </div>
-              <p class="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">Solicite à Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade. Após entrevista com o candidato, a DVATCOM encaminha o formulário diretamente à Fealq.</p>
-              
-                <a href="mailto:social.lq@usp.br" class="inline-flex items-center gap-1 mt-xs ml-[26px] text-[11px] font-medium text-primary hover:text-primary-container transition-colors">
-                  <span class="material-symbols-outlined text-[14px]">mail</span>
-                  e-mail da DVATCOM: social.lq@usp.br
-                </a>
-              
-              
+            </div>
+          
+            <div data-tipo="upload" class="doc-card bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-stretch min-h-[72px]">
+                <!-- Coluna 1: Status / Ícone -->
+                <div class="w-[32px] shrink-0 flex flex-col items-center justify-center border-r border-outline-variant/30">
+                  <span class="material-symbols-outlined text-[18px] text-outline doc-icon">radio_button_unchecked</span>
+                </div>
+
+                <!-- Coluna 2: Conteúdo Central -->
+                <div class="flex-1 flex flex-col justify-center py-xs px-sm min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="text-[13px] text-on-surface-variant doc-label">Histórico escolar atualizado da graduação</span>
+                    
+                  </div>
+
+                  <div class="doc-file-info hidden -ml-[26px]">
+                    <p class="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
+                      <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center shrink-0 text-primary-container">description</span>
+                      <span class="truncate">
+                        Anexado: 
+                        <a href="#" target="_blank" rel="noreferrer" class="text-primary-container font-semibold hover:underline doc-filename-link" title="Visualizar arquivo">
+                          Tipo: <span class="doc-file-ext"></span> - Tam: <span class="doc-file-size"></span>
+                        </a>
+                      </span>
+                    </p>
+                  </div>
+
+                  
+                  
+                  
+                </div>
+
+                <!-- Coluna 3: Ações -->
+                
+                  <div class="w-[40px] shrink-0 flex flex-col items-center justify-between border-l border-outline-variant/30 py-1">
+                    
+                    <div class="flex flex-col items-center">
+                      <div class="flex items-center shrink-0 doc-upload-container">
+                        <div class="relative cursor-pointer w-7 h-7">
+                          <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload z-10" data-id="historico" title="Anexar arquivo" accept=".pdf,.png,.jpg,.jpeg">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors absolute inset-0">attach_file</span>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center shrink-0 doc-remove-container hidden">
+                        <button type="button" class="doc-remove text-error hover:bg-error-container/20 flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Remover anexo">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">delete</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    
+                      <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" rel="noreferrer" class="text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Baixar Modelo">
+                        <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">file_download</span>
+                      </a>
+                    
+                  </div>
+                
+              </div>
+            </div>
+          
+            <div data-tipo="upload" class="doc-card bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-stretch min-h-[72px]">
+                <!-- Coluna 1: Status / Ícone -->
+                <div class="w-[32px] shrink-0 flex flex-col items-center justify-center border-r border-outline-variant/30">
+                  <span class="material-symbols-outlined text-[18px] text-outline doc-icon">radio_button_unchecked</span>
+                </div>
+
+                <!-- Coluna 2: Conteúdo Central -->
+                <div class="flex-1 flex flex-col justify-center py-xs px-sm min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="text-[13px] text-on-surface-variant doc-label">Carta de recomendação ao aluno</span>
+                    
+                  </div>
+
+                  <div class="doc-file-info hidden -ml-[26px]">
+                    <p class="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
+                      <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center shrink-0 text-primary-container">description</span>
+                      <span class="truncate">
+                        Anexado: 
+                        <a href="#" target="_blank" rel="noreferrer" class="text-primary-container font-semibold hover:underline doc-filename-link" title="Visualizar arquivo">
+                          Tipo: <span class="doc-file-ext"></span> - Tam: <span class="doc-file-size"></span>
+                        </a>
+                      </span>
+                    </p>
+                  </div>
+
+                  <p class="text-[10px] text-on-surface-variant mt-0.5 leading-tight pr-2">Limitada a uma página.</p>
+                  
+                  
+                </div>
+
+                <!-- Coluna 3: Ações -->
+                
+                  <div class="w-[40px] shrink-0 flex flex-col items-center justify-between border-l border-outline-variant/30 py-1">
+                    
+                    <div class="flex flex-col items-center">
+                      <div class="flex items-center shrink-0 doc-upload-container">
+                        <div class="relative cursor-pointer w-7 h-7">
+                          <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer doc-upload z-10" data-id="carta-recomendacao" title="Anexar arquivo" accept=".pdf,.png,.jpg,.jpeg">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors absolute inset-0">attach_file</span>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center shrink-0 doc-remove-container hidden">
+                        <button type="button" class="doc-remove text-error hover:bg-error-container/20 flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Remover anexo">
+                          <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">delete</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    
+                      <a href="https://fealq.org.br/wp-content/uploads/2024/02/Template-50_anos_Timbrado.docx" target="_blank" rel="noreferrer" class="text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Baixar Modelo">
+                        <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">file_download</span>
+                      </a>
+                    
+                  </div>
+                
+              </div>
+            </div>
+          
+            <div data-tipo="externo" class="doc-card bg-surface-container-lowest border rounded transition-colors border-outline-variant border-dashed doc-card">
+              <div class="flex items-stretch min-h-[72px]">
+                <!-- Coluna 1: Status / Ícone -->
+                <div class="w-[32px] shrink-0 flex flex-col items-center justify-center border-r border-outline-variant/30">
+                  <span class="material-symbols-outlined text-[18px] text-outline doc-icon">forward_to_inbox</span>
+                </div>
+
+                <!-- Coluna 2: Conteúdo Central -->
+                <div class="flex-1 flex flex-col justify-center py-xs px-sm min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="text-[13px] text-on-surface-variant doc-label">Formulário de Avaliação Social</span>
+                    <span class="text-on-surface-variant text-[10px] font-bold uppercase shrink-0">Externo</span>
+                  </div>
+
+                  <div class="doc-file-info hidden -ml-[26px]">
+                    <p class="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
+                      <span class="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center shrink-0 text-primary-container">description</span>
+                      <span class="truncate">
+                        Anexado: 
+                        <a href="#" target="_blank" rel="noreferrer" class="text-primary-container font-semibold hover:underline doc-filename-link" title="Visualizar arquivo">
+                          Tipo: <span class="doc-file-ext"></span> - Tam: <span class="doc-file-size"></span>
+                        </a>
+                      </span>
+                    </p>
+                  </div>
+
+                  <p class="text-[10px] text-on-surface-variant mt-0.5 leading-tight pr-2">Solicite à Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade. Após entrevista com o candidato, a DVATCOM encaminha o formulário diretamente à Fealq.</p>
+                  
+                    <a href="mailto:social.lq@usp.br" class="inline-flex items-center gap-1 mt-1 text-[11px] font-medium text-primary hover:text-primary-container transition-colors w-fit">
+                      <span class="material-symbols-outlined text-[14px]">mail</span>
+                      e-mail da DVATCOM: social.lq@usp.br
+                    </a>
+                  
+                  
+                </div>
+
+                <!-- Coluna 3: Ações -->
+                
+              </div>
             </div>
           
       </div>
@@ -594,13 +786,32 @@
         input.addEventListener('change', (e) => {
           const card = e.target.closest('.doc-card');
           const fileInfo = card.querySelector('.doc-file-info');
-          const filename = card.querySelector('.doc-filename');
+          const fileExt = card.querySelector('.doc-file-ext');
+          const fileSize = card.querySelector('.doc-file-size');
+          const fileLink = card.querySelector('.doc-filename-link');
           const icon = card.querySelector('.doc-icon');
           const label = card.querySelector('.doc-label');
+          const uploadContainer = card.querySelector('.doc-upload-container');
+          const removeContainer = card.querySelector('.doc-remove-container');
           
           if (e.target.files.length > 0) {
-            filename.innerText = e.target.files[0].name;
+            const file = e.target.files[0];
+            const ext = file.name.split('.').pop()?.toLowerCase() || 'arquivo';
+            const size = file.size < 1024 * 1024 
+              ? Math.round(file.size / 1024) + ' KB' 
+              : (file.size / (1024 * 1024)).toFixed(1).replace('.', ',') + ' MB';
+              
+            fileExt.innerText = ext;
+            fileSize.innerText = size;
+            fileLink.title = 'Visualizar ' + file.name;
+            
+            // Note: In a static HTML page without a dev server, createObjectURL works perfectly until refresh
+            fileLink.href = URL.createObjectURL(file);
+            
             fileInfo.classList.remove('hidden');
+            if(uploadContainer) uploadContainer.classList.add('hidden');
+            if(removeContainer) removeContainer.classList.remove('hidden');
+            
             card.classList.add('concluido');
             card.classList.remove('border-dashed');
             icon.innerText = 'check_circle';
@@ -619,9 +830,14 @@
           const fileInfo = card.querySelector('.doc-file-info');
           const icon = card.querySelector('.doc-icon');
           const label = card.querySelector('.doc-label');
+          const uploadContainer = card.querySelector('.doc-upload-container');
+          const removeContainer = card.querySelector('.doc-remove-container');
           
           input.value = '';
           fileInfo.classList.add('hidden');
+          if(uploadContainer) uploadContainer.classList.remove('hidden');
+          if(removeContainer) removeContainer.classList.add('hidden');
+          
           card.classList.remove('concluido');
           card.classList.add('border-dashed');
           icon.innerText = 'radio_button_unchecked';

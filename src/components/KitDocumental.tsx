@@ -122,16 +122,17 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar, isConcluido }: ItemDocument
 
   return (
     <div
-      className={`p-sm bg-surface-container-lowest border rounded transition-colors ${
+      className={`bg-surface-container-lowest border rounded transition-colors ${
         concluido
           ? 'border-outline-variant'
           : 'border-outline-variant border-dashed hover:border-primary-container'
       }`}
     >
-      <div className="flex items-start justify-between gap-sm">
-        <div className="flex items-start gap-sm min-w-0">
+      <div className="flex items-stretch min-h-[72px]">
+        {/* Coluna 1: Status / Ícone */}
+        <div className="w-[32px] shrink-0 flex flex-col items-center justify-center border-r border-outline-variant/30">
           <span
-            className={`material-symbols-outlined text-[18px] shrink-0 ${
+            className={`material-symbols-outlined text-[18px] ${
               concluido ? 'text-secondary' : 'text-outline'
             }`}
           >
@@ -141,70 +142,85 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar, isConcluido }: ItemDocument
                 ? 'forward_to_inbox'
                 : 'radio_button_unchecked'}
           </span>
-          <span
-            className={`text-[13px] ${
-              concluido
-                ? 'text-on-surface font-medium'
-                : 'text-on-surface-variant'
-            }`}
-          >
-            {doc.label}
-          </span>
         </div>
 
-        {gerado ? (
-          <span className={`text-[11px] font-bold uppercase shrink-0 ${concluido ? 'text-secondary' : 'text-[#F17C58]'}`}>
-            {concluido ? 'Concluído' : 'Pendente'}
-          </span>
-        ) : doc.tipo === 'externo' ? (
-          <span className="text-on-surface-variant text-[11px] font-bold uppercase shrink-0">
-            Externo
-          </span>
-        ) : (
-          <div className="flex items-center gap-1 shrink-0">
+        {/* Coluna 2: Conteúdo Central */}
+        <div className="flex-1 flex flex-col justify-center py-xs px-sm min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <span
+              className={`text-[13px] ${
+                concluido
+                  ? 'text-on-surface font-medium'
+                  : 'text-on-surface-variant'
+              }`}
+            >
+              {doc.label}
+            </span>
+            {gerado && (
+              <span className={`text-[10px] font-bold uppercase shrink-0 ${concluido ? 'text-secondary' : 'text-[#F17C58]'}`}>
+                {concluido ? 'Concluído' : 'Pendente'}
+              </span>
+            )}
+            {doc.tipo === 'externo' && (
+              <span className="text-on-surface-variant text-[10px] font-bold uppercase shrink-0">
+                Externo
+              </span>
+            )}
+          </div>
+
+          {arquivo && (
+            <div className="-ml-[26px]">
+               <ArquivoSelecionado arquivo={arquivo} />
+            </div>
+          )}
+
+          {detalhe && (
+            <p className="text-[10px] text-on-surface-variant mt-0.5 leading-tight pr-2">
+              {detalhe}
+            </p>
+          )}
+
+          {doc.acaoEmail && (
+            <a
+              href={`mailto:${doc.acaoEmail.email}`}
+              className="inline-flex items-center gap-1 mt-1 text-[11px] font-medium text-primary hover:text-primary-container transition-colors w-fit"
+            >
+              <span className="material-symbols-outlined text-[14px]">mail</span>
+              {doc.acaoEmail.label}
+            </a>
+          )}
+
+          {!doc.obrigatorio && (
+             <span className="inline-block mt-1 w-fit text-[9px] font-bold uppercase tracking-wide px-1.5 py-[1px] rounded bg-surface-variant text-on-surface-variant">
+              Condicional
+            </span>
+          )}
+        </div>
+
+        {/* Coluna 3: Ações (Modelo, Anexar/Remover) */}
+        {!gerado && doc.tipo !== 'externo' && (
+          <div className="w-[40px] shrink-0 flex flex-col items-center justify-between border-l border-outline-variant/30 py-1">
+            <div className="flex flex-col items-center">
+              <AnexarArquivo
+                id={`anexo-${doc.id}`}
+                arquivo={arquivo}
+                onSelecionar={onSelecionar}
+              />
+            </div>
             {doc.url_template && (
               <a
                 href={doc.url_template}
                 target="_blank"
                 rel="noreferrer"
-                className="text-primary-container hover:bg-surface-variant flex items-center justify-center w-8 h-8 rounded-full transition-colors shrink-0"
+                className="text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0"
                 title="Baixar Modelo"
               >
-                <span className="material-symbols-outlined text-[18px]">file_download</span>
+                <span className="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">file_download</span>
               </a>
             )}
-            <AnexarArquivo
-              id={`anexo-${doc.id}`}
-              arquivo={arquivo}
-              onSelecionar={onSelecionar}
-            />
           </div>
         )}
       </div>
-
-      {arquivo && <ArquivoSelecionado arquivo={arquivo} />}
-
-      {detalhe && (
-        <p className="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">
-          {detalhe}
-        </p>
-      )}
-
-      {doc.acaoEmail && (
-        <a
-          href={`mailto:${doc.acaoEmail.email}`}
-          className="inline-flex items-center gap-1 mt-xs ml-[26px] text-[11px] font-medium text-primary hover:text-primary-container transition-colors"
-        >
-          <span className="material-symbols-outlined text-[14px]">mail</span>
-          {doc.acaoEmail.label}
-        </a>
-      )}
-
-      {!doc.obrigatorio && (
-        <span className="inline-block mt-xs ml-[26px] text-[9px] font-bold uppercase tracking-wide px-1.5 py-[1px] rounded bg-surface-variant text-on-surface-variant">
-          Condicional
-        </span>
-      )}
     </div>
   );
 };
