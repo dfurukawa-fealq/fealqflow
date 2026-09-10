@@ -161,15 +161,16 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar, isConcluido }: ItemDocument
             Externo
           </span>
         ) : (
-          <div className="flex items-center gap-sm shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             {doc.url_template && (
               <a
                 href={doc.url_template}
                 target="_blank"
                 rel="noreferrer"
-                className="text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0"
+                className="text-primary-container hover:bg-surface-variant flex items-center justify-center w-8 h-8 rounded-full transition-colors shrink-0"
+                title="Baixar Modelo"
               >
-                Modelo
+                <span className="material-symbols-outlined text-[18px]">file_download</span>
               </a>
             )}
             <AnexarArquivo

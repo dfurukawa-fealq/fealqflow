@@ -17,7 +17,7 @@ const formatarTamanho = (bytes: number) => {
 };
 
 const ACAO =
-  'text-primary-container text-[11px] font-bold uppercase hover:underline cursor-pointer shrink-0';
+  'text-primary-container hover:bg-surface-variant flex items-center justify-center w-8 h-8 rounded-full transition-colors shrink-0';
 
 /**
  * Seleção de arquivo simulada: abre o seletor real do sistema, mas o
@@ -53,14 +53,14 @@ export const AnexarArquivo = ({
       />
 
       {arquivo ? (
-        <div className="flex items-center gap-sm shrink-0">
-          <button type="button" onClick={remover} className={ACAO}>
-            Remover
+        <div className="flex items-center shrink-0">
+          <button type="button" onClick={remover} className="text-error hover:bg-error-container/20 flex items-center justify-center w-8 h-8 rounded-full transition-colors shrink-0" title="Remover anexo">
+            <span className="material-symbols-outlined text-[18px]">delete</span>
           </button>
         </div>
       ) : (
-        <label htmlFor={id} className={ACAO}>
-          Anexar
+        <label htmlFor={id} className={ACAO} title="Anexar arquivo">
+          <span className="material-symbols-outlined text-[18px]">attach_file</span>
         </label>
       )}
     </>
