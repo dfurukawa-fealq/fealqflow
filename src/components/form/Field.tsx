@@ -111,14 +111,14 @@ export const Field = ({
             onChange={setVal}
             className={CONTROLE}
           />
-        ) : tipo === 'masked-date' ? (
+        ) : tipo === 'date' || tipo === 'month' || tipo === 'masked-date' ? (
           <DateInput
             id={id}
             disabled={disabled}
             placeholder={placeholder}
             value={val}
             onChange={setVal}
-            mode="month-year"
+            mode={tipo === 'date' ? 'full-date' : 'month-year'}
             className={CONTROLE}
           />
         ) : tipo === 'numeric' ? (
@@ -155,8 +155,7 @@ export const Field = ({
             id={id}
             disabled={disabled}
             required={obrigatorio}
-            defaultValue={padrao}
-            value={val || padrao}
+            value={val || padrao || ''}
             onChange={(e) => setVal(e.target.value)}
             className={CONTROLE}
           >

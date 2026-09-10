@@ -46,10 +46,9 @@ export function ApoioInfraestrutura() {
           placeholder="Explique por que esta infraestrutura é necessária e quem será beneficiado..."
         />
         <Field
-          label="Valor Estimado (R$)"
+          label="Valor Estimado"
           span={6}
-          prefixo="R$"
-          placeholder="0,00"
+          tipo="currency"
           hint="Teto MÁX: R$ 20.000,00 por pedido"
         />
       </FormSection>

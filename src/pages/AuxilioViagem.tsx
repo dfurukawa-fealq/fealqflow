@@ -47,7 +47,7 @@ export const AuxilioViagem = () => (
         opcoes={['Brasil', 'Portugal', 'Estados Unidos', 'Outro...']}
       />
       <Field label="Cidade/Estado" span={6} placeholder="Ex: São Paulo, SP" />
-      <Field label="Mês/Ano da Viagem" span={6} tipo="masked-date" valor="072026" />
+      <Field label="Mês/Ano da Viagem" span={6} tipo="month" valor="072026" />
       <Field
         label="Finalidade"
         span={6}

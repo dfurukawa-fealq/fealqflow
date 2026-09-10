@@ -23,7 +23,7 @@ export function BolsaGraduacao() {
           label="Nome Completo do Aluno"
           placeholder="Ex: Maria Oliveira"
         />
-        <Field label="CPF" span={6} placeholder="000.000.000-00" />
+        <Field label="CPF" span={6} tipo="cpf" />
         <Field
           label="Curso"
           span={6}
@@ -37,6 +37,7 @@ export function BolsaGraduacao() {
         <Field
           label="Número USP / Matrícula"
           span={6}
+          tipo="numeric"
           placeholder="Apenas números"
         />
       </FormSection>

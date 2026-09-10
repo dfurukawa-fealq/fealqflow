@@ -35,7 +35,7 @@ export function MaterialEventos() {
         <Field
           label="Público Estimado"
           span={6}
-          tipo="number"
+          tipo="numeric"
           placeholder="Nº de participantes"
         />
         <Field label="Data do Evento" span={6} tipo="date" />

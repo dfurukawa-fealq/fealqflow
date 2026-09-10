@@ -191,6 +191,30 @@ const renderField = (field: any) => {
   
   let control = '';
   
+  let inputType = type;
+  let maskAttr = '';
+  let dataAttr = '';
+  let rightIcon = '';
+  
+  if (field.label.toLowerCase() === 'cpf') {
+    maskAttr = 'data-mask="cpf"';
+    inputType = 'text';
+    dataAttr = 'inputmode="numeric" maxlength="14"';
+  } else if (type === 'date' || type === 'month') {
+    maskAttr = 'data-mask="date"';
+    inputType = 'text';
+    dataAttr = `inputmode="numeric" data-date-mode="${type}" maxlength="${type === 'month' ? '7' : '10'}" placeholder="${type === 'month' ? 'MM/AAAA' : 'DD/MM/AAAA'}"`;
+    rightIcon = `
+      <button type="button" tabindex="-1" class="absolute right-2 top-[50%] translate-y-[-50%] text-on-surface-variant hover:text-primary transition-colors p-1 flex items-center justify-center rounded">
+        <span class="material-symbols-outlined text-[18px]">calendar_today</span>
+      </button>
+    `;
+  } else if (field.prefixo === 'R$') {
+    maskAttr = 'data-mask="currency"';
+    inputType = 'text';
+    dataAttr = 'inputmode="numeric" placeholder="0,00"';
+  }
+
   if (type === 'textarea') {
     control = `<textarea id="${id}" class="w-full h-auto min-h-[80px] p-sm resize-y px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" placeholder="${placeholder}"></textarea>`;
   } else if (type === 'select') {
@@ -202,15 +226,20 @@ const renderField = (field: any) => {
     `;
   } else if (field.prefixo) {
     control = `
-      <div class="flex">
-        <span class="inline-flex items-center px-sm h-[36px] rounded-l border border-r-0 border-outline-variant bg-surface-container-low text-on-surface-variant text-[12px]">
+      <div class="flex relative">
+        <span class="inline-flex items-center px-sm h-[36px] rounded-l border border-r-0 border-outline-variant bg-surface-container-low text-on-surface-variant text-[12px] font-bold">
           ${field.prefixo}
         </span>
-        <input id="${id}" type="${type}" placeholder="${placeholder}" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors rounded-l-none" />
+        <input id="${id}" type="${inputType}" ${maskAttr} ${dataAttr} placeholder="${placeholder || '0,00'}" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors rounded-l-none" />
       </div>
     `;
   } else {
-    control = `<input id="${id}" type="${type}" placeholder="${placeholder}" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors" />`;
+    control = `
+      <div class="relative w-full">
+        <input id="${id}" type="${inputType}" ${maskAttr} ${dataAttr} placeholder="${placeholder}" class="w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors ${rightIcon ? 'pr-9' : ''}" />
+        ${rightIcon}
+      </div>
+    `;
   }
 
   return `
@@ -633,6 +662,55 @@ const generateHtml = (programa: ProgramaApoio) => {
           document.querySelectorAll('.doc-remove').forEach(b => b.click());
         }, 1000);
       });
+    });
+
+      // Máscaras de Input
+      const formatCPF = (v) => {
+        const d = v.replace(/\\D/g, '').slice(0, 11);
+        if (d.length <= 3) return d;
+        if (d.length <= 6) return d.slice(0,3) + '.' + d.slice(3);
+        if (d.length <= 9) return d.slice(0,3) + '.' + d.slice(3,6) + '.' + d.slice(6);
+        return d.slice(0,3) + '.' + d.slice(3,6) + '.' + d.slice(6,9) + '-' + d.slice(9);
+      };
+      
+      const formatCurrency = (v) => {
+        const d = v.replace(/\\D/g, '');
+        if (!d) return '';
+        const n = parseInt(d, 10) / 100;
+        return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+      };
+      
+      const formatDate = (v, isMonth) => {
+        const d = v.replace(/\\D/g, '');
+        if (!d) return '';
+        if (isMonth) {
+          const m = d.slice(0,6);
+          if (m.length <= 2) return m;
+          return m.slice(0,2) + '/' + m.slice(2);
+        } else {
+          const m = d.slice(0,8);
+          if (m.length <= 2) return m;
+          if (m.length <= 4) return m.slice(0,2) + '/' + m.slice(2);
+          return m.slice(0,2) + '/' + m.slice(2,4) + '/' + m.slice(4);
+        }
+      };
+
+      document.querySelectorAll('[data-mask]').forEach(el => {
+        el.addEventListener('input', (e) => {
+          const mask = el.getAttribute('data-mask');
+          const isMonth = el.getAttribute('data-date-mode') === 'month';
+          
+          if (mask === 'cpf') {
+            e.target.value = formatCPF(e.target.value);
+          } else if (mask === 'currency' || mask === 'numeric') {
+            e.target.value = formatCurrency(e.target.value);
+          } else if (mask === 'date') {
+            e.target.value = formatDate(e.target.value, isMonth);
+          }
+          updateKitStatus();
+        });
+      });
+      
     });
   </script>
 </body>

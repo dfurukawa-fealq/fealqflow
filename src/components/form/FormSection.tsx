@@ -36,19 +36,26 @@ export const FormSection = ({
   const visivel = !colapsavel || expandido;
 
   const cabecalho = (
-    <>
-      <div className="flex items-center gap-sm min-w-0">
-        <span className="material-symbols-outlined text-primary-container">
-          {icone}
-        </span>
-        <h2 className="text-[16px] font-semibold text-primary-container">
-          {numero !== undefined ? `${numero}. ` : ''}
-          {titulo}
-        </h2>
+    <div className="flex w-full items-center justify-between gap-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between sm:justify-start gap-y-1 gap-x-6 flex-1 min-w-0 text-left">
+        <div className="flex items-center gap-sm min-w-0">
+          <span className="material-symbols-outlined text-primary-container shrink-0">
+            {icone}
+          </span>
+          <h2 className="text-[16px] font-semibold text-primary-container leading-tight">
+            {numero !== undefined ? `${numero}. ` : ''}
+            {titulo}
+          </h2>
+        </div>
+        {acao && (
+          <div className="pl-[32px] sm:pl-0 shrink-0">
+            {acao}
+          </div>
+        )}
       </div>
-      <div className="flex items-center gap-sm shrink-0">
-        {acao}
-        {colapsavel && (
+      
+      {colapsavel && (
+        <div className="shrink-0 ml-xs">
           <span
             className={`material-symbols-outlined text-[20px] text-on-surface-variant transition-transform ${
               expandido ? 'rotate-180' : ''
@@ -56,9 +63,9 @@ export const FormSection = ({
           >
             expand_more
           </span>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   );
 
   return (
@@ -68,14 +75,16 @@ export const FormSection = ({
           type="button"
           onClick={() => setExpandido(!expandido)}
           aria-expanded={expandido}
-          className={`w-full flex items-center justify-between gap-sm text-left ${
+          className={`w-full flex text-left ${
             visivel ? 'mb-md pb-xs border-b border-surface-variant' : ''
           }`}
         >
           {cabecalho}
         </button>
       ) : (
-        <div className="flex items-center justify-between gap-sm mb-md pb-xs border-b border-surface-variant">
+        <div className={`w-full flex text-left ${
+            visivel ? 'mb-md pb-xs border-b border-surface-variant' : ''
+          }`}>
           {cabecalho}
         </div>
       )}

@@ -20,7 +20,7 @@ export function BolsaPosGraduacao() {
 
       <FormSection numero={1} icone="school" titulo="Dados do Bolsista">
         <Field label="Nome Completo do Aluno" placeholder="Ex: João da Silva" />
-        <Field label="CPF" span={6} placeholder="000.000.000-00" />
+        <Field label="CPF" span={6} tipo="cpf" />
         <Field
           label="Nível"
           span={6}
@@ -41,7 +41,7 @@ export function BolsaPosGraduacao() {
         />
         <Field label="Início da Bolsa" span={6} tipo="month" />
         <Field label="Fim Previsto" span={6} tipo="month" />
-        <Field label="Valor Mensal Previsto (R$)" prefixo="R$" placeholder="0,00" />
+        <Field label="Valor Mensal Previsto" tipo="currency" />
       </FormSection>
     </FormPageLayout>
   );

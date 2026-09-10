@@ -259,15 +259,16 @@ export const FormPageLayout = ({
             </div>
 
             {/* Centro: Slot customizável (se houver) e Aviso Desktop */}
-            <div className="flex-1 flex justify-center items-center gap-md px-md">
+            <div className="flex-1 flex justify-center items-center gap-md px-1 md:px-md">
               {footerCenter}
               {!liberado && (
                 <button
                   onClick={() => setShowWarningModal(true)}
-                  className="flex items-center justify-center gap-2 bg-[#F17C58] text-white text-xs px-3 h-[28px] rounded-md shadow-xs whitespace-nowrap animate-pulse hover:opacity-90 transition-opacity cursor-pointer"
+                  className="flex items-center justify-center gap-2 bg-[#F17C58] text-white text-xs px-2 md:px-3 h-[28px] md:h-[28px] w-[28px] md:w-auto rounded-md shadow-xs animate-pulse hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+                  title="Ver Pendências"
                 >
                   <span className="material-symbols-outlined text-[16px]">warning</span>
-                  <span>
+                  <span className="hidden md:inline whitespace-nowrap">
                     <strong>Trava de Envio Ativa:</strong> O sistema bloqueia envios incompletos. Clique para ver pendências.
                   </span>
                 </button>
@@ -317,21 +318,21 @@ export const FormPageLayout = ({
 
       {/* Modal 1: Aviso de Trava de Envio */}
       {showWarningModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-surface rounded-lg p-lg w-full max-w-md shadow-xl flex flex-col gap-4 border border-outline-variant">
-            <div className="flex items-center gap-3 text-[#F17C58] font-bold text-lg border-b border-outline-variant pb-xs">
-              <span className="material-symbols-outlined text-2xl">warning</span>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200">
+          <div className="bg-surface rounded-xl p-lg w-[90vw] sm:w-[440px] max-w-[440px] shadow-2xl flex flex-col gap-lg border border-outline-variant animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 text-[#F17C58] font-bold text-[18px]">
+              <span className="material-symbols-outlined text-[28px]">warning</span>
               Trava de Envio Ativa
             </div>
             
-            <div className="flex flex-col gap-sm text-sm text-on-surface-variant">
+            <div className="flex flex-col gap-md text-[14px] text-on-surface-variant">
               <p>
-                O sistema bloqueia submissões incompletas para evitar inconformidades cadastrais.
+                O sistema bloqueia submissões incompletas para evitar inconformidades.
               </p>
               
-              <div className="bg-surface-container-low p-sm rounded border border-outline-variant flex flex-col gap-xs text-xs">
-                <span className="font-bold text-on-surface">Pendências identificadas:</span>
-                <ul className="list-disc pl-4 flex flex-col gap-1 text-on-surface-variant">
+              <div className="bg-[#F17C58]/10 p-md rounded-lg border border-[#F17C58]/20 flex flex-col gap-sm text-[13px]">
+                <span className="font-bold text-[#F17C58] uppercase tracking-wide text-[11px]">Pendências identificadas:</span>
+                <ul className="list-disc pl-5 flex flex-col gap-1 text-on-surface">
                   {pendencias !== null && pendencias > 0 && (
                     <li>Faltam <strong>{pendencias}</strong> documento(s) obrigatório(s) no Kit de Documentos.</li>
                   )}
@@ -342,12 +343,12 @@ export const FormPageLayout = ({
               </div>
             </div>
 
-            <div className="flex justify-end mt-2">
+            <div className="flex justify-end pt-sm">
               <button
                 onClick={() => setShowWarningModal(false)}
-                className="bg-secondary text-on-secondary px-4 py-2 rounded text-sm font-bold hover:opacity-90 transition-opacity"
+                className="bg-[#F17C58] text-white px-lg h-[40px] rounded text-[14px] font-bold hover:bg-[#d96644] transition-colors shadow-sm cursor-pointer"
               >
-                Entendi e Voltar ao Formulário
+                Voltar e Preencher
               </button>
             </div>
           </div>
@@ -357,7 +358,7 @@ export const FormPageLayout = ({
       {/* Modal 2: Confirmação de Cancelamento */}
       {showCancelModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-surface rounded-lg p-lg w-full max-w-md shadow-xl flex flex-col gap-4 border border-outline-variant">
+          <div className="bg-surface rounded-lg p-lg w-[90vw] sm:w-[440px] max-w-[440px] shadow-xl flex flex-col gap-4 border border-outline-variant">
             <div className="flex items-center gap-3 text-error font-bold text-lg border-b border-outline-variant pb-xs">
               <span className="material-symbols-outlined text-2xl">help</span>
               Confirmar Cancelamento
