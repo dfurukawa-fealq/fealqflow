@@ -5,6 +5,7 @@ import {
   ArquivoSelecionado,
 } from './form/AnexarArquivo';
 import { useEnvio } from './form/EnvioContext';
+import { ModalRegulamento } from './ModalRegulamento';
 
 interface KitDocumentalProps {
   documentos: DocumentoExigido[];
@@ -115,6 +116,7 @@ interface ItemDocumentoProps {
 }
 
 const ItemDocumento = ({ doc, arquivo, onSelecionar, isConcluido }: ItemDocumentoProps) => {
+  const [showRegulamento, setShowRegulamento] = useState(false);
   const { formValido } = useEnvio();
   const gerado = doc.tipo === 'gerado';
   const concluido = isConcluido !== undefined ? isConcluido : (gerado ? formValido : Boolean(arquivo));
@@ -168,9 +170,15 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar, isConcluido }: ItemDocument
             )}
           </div>
 
-          {arquivo && (
+          {arquivo && doc.tipo !== 'aceite' && (
             <div className="-ml-[26px]">
                <ArquivoSelecionado arquivo={arquivo} />
+            </div>
+          )}
+          {concluido && doc.tipo === 'aceite' && (
+            <div className="flex items-center gap-1 mt-1 text-secondary text-[10px] font-bold uppercase">
+              <span className="material-symbols-outlined text-[14px]">task_alt</span>
+              Termos Aceitos
             </div>
           )}
 
@@ -198,7 +206,28 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar, isConcluido }: ItemDocument
         </div>
 
         {/* Coluna 3: Ações (Modelo, Anexar/Remover) */}
-        {!gerado && doc.tipo !== 'externo' && (
+        {doc.tipo === 'aceite' && (
+          <div className="w-[40px] shrink-0 flex flex-col items-center justify-center gap-1 border-l border-outline-variant/30 py-1">
+            <button
+              onClick={() => setShowRegulamento(true)}
+              className="text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0"
+              title={concluido ? 'Ver Regulamento' : 'Ler e Aceitar Regulamento'}
+            >
+              <span className="material-symbols-outlined text-[18px] inline-block scale-[0.8] origin-center">
+                {concluido ? 'visibility' : 'contract'}
+              </span>
+            </button>
+          </div>
+        )}
+        {doc.tipo === 'aceite' && showRegulamento && (
+          <ModalRegulamento
+            jaAceito={concluido}
+            onClose={() => setShowRegulamento(false)}
+            onAceitar={() => onSelecionar(new File(['aceito'], 'Aceite.txt', { type: 'text/plain' }))}
+          />
+        )}
+        {!gerado && doc.tipo !== 'externo' && doc.tipo !== 'aceite' && (
+
           <div className="w-[40px] shrink-0 flex flex-col items-center justify-between border-l border-outline-variant/30 py-1">
             <div className="flex flex-col items-center">
               <AnexarArquivo

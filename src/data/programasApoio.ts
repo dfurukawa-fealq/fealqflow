@@ -6,7 +6,7 @@
  * `[cite: N]` removidos. Ao atualizar um edital, atualize este arquivo.
  */
 
-export type TipoDocumento = 'gerado' | 'upload' | 'externo';
+export type TipoDocumento = 'gerado' | 'upload' | 'externo' | 'aceite';
 
 export interface DocumentoExigido {
   id: string;
@@ -52,6 +52,13 @@ const DOC_FORMULARIO: DocumentoExigido = {
   obrigatorio: true,
 };
 
+const DOC_REGULAMENTO: DocumentoExigido = {
+  id: 'regulamento',
+  label: 'Aceite do Regulamento de Apoios (REG-C-003)',
+  descricao: 'Leitura e concordância obrigatória com as normas vigentes do programa.',
+  tipo: 'aceite',
+  obrigatorio: true,
+};
 export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   {
     id: 'bolsa-pos',
@@ -65,6 +72,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
       'Destinado a alunos de pós-graduação que precisam de apoio para iniciar ou finalizar o programa, sendo concedida por até três meses no início ou final dos cursos, respeitando os prazos regimentais do Programa de Pós-graduação. Requer encaminhamento realizado pela Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade parceira à qual o candidato está vinculado. É vedada prorrogação para esta modalidade. Não é permitida a acumulação de bolsas semelhantes e o auxílio deverá seguir os critérios e valores previstos na tabela de Bolsas de Incentivo do Regulamento de Bolsas da Fealq.',
     documentos: [
       DOC_FORMULARIO,
+      DOC_REGULAMENTO,
       {
         id: 'justificativa',
         label: 'Justificativa da necessidade do recurso',
@@ -167,6 +175,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
       'Destinada a alunos de graduação com vulnerabilidade socioeconômica mediante encaminhamento realizado pela Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade. Poderá ser concedida por até 12 meses.',
     documentos: [
       DOC_FORMULARIO,
+      DOC_REGULAMENTO,
       {
         id: 'justificativa',
         label: 'Justificativa da necessidade do recurso',
@@ -319,6 +328,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
       'Destinado a alunos de graduação, pós-graduação, pesquisadores e docentes das unidades parceiras para cobrir a inscrição em evento, passagem aérea ou ônibus e/ou hospedagem e demais despesas relacionadas ao evento, que não sejam vedadas nas Normas da Fundação. O benefício exige a apresentação de comprovante do aceite do trabalho em evento técnico-científico, com limite ao teto de R$ 3.000,00 para eventos nacionais e até R$ 6.000,00 para eventos no exterior. O aluno que pleitear auxílio nesta modalidade não poderá pleitear simultaneamente na modalidade Auxílio Viagem.',
     documentos: [
       DOC_FORMULARIO,
+      DOC_REGULAMENTO,
       {
         id: 'programacao',
         label: 'Programação do evento',
@@ -399,6 +409,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
       'Destinado a alunos de graduação e pós-graduação das unidades parceiras para cobrir custos de passagem aérea e/ou ônibus, hospedagem e outras despesas que não sejam vedadas, para a participação em estágios supervisionados, reuniões técnicas ou viagem para atendimento de necessidades de projetos de pesquisa. Limitado ao teto de até R$ 3.000,00 para viagens nacionais e R$ 6.000,00 internacionais. Esta modalidade não contempla apoio para participação em Congresso e similares. Em caso de aprovação, o beneficiário deverá comprovar após a viagem uma contrapartida à Fealq, a exemplo de vídeos ou publicação na rede social em menção ao apoio concedido.',
     documentos: [
       DOC_FORMULARIO,
+      DOC_REGULAMENTO,
       {
         id: 'carta-justificativa',
         label: 'Carta com apresentação e justificativa da viagem',
@@ -470,6 +481,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
       'Destinado ao autor responsável pelo artigo, desde que esteja vinculado à linha de pesquisa da unidade parceira onde foi conduzida a pesquisa, para pagamento das taxas de publicação de artigos científicos em revistas com fator de impacto. O apoio é mediante a apresentação do artigo submetido e do comprovante de aceite da revista científica. Se o pedido for feito por aluno de pós-graduação, necessariamente deve ser o primeiro autor. Se o pedido for feito por docente, que deve ser autor correspondente, terá prioridade o artigo que também tiver participação discente. Publicações em periódicos que possuem acordos transformativos assinados com a USP/CAPES isentam os pesquisadores do pagamento da taxa e não serão avaliados.',
     documentos: [
       { ...DOC_FORMULARIO, label: 'Formulário de Apoio' },
+      DOC_REGULAMENTO,
       {
         id: 'oficio',
         label: 'Ofício à Diretoria da Fealq',
@@ -573,6 +585,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
       'Destinado a incentivar e viabilizar ações que promovam impacto social e fortalecimento comunitário. O foco está no apoio a iniciativas abertas à sociedade, sem vínculo com a Universidade, que valorizem a cultura, o esporte, a educação, a cidadania e que proporcionem claro impacto positivo aos beneficiários. Limitado ao teto de até R$ 5.000,00 por apoio. As propostas devem estar alinhadas com no mínimo um dos Objetivos de Desenvolvimento Sustentável (ODS) da Agenda 2030 da ONU. Exige comprovação do crédito do patrocínio à Fundação, como contrapartida, a exemplo de publicação de vídeos ou fotos, com menção do apoio da Fealq publicado em rede social.',
     documentos: [
       DOC_FORMULARIO,
+      DOC_REGULAMENTO,
       {
         id: 'carta-apoio',
         label: 'Carta de apoio institucional em papel timbrado',
@@ -608,6 +621,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
       'Destinado aos eventos administrados pela Fundação, para auxílio exclusivo na contratação de coffee-break e aquisição de brindes, além de fornecimento de material de apoio Fealq (canetas, blocos e pastas). Limitado ao teto de R$ 3.000,00 por apoio. O evento deve ser promovido por unidades da USP parceiras da Fealq e a gestão administrativo-financeira deve ser realizada pela Fundação. Exige-se comprovação do crédito do patrocínio à Fundação na publicidade do evento como contrapartida, a exemplo da inserção da logomarca horizontal no material do evento, vídeos ou fotos com menção do apoio da Fealq, publicado em rede social.',
     documentos: [
       DOC_FORMULARIO,
+      DOC_REGULAMENTO,
       {
         id: 'carta-evento',
         label: 'Carta com a apresentação do evento',
@@ -661,6 +675,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
       'Destinado a apoiar atividades culturais, tais como exposições, apresentações artísticas, oficinas educativas, grupos musicais, iniciativas de bem-estar, campanhas de conscientização, integração social e outras iniciativas que valorizem a Cultura, Extensão, Inclusão e Pertencimento das unidades parceiras da Fealq. Limitado ao teto de até R$ 3.000,00 por apoio. As propostas devem estar alinhadas com no mínimo um dos Objetivos de Desenvolvimento Sustentável (ODS) da Agenda 2030 da ONU. É exigida comprovação do crédito do patrocínio à Fundação, como contrapartida, a exemplo da inserção da logomarca horizontal da Fealq no material da iniciativa, vídeos ou fotos com menção do apoio da Fealq, publicado em rede social.',
     documentos: [
       DOC_FORMULARIO,
+      DOC_REGULAMENTO,
       {
         id: 'carta-apoio',
         label: 'Carta de apoio institucional assinada em papel timbrado',
