@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface ModalRegulamentoProps {
   onClose: () => void;
@@ -7,6 +7,26 @@ interface ModalRegulamentoProps {
 }
 
 export const ModalRegulamento = ({ onClose, onAceitar, jaAceito }: ModalRegulamentoProps) => {
+  const [canAccept, setCanAccept] = useState(jaAceito || false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (canAccept) return;
+    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop - clientHeight < 20) {
+      setCanAccept(true);
+    }
+  };
+
+  useEffect(() => {
+    if (contentRef.current) {
+      const { clientHeight, scrollHeight } = contentRef.current;
+      if (scrollHeight <= clientHeight) {
+        setCanAccept(true);
+      }
+    }
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div 
@@ -28,7 +48,11 @@ export const ModalRegulamento = ({ onClose, onAceitar, jaAceito }: ModalRegulame
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-surface-container-lowest text-on-surface text-sm leading-relaxed space-y-6">
+        <div 
+          ref={contentRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto p-6 lg:p-8 bg-surface-container-lowest text-on-surface text-sm leading-relaxed space-y-6"
+        >
           <div className="text-center space-y-2 mb-8">
             <h3 className="text-lg font-bold text-primary-container uppercase tracking-wide">
               Fundação de Estudos Agrários Luiz de Queiroz – FEALQ
@@ -100,7 +124,13 @@ export const ModalRegulamento = ({ onClose, onAceitar, jaAceito }: ModalRegulame
                   onAceitar();
                   onClose();
                 }}
-                className="px-6 py-2 text-sm font-bold bg-primary text-on-primary hover:bg-primary/90 rounded transition-colors shadow-sm"
+                disabled={!canAccept}
+                className={`px-6 py-2 text-sm font-bold rounded transition-colors shadow-sm ${
+                  canAccept 
+                    ? 'bg-primary text-on-primary hover:bg-primary/90' 
+                    : 'bg-surface-variant text-on-surface-variant cursor-not-allowed opacity-70'
+                }`}
+                title={!canAccept ? "Role até o final do documento para aceitar" : ""}
               >
                 Li e Aceito
               </button>
