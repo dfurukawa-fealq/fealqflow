@@ -26,6 +26,11 @@ export interface DocumentoExigido {
   metadados?: string[];
 }
 
+export interface PeriodoSubmissao {
+  inicio: string; // YYYY-MM-DD
+  fim: string; // YYYY-MM-DD
+}
+
 export interface ProgramaApoio {
   id: string;
   path: string;
@@ -42,6 +47,7 @@ export interface ProgramaApoio {
   teto: string;
   normas: string;
   documentos: DocumentoExigido[];
+  periodosSubmissao?: PeriodoSubmissao[];
 }
 
 const DOC_FORMULARIO: DocumentoExigido = {
@@ -70,7 +76,8 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
     teto: 'Tabela de Bolsas',
     normas:
       'Destinado a alunos de pós-graduação que precisam de apoio para iniciar ou finalizar o programa, sendo concedida por até três meses no início ou final dos cursos, respeitando os prazos regimentais do Programa de Pós-graduação. Requer encaminhamento realizado pela Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade parceira à qual o candidato está vinculado. É vedada prorrogação para esta modalidade. Não é permitida a acumulação de bolsas semelhantes e o auxílio deverá seguir os critérios e valores previstos na tabela de Bolsas de Incentivo do Regulamento de Bolsas da Fealq.',
-    documentos: [
+      periodosSubmissao: [{ inicio: '2026-03-01', fim: '2026-03-31' }, { inicio: '2026-04-01', fim: '2026-04-30' }, { inicio: '2026-05-01', fim: '2026-05-31' }, { inicio: '2026-07-01', fim: '2026-07-31'}, { inicio: '2026-09-01', fim: '2026-09-30'}],
+  documentos: [
       DOC_FORMULARIO,
       DOC_REGULAMENTO,
       {
@@ -173,7 +180,8 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
     teto: 'Tabela de Bolsas',
     normas:
       'Destinada a alunos de graduação com vulnerabilidade socioeconômica mediante encaminhamento realizado pela Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade. Poderá ser concedida por até 12 meses.',
-    documentos: [
+      periodosSubmissao: [{ inicio: '2026-03-01', fim: '2026-03-31' }, { inicio: '2026-08-01', fim: '2026-08-31' }],
+  documentos: [
       DOC_FORMULARIO,
       DOC_REGULAMENTO,
       {
@@ -249,7 +257,8 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
     teto: '20.000,00',
     normas:
       'Destinado a suprir a necessidade de modernização da estrutura física, incluindo equipamentos, reforma, assessoria, prestação de serviços ou outro item similar com impacto para a comunidade acadêmica. Podem apresentar projetos as unidades da USP parceiras da Fealq, representados por coordenadores de disciplina, presidentes de comissões acadêmicas, chefes de departamentos e diretores de unidade, desde que os projetos visem o uso coletivo. A Diretoria destinará o montante de até R$ 250.000,00, com cada pedido limitado ao valor de até R$ 20.000,00, visando atender o maior número de beneficiários. Os recursos aprovados deverão ser utilizados até 30/09/2026, sem prorrogação de prazo.',
-    documentos: [
+      periodosSubmissao: [{ inicio: '2026-04-01', fim: '2026-04-30' }],
+  documentos: [
       {
         id: 'carta-justificativa',
         label: 'Carta com descrição e justificativa do pedido',
@@ -583,7 +592,8 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
     teto: '5.000,00',
     normas:
       'Destinado a incentivar e viabilizar ações que promovam impacto social e fortalecimento comunitário. O foco está no apoio a iniciativas abertas à sociedade, sem vínculo com a Universidade, que valorizem a cultura, o esporte, a educação, a cidadania e que proporcionem claro impacto positivo aos beneficiários. Limitado ao teto de até R$ 5.000,00 por apoio. As propostas devem estar alinhadas com no mínimo um dos Objetivos de Desenvolvimento Sustentável (ODS) da Agenda 2030 da ONU. Exige comprovação do crédito do patrocínio à Fundação, como contrapartida, a exemplo de publicação de vídeos ou fotos, com menção do apoio da Fealq publicado em rede social.',
-    documentos: [
+      periodosSubmissao: [{ inicio: '2026-03-01', fim: '2026-03-31' }, { inicio: '2026-09-01', fim: '2026-09-30' }],
+  documentos: [
       DOC_FORMULARIO,
       DOC_REGULAMENTO,
       {
@@ -619,7 +629,8 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
     teto: '3.000,00',
     normas:
       'Destinado aos eventos administrados pela Fundação, para auxílio exclusivo na contratação de coffee-break e aquisição de brindes, além de fornecimento de material de apoio Fealq (canetas, blocos e pastas). Limitado ao teto de R$ 3.000,00 por apoio. O evento deve ser promovido por unidades da USP parceiras da Fealq e a gestão administrativo-financeira deve ser realizada pela Fundação. Exige-se comprovação do crédito do patrocínio à Fundação na publicidade do evento como contrapartida, a exemplo da inserção da logomarca horizontal no material do evento, vídeos ou fotos com menção do apoio da Fealq, publicado em rede social.',
-    documentos: [
+      periodosSubmissao: [{ inicio: '2026-03-01', fim: '2026-03-31' }, { inicio: '2026-08-01', fim: '2026-08-31' }, { inicio: '2026-10-01', fim: '2026-10-31' }],
+  documentos: [
       DOC_FORMULARIO,
       DOC_REGULAMENTO,
       {
@@ -673,7 +684,8 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
     teto: '3.000,00',
     normas:
       'Destinado a apoiar atividades culturais, tais como exposições, apresentações artísticas, oficinas educativas, grupos musicais, iniciativas de bem-estar, campanhas de conscientização, integração social e outras iniciativas que valorizem a Cultura, Extensão, Inclusão e Pertencimento das unidades parceiras da Fealq. Limitado ao teto de até R$ 3.000,00 por apoio. As propostas devem estar alinhadas com no mínimo um dos Objetivos de Desenvolvimento Sustentável (ODS) da Agenda 2030 da ONU. É exigida comprovação do crédito do patrocínio à Fundação, como contrapartida, a exemplo da inserção da logomarca horizontal da Fealq no material da iniciativa, vídeos ou fotos com menção do apoio da Fealq, publicado em rede social.',
-    documentos: [
+      periodosSubmissao: [{ inicio: '2026-04-01', fim: '2026-04-30' }, { inicio: '2026-08-01', fim: '2026-08-31' }],
+  documentos: [
       DOC_FORMULARIO,
       DOC_REGULAMENTO,
       {
