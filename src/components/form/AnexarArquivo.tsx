@@ -1,4 +1,4 @@
-import { ChangeEvent, useRef, useMemo } from 'react';
+import { ChangeEvent, useRef } from 'react';
 
 /** Formatos aceitos na janela de seleção do sistema. */
 export const FORMATOS_ACEITOS = '.pdf,.png,.jpg,.jpeg';
@@ -17,7 +17,7 @@ const formatarTamanho = (bytes: number) => {
 };
 
 const ACAO =
-  'text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0';
+  'text-primary-container text-[11px] font-bold uppercase hover:underline cursor-pointer shrink-0';
 
 /**
  * Seleção de arquivo simulada: abre o seletor real do sistema, mas o
@@ -53,14 +53,17 @@ export const AnexarArquivo = ({
       />
 
       {arquivo ? (
-        <div className="flex items-center shrink-0">
-          <button type="button" onClick={remover} className="text-error hover:bg-error-container/20 flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0" title="Remover anexo">
-            <span className="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">delete</span>
+        <div className="flex items-center gap-sm shrink-0">
+          <label htmlFor={id} className={ACAO}>
+            Substituir
+          </label>
+          <button type="button" onClick={remover} className={ACAO}>
+            Remover
           </button>
         </div>
       ) : (
-        <label htmlFor={id} className={ACAO} title="Anexar arquivo">
-          <span className="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">attach_file</span>
+        <label htmlFor={id} className={ACAO}>
+          Anexar
         </label>
       )}
     </>
@@ -68,27 +71,14 @@ export const AnexarArquivo = ({
 };
 
 /** Linha com o arquivo escolhido, exibida abaixo do rótulo do documento. */
-export const ArquivoSelecionado = ({ arquivo }: { arquivo: File }) => {
-  const fileUrl = useMemo(() => URL.createObjectURL(arquivo), [arquivo]);
-  const extension = arquivo.name.split('.').pop()?.toLowerCase() || 'arquivo';
-
-  return (
-    <p className="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
-      <span className="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center shrink-0 text-primary-container">
-        description
-      </span>
-      <span className="truncate">
-        Anexado:{' '}
-        <a 
-          href={fileUrl} 
-          target="_blank" 
-          rel="noreferrer"
-          className="text-primary-container font-semibold hover:underline"
-          title={`Visualizar ${arquivo.name}`}
-        >
-          Tipo: {extension} - Tam: {formatarTamanho(arquivo.size)}
-        </a>
-      </span>
-    </p>
-  );
-};
+export const ArquivoSelecionado = ({ arquivo }: { arquivo: File }) => (
+  <p className="flex items-center gap-xs mt-xs pl-[26px] text-[11px] text-on-surface-variant min-w-0">
+    <span className="material-symbols-outlined text-[14px] shrink-0">
+      description
+    </span>
+    <span className="truncate" title={arquivo.name}>
+      {arquivo.name}
+    </span>
+    <span className="shrink-0">· {formatarTamanho(arquivo.size)}</span>
+  </p>
+);

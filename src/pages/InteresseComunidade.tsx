@@ -31,13 +31,14 @@ export function InteresseComunidade() {
         <Field
           label="Público-Alvo Estimado"
           span={6}
-          tipo="numeric"
+          tipo="number"
           placeholder="Nº de pessoas beneficiadas"
         />
         <Field
-          label="Valor do Apoio Solicitado"
+          label="Valor do Apoio Solicitado (R$)"
           span={6}
-          tipo="currency"
+          prefixo="R$"
+          placeholder="0,00"
           hint="Teto MÁX: R$ 5.000,00 por apoio"
         />
       </FormSection>

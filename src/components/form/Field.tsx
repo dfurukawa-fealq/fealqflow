@@ -1,8 +1,4 @@
-import { ReactNode, useState, useEffect } from 'react';
-import { CpfInput } from './CpfInput';
-import { DateInput } from './DateInput';
-import { NumericInput } from './NumericInput';
-import { CurrencyInput } from './CurrencyInput';
+import { ReactNode } from 'react';
 
 export type TipoCampo =
   | 'text'
@@ -15,11 +11,7 @@ export type TipoCampo =
   | 'select'
   | 'textarea'
   | 'radio'
-  | 'checkbox'
-  | 'cpf'
-  | 'masked-date'
-  | 'numeric'
-  | 'currency';
+  | 'checkbox';
 
 interface FieldProps {
   label: string;
@@ -38,8 +30,6 @@ interface FieldProps {
   /** Texto auxiliar abaixo do campo. */
   hint?: string;
   disabled?: boolean;
-  /** Adiciona atributo required (HTML5) no campo. Default: true. */
-  obrigatorio?: boolean;
   /** Substitui o controle por um conteúdo próprio, mantendo label e grade. */
   children?: ReactNode;
 }
@@ -81,19 +71,13 @@ export const Field = ({
   placeholder,
   opcoes = [],
   padrao,
-  valor = '',
+  valor,
   prefixo,
   hint,
   disabled,
-  obrigatorio = true,
   children,
 }: FieldProps) => {
   const id = `${label}-${tipo}`.replace(/\s+/g, '-').toLowerCase();
-  const [val, setVal] = useState<string>(valor);
-
-  useEffect(() => {
-    setVal(valor);
-  }, [valor]);
 
   return (
     <div className={`col-span-12 ${SPAN[span] ?? SPAN[12]}`}>
@@ -102,68 +86,24 @@ export const Field = ({
       </label>
 
       {children ??
-        (tipo === 'cpf' ? (
-          <CpfInput
-            id={id}
-            disabled={disabled}
-            placeholder={placeholder}
-            value={val}
-            onChange={setVal}
-            className={CONTROLE}
-          />
-        ) : tipo === 'date' || tipo === 'month' || tipo === 'masked-date' ? (
-          <DateInput
-            id={id}
-            disabled={disabled}
-            placeholder={placeholder}
-            value={val}
-            onChange={setVal}
-            mode={tipo === 'date' ? 'full-date' : 'month-year'}
-            className={CONTROLE}
-          />
-        ) : tipo === 'numeric' ? (
-          <NumericInput
-            id={id}
-            disabled={disabled}
-            placeholder={placeholder}
-            value={val}
-            onChange={setVal}
-            className={CONTROLE}
-          />
-        ) : tipo === 'currency' ? (
-          <CurrencyInput
-            id={id}
-            disabled={disabled}
-            placeholder={placeholder}
-            value={val}
-            onChange={setVal}
-            currencySymbol={prefixo || 'R$'}
-            className={CONTROLE}
-          />
-        ) : tipo === 'textarea' ? (
+        (tipo === 'textarea' ? (
           <textarea
             id={id}
             disabled={disabled}
-            required={obrigatorio}
             placeholder={placeholder}
-            value={val}
-            onChange={(e) => setVal(e.target.value)}
+            defaultValue={valor}
             className={`${CONTROLE} h-auto min-h-[80px] p-sm resize-y`}
           />
         ) : tipo === 'select' ? (
           <select
             id={id}
             disabled={disabled}
-            required={obrigatorio}
-            value={val || padrao || ''}
-            onChange={(e) => setVal(e.target.value)}
+            defaultValue={padrao}
             className={CONTROLE}
           >
             {placeholder && <option value="">{placeholder}</option>}
             {opcoes.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
+              <option key={o}>{o}</option>
             ))}
           </select>
         ) : tipo === 'radio' ? (
@@ -176,8 +116,6 @@ export const Field = ({
                 <input
                   type="radio"
                   name={id}
-                  value={o}
-                  required={obrigatorio}
                   defaultChecked={o === padrao}
                   disabled={disabled}
                   className="text-primary-container focus:ring-primary-container border-outline-variant"
@@ -191,7 +129,6 @@ export const Field = ({
             <input
               id={id}
               type="checkbox"
-              required={obrigatorio}
               disabled={disabled}
               className="rounded border-outline-variant text-secondary focus:ring-secondary w-4 h-4 cursor-pointer"
             />
@@ -208,10 +145,8 @@ export const Field = ({
               id={id}
               type={tipo}
               disabled={disabled}
-              required={obrigatorio}
               placeholder={placeholder}
-              value={val}
-              onChange={(e) => setVal(e.target.value)}
+              defaultValue={valor}
               className={`${CONTROLE} rounded-l-none`}
             />
           </div>
@@ -220,10 +155,8 @@ export const Field = ({
             id={id}
             type={tipo}
             disabled={disabled}
-            required={obrigatorio}
             placeholder={placeholder}
-            value={val}
-            onChange={(e) => setVal(e.target.value)}
+            defaultValue={valor}
             className={CONTROLE}
           />
         ))}
@@ -236,4 +169,3 @@ export const Field = ({
     </div>
   );
 };
-

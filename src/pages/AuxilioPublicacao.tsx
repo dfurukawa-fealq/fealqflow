@@ -20,7 +20,7 @@ export const AuxilioPublicacao = () => (
 
     <FormSection numero={1} icone="person" titulo="Dados do Solicitante">
       <Field label="Nome Completo" span={8} valor="João Silva Santos" />
-      <Field label="CPF" span={4} tipo="cpf" valor="12345678900" />
+      <Field label="CPF" span={4} valor="123.456.789-00" />
       <Field
         label="Instituição"
         span={6}
@@ -57,16 +57,15 @@ export const AuxilioPublicacao = () => (
         placeholder="Insira o título completo do artigo aceito"
       />
       <Field label="Revista / Periódico" span={8} placeholder="Nome da Revista" />
-      <Field label="Impact Factor" span={2} tipo="numeric" placeholder="0.000" />
-      <Field label="CiteScore" span={2} tipo="numeric" placeholder="0.00" />
+      <Field label="Impact Factor" span={2} placeholder="0.000" />
+      <Field label="CiteScore" span={2} placeholder="0.00" />
       <Field
         label="Moeda"
         span={4}
         tipo="select"
-        opcoes={['BRL (R$)', 'USD ($)', 'EUR (€)', 'GBP (£)']}
-        padrao="BRL (R$)"
+        opcoes={['USD ($)', 'BRL (R$)', 'EUR (€)', 'GBP (£)']}
       />
-      <Field label="Valor da Taxa (APC)" span={4} tipo="currency" valor="222222" />
+      <Field label="Valor da Taxa (APC)" span={4} placeholder="0.00" />
       <Field
         label="Outras Fontes de Custeio?"
         span={4}

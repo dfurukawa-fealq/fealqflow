@@ -48,7 +48,7 @@ export const CadastroCoordenador = () => (
   >
     <FormSection numero={1} icone="badge" titulo="Dados Pessoais">
       <Field label="Nome Completo" placeholder="Nome conforme documento" />
-      <Field label="CPF" span={6} tipo="cpf" placeholder="000.000.000-00" />
+      <Field label="CPF" span={6} placeholder="000.000.000-00" />
       <Field label="RG" span={6} placeholder="00.000.000-0" />
       <Field label="Data de Nascimento" span={6} tipo="date" />
       <Field

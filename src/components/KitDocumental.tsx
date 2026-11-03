@@ -5,7 +5,6 @@ import {
   ArquivoSelecionado,
 } from './form/AnexarArquivo';
 import { useEnvio } from './form/EnvioContext';
-import { ModalRegulamento } from './ModalRegulamento';
 
 interface KitDocumentalProps {
   documentos: DocumentoExigido[];
@@ -28,34 +27,33 @@ export const KitDocumental = ({
   nota = 'Anexe os documentos obrigatórios para liberar o envio da solicitação.',
 }: KitDocumentalProps) => {
   const [anexos, setAnexos] = useState<Record<string, File>>({});
-  const { registrarPendencias, formValido, notificarAnexoArquivo } = useEnvio();
+  const { registrarPendencias } = useEnvio();
 
-  const estaConcluido = (doc: DocumentoExigido) => {
-    if (doc.tipo === 'gerado') return formValido;
-    return Boolean(anexos[doc.id]);
-  };
+  const estaConcluido = (doc: DocumentoExigido) =>
+    doc.tipo === 'gerado' || Boolean(anexos[doc.id]);
 
   const concluidos = documentos.filter(estaConcluido).length;
   const progresso =
     documentos.length > 0 ? (concluidos / documentos.length) * 100 : 0;
 
   // Documentos externos (encaminhados por terceiros) não travam o envio.
-  const pendencias = useMemo(() => {
-    let count = 0;
-    documentos.forEach((d) => {
-      if (d.obrigatorio) {
-        if (d.tipo === 'gerado' && !formValido) count++;
-        if (d.tipo !== 'gerado' && d.tipo !== 'externo' && !anexos[d.id]) count++;
-      }
-    });
-    return count;
-  }, [documentos, anexos, formValido]);
+  const pendencias = useMemo(
+    () =>
+      documentos.filter(
+        (d) =>
+          d.obrigatorio &&
+          d.tipo !== 'gerado' &&
+          d.tipo !== 'externo' &&
+          !anexos[d.id],
+      ).length,
+    [documentos, anexos],
+  );
 
   useEffect(() => {
     registrarPendencias(pendencias);
   }, [pendencias, registrarPendencias]);
 
-  const selecionar = (id: string, arquivo: File | null) => {
+  const selecionar = (id: string, arquivo: File | null) =>
     setAnexos((prev) => {
       if (!arquivo) {
         const { [id]: _removido, ...resto } = prev;
@@ -63,8 +61,6 @@ export const KitDocumental = ({
       }
       return { ...prev, [id]: arquivo };
     });
-    notificarAnexoArquivo(arquivo ? arquivo.name : '');
-  };
 
   return (
     <section className="bg-surface-container-low border border-outline-variant rounded shadow-sm p-lg">
@@ -92,7 +88,6 @@ export const KitDocumental = ({
       <div className="flex flex-col gap-sm">
         {documentos.map((doc) => (
           <ItemDocumento
-            isConcluido={estaConcluido(doc)}
             key={doc.id}
             doc={doc}
             arquivo={anexos[doc.id] ?? null}
@@ -112,29 +107,25 @@ interface ItemDocumentoProps {
   doc: DocumentoExigido;
   arquivo: File | null;
   onSelecionar: (arquivo: File | null) => void;
-  isConcluido?: boolean;
 }
 
-const ItemDocumento = ({ doc, arquivo, onSelecionar, isConcluido }: ItemDocumentoProps) => {
-  const [showRegulamento, setShowRegulamento] = useState(false);
-  const { formValido } = useEnvio();
+const ItemDocumento = ({ doc, arquivo, onSelecionar }: ItemDocumentoProps) => {
   const gerado = doc.tipo === 'gerado';
-  const concluido = isConcluido !== undefined ? isConcluido : (gerado ? formValido : Boolean(arquivo));
+  const concluido = gerado || Boolean(arquivo);
   const detalhe = [doc.descricao, doc.condicao].filter(Boolean).join(' ');
 
   return (
     <div
-      className={`bg-surface-container-lowest border rounded transition-colors ${
+      className={`p-sm bg-surface-container-lowest border rounded transition-colors ${
         concluido
           ? 'border-outline-variant'
           : 'border-outline-variant border-dashed hover:border-primary-container'
       }`}
     >
-      <div className="flex items-stretch min-h-[72px]">
-        {/* Coluna 1: Status / Ícone */}
-        <div className="w-[32px] shrink-0 flex flex-col items-center justify-center border-r border-outline-variant/30">
+      <div className="flex items-start justify-between gap-sm">
+        <div className="flex items-start gap-sm min-w-0">
           <span
-            className={`material-symbols-outlined text-[18px] ${
+            className={`material-symbols-outlined text-[18px] shrink-0 ${
               concluido ? 'text-secondary' : 'text-outline'
             }`}
           >
@@ -144,112 +135,47 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar, isConcluido }: ItemDocument
                 ? 'forward_to_inbox'
                 : 'radio_button_unchecked'}
           </span>
+          <span
+            className={`text-[13px] ${
+              concluido
+                ? 'text-on-surface font-medium'
+                : 'text-on-surface-variant'
+            }`}
+          >
+            {doc.label}
+          </span>
         </div>
 
-        {/* Coluna 2: Conteúdo Central */}
-        <div className="flex-1 flex flex-col justify-center py-xs px-sm min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <span
-              className={`text-[13px] ${
-                concluido
-                  ? 'text-on-surface font-medium'
-                  : 'text-on-surface-variant'
-              }`}
-            >
-              {doc.label}
-            </span>
-            {gerado && (
-              <span className={`text-[10px] font-bold uppercase shrink-0 ${concluido ? 'text-secondary' : 'text-[#F17C58]'}`}>
-                {concluido ? 'Concluído' : 'Pendente'}
-              </span>
-            )}
-            {doc.tipo === 'externo' && (
-              <span className="text-on-surface-variant text-[10px] font-bold uppercase shrink-0">
-                Externo
-              </span>
-            )}
-          </div>
-
-          {arquivo && doc.tipo !== 'aceite' && (
-            <div className="-ml-[26px]">
-               <ArquivoSelecionado arquivo={arquivo} />
-            </div>
-          )}
-          {concluido && doc.tipo === 'aceite' && (
-            <div className="flex items-center gap-1 mt-1 text-secondary text-[10px] font-bold uppercase">
-              <span className="material-symbols-outlined text-[14px]">task_alt</span>
-              Termos Aceitos
-            </div>
-          )}
-
-          {detalhe && (
-            <p className="text-[10px] text-on-surface-variant mt-0.5 leading-tight pr-2">
-              {detalhe}
-            </p>
-          )}
-
-          {doc.acaoEmail && (
-            <a
-              href={`mailto:${doc.acaoEmail.email}`}
-              className="inline-flex items-center gap-1 mt-1 text-[11px] font-medium text-primary hover:text-primary-container transition-colors w-fit"
-            >
-              <span className="material-symbols-outlined text-[14px]">mail</span>
-              {doc.acaoEmail.label}
-            </a>
-          )}
-
-          {!doc.obrigatorio && (
-             <span className="inline-block mt-1 w-fit text-[9px] font-bold uppercase tracking-wide px-1.5 py-[1px] rounded bg-surface-variant text-on-surface-variant">
-              Condicional
-            </span>
-          )}
-        </div>
-
-        {/* Coluna 3: Ações (Modelo, Anexar/Remover) */}
-        {doc.tipo === 'aceite' && (
-          <div className="w-[40px] shrink-0 flex flex-col items-center justify-center gap-1 border-l border-outline-variant/30 py-1">
-            <button
-              onClick={() => setShowRegulamento(true)}
-              className="text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0"
-              title={concluido ? 'Ver Regulamento' : 'Ler e Aceitar Regulamento'}
-            >
-              <span className="material-symbols-outlined text-[18px] inline-block scale-[0.8] origin-center">
-                {concluido ? 'visibility' : 'contract'}
-              </span>
-            </button>
-          </div>
-        )}
-        {doc.tipo === 'aceite' && showRegulamento && (
-          <ModalRegulamento
-            jaAceito={concluido}
-            onClose={() => setShowRegulamento(false)}
-            onAceitar={() => onSelecionar(new File(['aceito'], 'Aceite.txt', { type: 'text/plain' }))}
+        {gerado ? (
+          <span className="text-secondary text-[11px] font-bold uppercase shrink-0">
+            Concluído
+          </span>
+        ) : doc.tipo === 'externo' ? (
+          <span className="text-on-surface-variant text-[11px] font-bold uppercase shrink-0">
+            Externo
+          </span>
+        ) : (
+          <AnexarArquivo
+            id={`anexo-${doc.id}`}
+            arquivo={arquivo}
+            onSelecionar={onSelecionar}
           />
         )}
-        {!gerado && doc.tipo !== 'externo' && doc.tipo !== 'aceite' && (
-
-          <div className="w-[40px] shrink-0 flex flex-col items-center justify-between border-l border-outline-variant/30 py-1">
-            <div className="flex flex-col items-center">
-              <AnexarArquivo
-                id={`anexo-${doc.id}`}
-                arquivo={arquivo}
-                onSelecionar={onSelecionar}
-              />
-            </div>
-            {doc.url_template && (
-              <a
-                href={doc.url_template}
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary-container hover:bg-surface-variant flex items-center justify-center w-7 h-7 rounded-full transition-colors shrink-0"
-                title="Baixar Modelo"
-              >
-                <span className="material-symbols-outlined text-[14px] inline-block scale-[0.8] origin-center">file_download</span>
-              </a>
-            )}
-          </div>
-        )}
       </div>
+
+      {arquivo && <ArquivoSelecionado arquivo={arquivo} />}
+
+      {detalhe && (
+        <p className="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">
+          {detalhe}
+        </p>
+      )}
+
+      {!doc.obrigatorio && (
+        <span className="inline-block mt-xs ml-[26px] text-[9px] font-bold uppercase tracking-wide px-1.5 py-[1px] rounded bg-surface-variant text-on-surface-variant">
+          Condicional
+        </span>
+      )}
     </div>
   );
 };

@@ -20,7 +20,7 @@ export const AuxilioViagem = () => (
 
     <FormSection numero={1} icone="person" titulo="Dados do Solicitante">
       <Field label="Nome Completo" valor="João Silva Carvalho" />
-      <Field label="CPF" span={6} tipo="cpf" valor="12345678900" />
+      <Field label="CPF" span={6} valor="123.456.789-00" />
       <Field
         label="E-mail Institucional"
         span={6}
@@ -47,7 +47,7 @@ export const AuxilioViagem = () => (
         opcoes={['Brasil', 'Portugal', 'Estados Unidos', 'Outro...']}
       />
       <Field label="Cidade/Estado" span={6} placeholder="Ex: São Paulo, SP" />
-      <Field label="Mês/Ano da Viagem" span={6} tipo="month" valor="072026" />
+      <Field label="Data da Viagem" span={6} tipo="date" />
       <Field
         label="Finalidade"
         span={6}
@@ -65,10 +65,10 @@ export const AuxilioViagem = () => (
         ]}
       />
       <Field
-        label="Valor Solicitado"
+        label="Valor Solicitado (R$)"
         span={6}
-        tipo="currency"
-        valor="222222"
+        prefixo="R$"
+        placeholder="0,00"
         hint="Teto MÁX: R$ 3.000 (Nacional) / R$ 6.000 (Intl.)"
       />
     </FormSection>

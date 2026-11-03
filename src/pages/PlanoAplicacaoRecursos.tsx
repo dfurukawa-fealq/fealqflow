@@ -80,7 +80,7 @@ export const PlanoAplicacaoRecursos = () => {
   return (
     <FormPageLayout
       titulo="Plano de Aplicação de Recursos - Cursos FZEA"
-      breadcrumb={['Área do Coordenador', 'Plano de Aplicação de Recursos']}
+      breadcrumb={['Projetos', 'Plano de Aplicação de Recursos']}
       acaoPrincipal="Salvar e Enviar"
       podeEnviar={podeEnviar}
       footerCenter={footerCenter}

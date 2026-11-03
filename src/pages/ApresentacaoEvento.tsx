@@ -56,9 +56,10 @@ export function ApresentacaoEvento() {
           ]}
         />
         <Field
-          label="Valor Solicitado"
+          label="Valor Solicitado (R$)"
           span={6}
-          tipo="currency"
+          prefixo="R$"
+          placeholder="0,00"
           hint="Teto MÁX: R$ 3.000 (Nacional) / R$ 6.000 (Exterior)"
         />
       </FormSection>
