@@ -6,7 +6,7 @@ export const Sidebar = () => {
   const navItems = [
     { path: '/', label: 'Início', icon: 'home' },
     { path: '/projetos', label: 'Projetos', icon: 'folder' },
-    { path: '/programas', label: 'Programas de Apoio', icon: 'handshake' },
+    { path: '/programas-de-apoio', label: 'Programas de Apoio', icon: 'handshake' },
     { path: '/historico', label: 'Histórico & Pendências', icon: 'history' },
   ];
 
@@ -28,28 +28,37 @@ export const Sidebar = () => {
         </div>
       </div>
       <div className="flex-1 flex flex-col mt-md">
-        {navItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={clsx(
-              'flex items-center space-x-md px-xl py-md transition-colors hover:bg-white/5',
-              location.pathname === item.path
-                ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
-                : 'text-surface-variant/70'
-            )}
-          >
-            <span
+        {navItems.map((item) => {
+          const isActive =
+            item.path === '/'
+              ? location.pathname === '/'
+              : item.path === '/programas-de-apoio'
+                ? location.pathname.startsWith('/programas-de-apoio') || location.pathname.startsWith('/programas')
+                : location.pathname.startsWith(item.path);
+
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
               className={clsx(
-                'material-symbols-outlined',
-                location.pathname === item.path ? 'fill-icon' : ''
+                'flex items-center space-x-md px-xl py-md transition-colors hover:bg-white/5',
+                isActive
+                  ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
+                  : 'text-surface-variant/70'
               )}
             >
-              {item.icon}
-            </span>
-            <span>{item.label}</span>
-          </Link>
-        ))}
+              <span
+                className={clsx(
+                  'material-symbols-outlined',
+                  isActive ? 'fill-icon' : ''
+                )}
+              >
+                {item.icon}
+              </span>
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </div>
       <div className="mt-auto pb-xl">
         <a

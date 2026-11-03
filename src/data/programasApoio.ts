@@ -6,7 +6,7 @@
  * `[cite: N]` removidos. Ao atualizar um edital, atualize este arquivo.
  */
 
-export type TipoDocumento = 'gerado' | 'upload' | 'externo';
+export type TipoDocumento = 'gerado' | 'upload' | 'externo' | 'aceite';
 
 export interface DocumentoExigido {
   id: string;
@@ -18,6 +18,17 @@ export interface DocumentoExigido {
   /** false = condicional ou opcional; nesse caso preencha `condicao`. */
   obrigatorio: boolean;
   condicao?: string;
+  acaoEmail?: { email: string; label: string };
+  url_template?: string;
+  /** Estado de preenchimento para formulários vinculados com rastreabilidade */
+  status?: 'concluido' | 'pendente' | 'em_andamento';
+  onAbrirLink?: () => void;
+  linkTexto?: string;
+}
+
+export interface PeriodoSubmissao {
+  inicio: string; // YYYY-MM-DD
+  fim: string; // YYYY-MM-DD
 }
 
 export interface ProgramaApoio {
@@ -36,6 +47,7 @@ export interface ProgramaApoio {
   teto: string;
   normas: string;
   documentos: DocumentoExigido[];
+  periodosSubmissao?: PeriodoSubmissao[];
 }
 
 const DOC_FORMULARIO: DocumentoExigido = {
@@ -49,7 +61,7 @@ const DOC_FORMULARIO: DocumentoExigido = {
 export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   {
     id: 'bolsa-pos',
-    path: '/apoio-bolsa-pos',
+    path: '/programas-de-apoio/apoio-bolsa-pos',
     titulo: 'Bolsa Acadêmica - Pós-graduação',
     linha: 'Formação & Pesquisa',
     icone: 'school',
@@ -121,7 +133,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   },
   {
     id: 'bolsa-graduacao',
-    path: '/apoio-bolsa-grad',
+    path: '/programas-de-apoio/apoio-bolsa-grad',
     titulo: 'Bolsa Acadêmica - Graduação',
     linha: 'Formação & Pesquisa',
     icone: 'menu_book',
@@ -177,7 +189,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   },
   {
     id: 'infraestrutura',
-    path: '/apoio-infra',
+    path: '/programas-de-apoio/apoio-infra',
     titulo: 'Apoio Infraestrutura e Melhorias',
     linha: 'Desenvolvimento Físico',
     icone: 'foundation',
@@ -236,7 +248,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   },
   {
     id: 'apresentacao-evento',
-    path: '/apoio-evento-trabalho',
+    path: '/programas-de-apoio/apoio-evento-trabalho',
     titulo: 'Apresentação de Trabalho em Evento',
     linha: 'Disseminação Científica',
     icone: 'campaign',
@@ -295,7 +307,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   },
   {
     id: 'auxilio-viagem',
-    path: '/apoio-viagem',
+    path: '/programas-de-apoio/apoio-viagem',
     titulo: 'Auxílio Viagem',
     linha: 'Mobilidade Acadêmica',
     icone: 'flight_takeoff',
@@ -348,7 +360,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   },
   {
     id: 'auxilio-publicacao',
-    path: '/apoio-publicacao',
+    path: '/programas-de-apoio/apoio-publicacao',
     titulo: 'Auxílio para publicação de artigo',
     linha: 'Publicação & Edição',
     icone: 'article',
@@ -424,7 +436,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   },
   {
     id: 'interesse-comunidade',
-    path: '/apoio-comunidade',
+    path: '/programas-de-apoio/apoio-comunidade',
     titulo: 'Apoio de Interesse da Comunidade',
     linha: 'Ação Social',
     icone: 'group',
@@ -453,7 +465,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   },
   {
     id: 'material-eventos',
-    path: '/apoio-material-evento',
+    path: '/programas-de-apoio/apoio-material-evento',
     titulo: 'Apoio Material para Eventos',
     linha: 'Organização de Eventos',
     icone: 'event',
@@ -494,7 +506,7 @@ export const PROGRAMAS_APOIO: ProgramaApoio[] = [
   },
   {
     id: 'cultura-extensao',
-    path: '/apoio-cultura',
+    path: '/programas-de-apoio/apoio-cultura',
     titulo: 'Cultura e Extensão Universitária',
     linha: 'Extensão',
     icone: 'public',

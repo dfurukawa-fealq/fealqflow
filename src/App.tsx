@@ -3,75 +3,131 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
-import { ProjetosPage } from './pages/ProjetosPage';
-import { ProgramasApoioPage } from './pages/ProgramasApoioPage';
 
-import { CadastroCoordenador } from './pages/CadastroCoordenador';
-import { AberturaCurso } from './pages/AberturaCurso';
-import { AberturaPublicacao } from './pages/AberturaPublicacao';
-import { ProjetoPesquisa } from './pages/ProjetoPesquisa';
-import { ProjetoPesquisaV2 } from './pages/ProjetoPesquisaV2';
-import { PlanoTrabalho } from './pages/PlanoTrabalho';
-import { CadastroPatrocinador } from './pages/CadastroPatrocinador';
-import { CadastroParceiro } from './pages/CadastroParceiro';
-import { CotasPatrocinio } from './pages/CotasPatrocinio';
-import { CadastroFinanciadora } from './pages/CadastroFinanciadora';
-import { PlanoAplicacaoRecursos } from './pages/PlanoAplicacaoRecursos';
-import { AuxilioViagem } from './pages/AuxilioViagem';
-import { AuxilioPublicacao } from './pages/AuxilioPublicacao';
-import { AberturaProgramaEPE } from './pages/AberturaProgramaEPE';
-import { CentralMultiusuario } from './pages/CentralMultiusuario';
-import { BolsaPosGraduacao } from './pages/BolsaPosGraduacao';
-import { BolsaGraduacao } from './pages/BolsaGraduacao';
-import { ApoioInfraestrutura } from './pages/ApoioInfraestrutura';
-import { ApresentacaoEvento } from './pages/ApresentacaoEvento';
-import { InteresseComunidade } from './pages/InteresseComunidade';
-import { MaterialEventos } from './pages/MaterialEventos';
-import { CulturaExtensao } from './pages/CulturaExtensao';
+// Projetos
+import {
+  ProjetosPage,
+  CadastroCoordenador,
+  AberturaCurso,
+  AberturaPublicacao,
+  ProjetoPesquisa,
+  ProjetoPesquisaV2,
+  PlanoTrabalho,
+  CadastroPatrocinador,
+  CadastroParceiro,
+  CotasPatrocinio,
+  CadastroFinanciadora,
+  PlanoAplicacaoRecursos,
+  AberturaProgramaEPE,
+  CentralMultiusuario,
+  TermoLGPDConfidencialidade,
+  OrientacoesCoordenador,
+  CienciaConcordanciaDepto,
+} from './pages/projetos';
+
+// Programas de Apoio
+import {
+  ProgramasApoioPage,
+  BolsaPosGraduacao,
+  BolsaGraduacao,
+  ApoioInfraestrutura,
+  ApresentacaoEvento,
+  AuxilioViagem,
+  AuxilioPublicacao,
+  InteresseComunidade,
+  MaterialEventos,
+  CulturaExtensao,
+} from './pages/programas-de-apoio';
+
+import { RastreabilidadeProvider } from './contexts/RastreabilidadeContext';
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="flex min-h-screen">
-        <div className="print:hidden"><Sidebar /></div>
-        <div className="flex-1 ml-[240px] print:ml-0 flex flex-col min-h-screen">
-          <Routes>
+      <RastreabilidadeProvider>
+        <div className="flex min-h-screen">
+          <div className="print:hidden">
+            <Sidebar />
+          </div>
+          <div className="flex-1 ml-[240px] print:ml-0 flex flex-col min-h-screen">
+            <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/projetos" element={<ProjetosPage />} />
-            <Route path="/programas" element={<ProgramasApoioPage />} />
             <Route path="/historico" element={<Dashboard />} />
 
-            {/* Forms mapped based on original static screens */}
-            <Route path="/form-coordenador" element={<CadastroCoordenador />} />
-            <Route path="/form-curso" element={<AberturaCurso />} />
-            <Route path="/form-publicacao" element={<AberturaPublicacao />} />
-            <Route path="/form-pesquisa" element={<ProjetoPesquisa />} />
-            <Route path="/form-pesquisa-v2" element={<ProjetoPesquisaV2 />} />
-            <Route path="/form-trabalho" element={<PlanoTrabalho />} />
-            <Route path="/form-patrocinador" element={<CadastroPatrocinador />} />
-            <Route path="/form-parceiro" element={<CadastroParceiro />} />
-            <Route path="/form-cotas" element={<CotasPatrocinio />} />
-            <Route path="/form-financiadora" element={<CadastroFinanciadora />} />
-            <Route path="/form-plano-recursos" element={<PlanoAplicacaoRecursos />} />
-            <Route path="/form-programa-epe" element={<AberturaProgramaEPE />} />
-            <Route path="/form-central" element={<CentralMultiusuario />} />
+            {/* Projetos Routes */}
+            <Route path="/projetos" element={<ProjetosPage />} />
+            <Route path="/projetos/form-coordenador" element={<CadastroCoordenador />} />
+            <Route path="/projetos/form-curso" element={<AberturaCurso />} />
+            <Route path="/projetos/form-evento" element={<AberturaCurso />} />
+            <Route path="/projetos/form-curso-evento" element={<AberturaCurso />} />
+            <Route path="/projetos/form-publicacao" element={<AberturaPublicacao />} />
+            <Route path="/projetos/form-pesquisa" element={<ProjetoPesquisa />} />
+            <Route path="/projetos/form-pesquisa-v2" element={<ProjetoPesquisaV2 />} />
+            <Route path="/projetos/form-trabalho" element={<PlanoTrabalho />} />
+            <Route path="/projetos/form-patrocinador" element={<CadastroPatrocinador />} />
+            <Route path="/projetos/form-parceiro" element={<CadastroParceiro />} />
+            <Route path="/projetos/form-cotas" element={<CotasPatrocinio />} />
+            <Route path="/projetos/form-financiadora" element={<CadastroFinanciadora />} />
+            <Route path="/projetos/form-plano-recursos" element={<PlanoAplicacaoRecursos />} />
+            <Route path="/projetos/form-programa-epe" element={<AberturaProgramaEPE />} />
+            <Route path="/projetos/form-central" element={<CentralMultiusuario />} />
+            <Route path="/projetos/termo-lgpd" element={<TermoLGPDConfidencialidade />} />
+            <Route path="/projetos/orientacoes-coordenador" element={<OrientacoesCoordenador />} />
+            <Route path="/projetos/ciencia-departamento" element={<CienciaConcordanciaDepto />} />
 
-            {/* Support Programs */}
-            <Route path="/apoio-bolsa-pos" element={<BolsaPosGraduacao />} />
-            <Route path="/apoio-bolsa-grad" element={<BolsaGraduacao />} />
-            <Route path="/apoio-infra" element={<ApoioInfraestrutura />} />
-            <Route path="/apoio-evento-trabalho" element={<ApresentacaoEvento />} />
-            <Route path="/apoio-viagem" element={<AuxilioViagem />} />
-            <Route path="/apoio-publicacao" element={<AuxilioPublicacao />} />
-            <Route path="/apoio-comunidade" element={<InteresseComunidade />} />
-            <Route path="/apoio-material-evento" element={<MaterialEventos />} />
-            <Route path="/apoio-cultura" element={<CulturaExtensao />} />
+            {/* Certificações direct and legacy aliases */}
+            <Route path="/certificacoes/termo-lgpd" element={<Navigate to="/projetos/termo-lgpd" replace />} />
+            <Route path="/certificacoes/orientacoes-coordenador" element={<Navigate to="/projetos/orientacoes-coordenador" replace />} />
+            <Route path="/certificacoes/ciencia-departamento" element={<Navigate to="/projetos/ciencia-departamento" replace />} />
+            <Route path="/form-termo-lgpd" element={<Navigate to="/projetos/termo-lgpd" replace />} />
+            <Route path="/form-orientacoes-coordenador" element={<Navigate to="/projetos/orientacoes-coordenador" replace />} />
+            <Route path="/form-ciencia-departamento" element={<Navigate to="/projetos/ciencia-departamento" replace />} />
+
+            {/* Legacy compatibility for direct /form-* */}
+            <Route path="/form-coordenador" element={<Navigate to="/projetos/form-coordenador" replace />} />
+            <Route path="/form-curso" element={<Navigate to="/projetos/form-curso" replace />} />
+            <Route path="/form-publicacao" element={<Navigate to="/projetos/form-publicacao" replace />} />
+            <Route path="/form-pesquisa" element={<Navigate to="/projetos/form-pesquisa" replace />} />
+            <Route path="/form-pesquisa-v2" element={<Navigate to="/projetos/form-pesquisa-v2" replace />} />
+            <Route path="/form-trabalho" element={<Navigate to="/projetos/form-trabalho" replace />} />
+            <Route path="/form-patrocinador" element={<Navigate to="/projetos/form-patrocinador" replace />} />
+            <Route path="/form-parceiro" element={<Navigate to="/projetos/form-parceiro" replace />} />
+            <Route path="/form-cotas" element={<Navigate to="/projetos/form-cotas" replace />} />
+            <Route path="/form-financiadora" element={<Navigate to="/projetos/form-financiadora" replace />} />
+            <Route path="/form-plano-recursos" element={<Navigate to="/projetos/form-plano-recursos" replace />} />
+            <Route path="/form-programa-epe" element={<Navigate to="/projetos/form-programa-epe" replace />} />
+            <Route path="/form-central" element={<Navigate to="/projetos/form-central" replace />} />
+
+            {/* Programas de Apoio Routes */}
+            <Route path="/programas-de-apoio" element={<ProgramasApoioPage />} />
+            <Route path="/programas" element={<Navigate to="/programas-de-apoio" replace />} />
+            <Route path="/programas-de-apoio/apoio-bolsa-pos" element={<BolsaPosGraduacao />} />
+            <Route path="/programas-de-apoio/apoio-bolsa-grad" element={<BolsaGraduacao />} />
+            <Route path="/programas-de-apoio/apoio-infra" element={<ApoioInfraestrutura />} />
+            <Route path="/programas-de-apoio/apoio-evento-trabalho" element={<ApresentacaoEvento />} />
+            <Route path="/programas-de-apoio/apoio-viagem" element={<AuxilioViagem />} />
+            <Route path="/programas-de-apoio/apoio-publicacao" element={<AuxilioPublicacao />} />
+            <Route path="/programas-de-apoio/apoio-comunidade" element={<InteresseComunidade />} />
+            <Route path="/programas-de-apoio/apoio-material-evento" element={<MaterialEventos />} />
+            <Route path="/programas-de-apoio/apoio-cultura" element={<CulturaExtensao />} />
+
+            {/* Legacy compatibility for direct /apoio-* */}
+            <Route path="/apoio-bolsa-pos" element={<Navigate to="/programas-de-apoio/apoio-bolsa-pos" replace />} />
+            <Route path="/apoio-bolsa-grad" element={<Navigate to="/programas-de-apoio/apoio-bolsa-grad" replace />} />
+            <Route path="/apoio-infra" element={<Navigate to="/programas-de-apoio/apoio-infra" replace />} />
+            <Route path="/apoio-evento-trabalho" element={<Navigate to="/programas-de-apoio/apoio-evento-trabalho" replace />} />
+            <Route path="/apoio-viagem" element={<Navigate to="/programas-de-apoio/apoio-viagem" replace />} />
+            <Route path="/apoio-publicacao" element={<Navigate to="/programas-de-apoio/apoio-publicacao" replace />} />
+            <Route path="/apoio-comunidade" element={<Navigate to="/programas-de-apoio/apoio-comunidade" replace />} />
+            <Route path="/apoio-material-evento" element={<Navigate to="/programas-de-apoio/apoio-material-evento" replace />} />
+            <Route path="/apoio-cultura" element={<Navigate to="/programas-de-apoio/apoio-cultura" replace />} />
           </Routes>
         </div>
       </div>
+      </RastreabilidadeProvider>
     </BrowserRouter>
   );
 }

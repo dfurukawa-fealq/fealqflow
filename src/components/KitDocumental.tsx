@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { DocumentoExigido } from '../data/programasApoio';
 import {
   AnexarArquivo,
@@ -11,6 +12,8 @@ interface KitDocumentalProps {
   titulo?: string;
   /** Texto auxiliar no rodapé do card. */
   nota?: string;
+  /** Destaque ou ação integrada apresentada junto ao Kit Documental */
+  destaque?: React.ReactNode;
 }
 
 /**
@@ -25,12 +28,17 @@ export const KitDocumental = ({
   documentos,
   titulo = 'Kit de Documentos',
   nota = 'Anexe os documentos obrigatórios para liberar o envio da solicitação.',
+  destaque,
 }: KitDocumentalProps) => {
   const [anexos, setAnexos] = useState<Record<string, File>>({});
   const { registrarPendencias } = useEnvio();
 
-  const estaConcluido = (doc: DocumentoExigido) =>
-    doc.tipo === 'gerado' || Boolean(anexos[doc.id]);
+  const estaConcluido = (doc: DocumentoExigido) => {
+    if (doc.status !== undefined) {
+      return doc.status === 'concluido';
+    }
+    return doc.tipo === 'gerado' || Boolean(anexos[doc.id]);
+  };
 
   const concluidos = documentos.filter(estaConcluido).length;
   const progresso =
@@ -39,13 +47,14 @@ export const KitDocumental = ({
   // Documentos externos (encaminhados por terceiros) não travam o envio.
   const pendencias = useMemo(
     () =>
-      documentos.filter(
-        (d) =>
-          d.obrigatorio &&
-          d.tipo !== 'gerado' &&
-          d.tipo !== 'externo' &&
-          !anexos[d.id],
-      ).length,
+      documentos.filter((d) => {
+        if (!d.obrigatorio) return false;
+        if (d.status !== undefined) {
+          return d.status !== 'concluido';
+        }
+        if (d.tipo === 'gerado' || d.tipo === 'externo') return false;
+        return !anexos[d.id];
+      }).length,
     [documentos, anexos],
   );
 
@@ -85,6 +94,12 @@ export const KitDocumental = ({
         />
       </div>
 
+      {destaque && (
+        <div className="mb-md">
+          {destaque}
+        </div>
+      )}
+
       <div className="flex flex-col gap-sm">
         {documentos.map((doc) => (
           <ItemDocumento
@@ -110,8 +125,12 @@ interface ItemDocumentoProps {
 }
 
 const ItemDocumento = ({ doc, arquivo, onSelecionar }: ItemDocumentoProps) => {
+  const isCustomStatus = doc.status !== undefined;
+  const isConcluidoStatus = doc.status === 'concluido';
+  const isEmAndamento = doc.status === 'em_andamento';
+
   const gerado = doc.tipo === 'gerado';
-  const concluido = gerado || Boolean(arquivo);
+  const concluido = isCustomStatus ? isConcluidoStatus : (gerado || Boolean(arquivo));
   const detalhe = [doc.descricao, doc.condicao].filter(Boolean).join(' ');
 
   return (
@@ -119,21 +138,29 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar }: ItemDocumentoProps) => {
       className={`p-sm bg-surface-container-lowest border rounded transition-colors ${
         concluido
           ? 'border-outline-variant'
-          : 'border-outline-variant border-dashed hover:border-primary-container'
+          : doc.url_template
+            ? 'border-primary/30 bg-primary/[0.015] hover:border-primary'
+            : 'border-outline-variant border-dashed hover:border-primary-container'
       }`}
     >
       <div className="flex items-start justify-between gap-sm">
         <div className="flex items-start gap-sm min-w-0">
           <span
             className={`material-symbols-outlined text-[18px] shrink-0 ${
-              concluido ? 'text-secondary' : 'text-outline'
+              concluido
+                ? 'text-secondary'
+                : isEmAndamento
+                  ? 'text-amber-600'
+                  : 'text-outline'
             }`}
           >
             {concluido
               ? 'check_circle'
-              : doc.tipo === 'externo'
-                ? 'forward_to_inbox'
-                : 'radio_button_unchecked'}
+              : isEmAndamento
+                ? 'edit_note'
+                : doc.tipo === 'externo'
+                  ? 'forward_to_inbox'
+                  : 'radio_button_unchecked'}
           </span>
           <span
             className={`text-[13px] ${
@@ -146,7 +173,46 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar }: ItemDocumentoProps) => {
           </span>
         </div>
 
-        {gerado ? (
+        {/* Formulário com URL/Template vinculado interativo */}
+        {doc.url_template ? (
+          <div className="flex items-center gap-xs shrink-0">
+            {concluido ? (
+              <>
+                <span className="text-secondary text-[11px] font-bold uppercase">
+                  Concluído
+                </span>
+                <Link
+                  to={doc.url_template}
+                  onClick={doc.onAbrirLink}
+                  className="inline-flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-semibold text-primary hover:text-primary-dark hover:bg-primary/5 rounded border border-primary/20 transition-colors"
+                  title="Visualizar ou editar formulário vinculado"
+                >
+                  <span>{doc.linkTexto || 'Revisar'}</span>
+                  <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                </Link>
+              </>
+            ) : (
+              <>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                  isEmAndamento
+                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                    : 'bg-surface-variant text-on-surface-variant'
+                }`}>
+                  {isEmAndamento ? 'Em Preenchimento' : 'Pendente'}
+                </span>
+                <Link
+                  to={doc.url_template}
+                  onClick={doc.onAbrirLink}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-[11px] font-semibold rounded hover:bg-primary-dark transition-colors shadow-xs"
+                  title="Abrir formulário vinculado para preenchimento"
+                >
+                  <span>{doc.linkTexto || 'Preencher'}</span>
+                  <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                </Link>
+              </>
+            )}
+          </div>
+        ) : gerado ? (
           <span className="text-secondary text-[11px] font-bold uppercase shrink-0">
             Concluído
           </span>

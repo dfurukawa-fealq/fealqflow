@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 // import { TopBar } from '../components/TopBar';
 import { Footer } from '../components/Footer';
@@ -14,7 +14,7 @@ export const Dashboard = () => {
       formName: 'Portal do Coordenador',
       user: 'Dr. Carlos Eduardo Silva',
       kit: '2/3 Anexados',
-      link: '/form-coordenador',
+      link: '/projetos/form-coordenador',
       docs: [
         'Plano de Trabalho (Validado)',
         'RG/CPF (Validado)',
@@ -26,7 +26,7 @@ export const Dashboard = () => {
       formName: 'Auxílio Viagem',
       user: 'Ana Paula Souza',
       kit: '4/6 Anexados',
-      link: '/apoio-viagem',
+      link: '/programas-de-apoio/apoio-viagem',
       docs: [
         'Formulário Principal (Validado)',
         'Carta Aceite (Validado)',
@@ -41,7 +41,7 @@ export const Dashboard = () => {
       formName: 'Bolsa Acadêmica - Graduação',
       user: 'Diego Furukawa',
       kit: '5/7 Anexados',
-      link: '/apoio-bolsa-grad',
+      link: '/programas-de-apoio/apoio-bolsa-grad',
       docs: [
         'Formulário de Solicitação de Apoio (Validado)',
         'Justificativa da necessidade do recurso (Validado)',
@@ -58,7 +58,7 @@ export const Dashboard = () => {
       formName: 'Bolsa Pós-Graduação',
       user: 'Dr. Rodrigo Teixeira',
       kit: '5/8 Anexados',
-      link: '/apoio-bolsa-grad',
+      link: '/programas-de-apoio/apoio-bolsa-pos',
       docs: [
         'Formulário de Solicitação de Apoio (Validado)',
         'Justificativa da necessidade do recurso (Validado)',
@@ -76,7 +76,7 @@ export const Dashboard = () => {
       formName: 'Apoio para Apresentação em Evento',
       user: 'Dr. Marcelo Calefe',
       kit: '5/8 Anexados',
-      link: '/apoio-bolsa-grad',
+      link: '/programas-de-apoio/apoio-evento-trabalho',
       docs: [
         'Formulário de Solicitação de Apoio (Validado)',
         'Programação do evento (Validado)',
@@ -94,7 +94,7 @@ export const Dashboard = () => {
       formName: 'Apoio a Infraestrutura',
       user: 'Dr. Lucas Tabai',
       kit: '5/7 Anexados',
-      link: '/apoio-bolsa-grad',
+      link: '/programas-de-apoio/apoio-infra',
       docs: [
         'Formulário de Solicitação de Apoio (Validado)',
         'Carta com descrição e justificativa do pedido (Validado)',
@@ -111,7 +111,7 @@ export const Dashboard = () => {
       formName: 'Auxílio para Publicação de Artigo Científico',
       user: 'Prof. Josemar Mariano',
       kit: '9/10 Anexados',
-      link: '/apoio-bolsa-grad',
+      link: '/programas-de-apoio/apoio-publicacao',
       docs: [
         'Formulário de Solicitação de Apoio (Validado)',
         'Ofício à Diretoria da Fealq (Validado)',
@@ -216,7 +216,15 @@ export const Dashboard = () => {
                     </span>
                   </div>
                   <div className="font-mono text-xs">{req.id}</div>
-                  <div className="text-sm font-medium text-on-surface-variant">{req.formName}</div>
+                  <div className="text-sm font-medium text-on-surface-variant">
+                    <Link
+                      to={req.link}
+                      onClick={(e) => e.stopPropagation()}
+                      className="hover:text-primary transition-colors hover:underline"
+                    >
+                      {req.formName}
+                    </Link>
+                  </div>
                   <div className="text-sm font-medium">{req.user}</div>
                   <div className="text-xs font-semibold text-[#F17C58]">
                     {req.kit}
@@ -236,12 +244,13 @@ export const Dashboard = () => {
                     >
                       <span className="material-symbols-outlined text-[14px]">mail</span>
                     </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); navigate(req.link); }}
-                      className="h-7 px-3 bg-primary text-white text-[10px] font-bold rounded hover:opacity-90 transition-opacity whitespace-nowrap"
+                    <Link 
+                      to={req.link}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center justify-center h-7 px-3 bg-primary text-white text-[10px] font-bold rounded hover:opacity-90 transition-opacity whitespace-nowrap"
                     >
                       COMPLETAR KIT
-                    </button>
+                    </Link>
                   </div>
                 </div>
                 {expandedRow === idx && (

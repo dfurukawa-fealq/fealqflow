@@ -1,0 +1,10 @@
+export { ProgramasApoioPage } from './ProgramasApoioPage';
+export { BolsaPosGraduacao } from './BolsaPosGraduacao';
+export { BolsaGraduacao } from './BolsaGraduacao';
+export { ApoioInfraestrutura } from './ApoioInfraestrutura';
+export { ApresentacaoEvento } from './ApresentacaoEvento';
+export { AuxilioViagem } from './AuxilioViagem';
+export { AuxilioPublicacao } from './AuxilioPublicacao';
+export { InteresseComunidade } from './InteresseComunidade';
+export { MaterialEventos } from './MaterialEventos';
+export { CulturaExtensao } from './CulturaExtensao';

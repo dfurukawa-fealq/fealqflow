@@ -30,6 +30,8 @@ interface FieldProps {
   /** Texto auxiliar abaixo do campo. */
   hint?: string;
   disabled?: boolean;
+  obrigatorio?: boolean;
+  onChange?: (valor: any) => void;
   /** Substitui o controle por um conteúdo próprio, mantendo label e grade. */
   children?: ReactNode;
 }
@@ -75,14 +77,23 @@ export const Field = ({
   prefixo,
   hint,
   disabled,
+  obrigatorio,
+  onChange,
   children,
 }: FieldProps) => {
   const id = `${label}-${tipo}`.replace(/\s+/g, '-').toLowerCase();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    if (onChange) {
+      onChange(e.target.value);
+    }
+  };
 
   return (
     <div className={`col-span-12 ${SPAN[span] ?? SPAN[12]}`}>
       <label className={LABEL} htmlFor={id}>
         {label}
+        {obrigatorio && <span className="text-red-500 ml-0.5">*</span>}
       </label>
 
       {children ??
@@ -91,19 +102,23 @@ export const Field = ({
             id={id}
             disabled={disabled}
             placeholder={placeholder}
-            defaultValue={valor}
+            value={onChange ? valor ?? '' : undefined}
+            defaultValue={!onChange ? valor : undefined}
+            onChange={handleInputChange}
             className={`${CONTROLE} h-auto min-h-[80px] p-sm resize-y`}
           />
         ) : tipo === 'select' ? (
           <select
             id={id}
             disabled={disabled}
-            defaultValue={padrao}
+            value={onChange ? valor ?? padrao : undefined}
+            defaultValue={!onChange ? padrao : undefined}
+            onChange={handleInputChange}
             className={CONTROLE}
           >
             {placeholder && <option value="">{placeholder}</option>}
             {opcoes.map((o) => (
-              <option key={o}>{o}</option>
+              <option key={o} value={o}>{o}</option>
             ))}
           </select>
         ) : tipo === 'radio' ? (
@@ -116,8 +131,11 @@ export const Field = ({
                 <input
                   type="radio"
                   name={id}
-                  defaultChecked={o === padrao}
+                  value={o}
+                  checked={onChange ? valor === o : undefined}
+                  defaultChecked={!onChange ? o === padrao : undefined}
                   disabled={disabled}
+                  onChange={handleInputChange}
                   className="text-primary-container focus:ring-primary-container border-outline-variant"
                 />
                 {o}
@@ -130,6 +148,8 @@ export const Field = ({
               id={id}
               type="checkbox"
               disabled={disabled}
+              checked={onChange ? Boolean(valor) : undefined}
+              onChange={(e) => onChange && onChange(e.target.checked)}
               className="rounded border-outline-variant text-secondary focus:ring-secondary w-4 h-4 cursor-pointer"
             />
             <span className="text-[13px] text-on-surface-variant">
@@ -146,7 +166,9 @@ export const Field = ({
               type={tipo}
               disabled={disabled}
               placeholder={placeholder}
-              defaultValue={valor}
+              value={onChange ? valor ?? '' : undefined}
+              defaultValue={!onChange ? valor : undefined}
+              onChange={handleInputChange}
               className={`${CONTROLE} rounded-l-none`}
             />
           </div>
@@ -156,7 +178,9 @@ export const Field = ({
             type={tipo}
             disabled={disabled}
             placeholder={placeholder}
-            defaultValue={valor}
+            value={onChange ? valor ?? '' : undefined}
+            defaultValue={!onChange ? valor : undefined}
+            onChange={handleInputChange}
             className={CONTROLE}
           />
         ))}

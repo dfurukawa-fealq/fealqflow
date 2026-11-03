@@ -274,9 +274,6 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     setFormularios(defaultForms as any);
     setOrcamentos(defaultOrcamentos);
     setMovimentacoes(defaultMovs as any);
-    
-    // Alerta de sucesso
-    alert('Base sincronizada com sucesso!');
   };
 
   return (

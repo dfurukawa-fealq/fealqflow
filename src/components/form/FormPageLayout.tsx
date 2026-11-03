@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { TopBar } from '../TopBar';
 import { EnvioContext } from './EnvioContext';
 
@@ -23,6 +23,8 @@ export interface FormPageLayoutProps {
   podeEnviar?: boolean;
   /** Coluna direita (4/12). Sem ela o conteúdo ocupa as 12 colunas. */
   sidebar?: ReactNode;
+  /** Callback acionado ao clicar no botão de ação principal */
+  aoSubmeter?: () => void;
   children: ReactNode;
 }
 
@@ -44,6 +46,7 @@ export const FormPageLayout = ({
   footerCenter,
   sidebar,
   podeEnviar,
+  aoSubmeter,
   children,
 }: FormPageLayoutProps) => {
   const navigate = useNavigate();
@@ -72,27 +75,40 @@ export const FormPageLayout = ({
           <div className="mb-lg border-b border-outline-variant pb-sm">
             <div>
               <div className="flex items-center gap-xs text-on-surface-variant text-[12px] mb-xs print:hidden">
-                <span className="material-symbols-outlined text-[14px]">
-                  home
-                </span>
-                {breadcrumb.map((item, i) => (
-                  <span key={item} className="flex items-center gap-xs">
-                    {i > 0 && (
+                <Link to="/" className="flex items-center text-on-surface-variant hover:text-primary transition-colors">
+                  <span className="material-symbols-outlined text-[14px]">
+                    home
+                  </span>
+                </Link>
+                {breadcrumb.map((item, i) => {
+                  const isLast = i === breadcrumb.length - 1;
+                  let targetUrl: string | null = null;
+                  if (!isLast) {
+                    const lower = item.toLowerCase();
+                    if (lower.includes('coordenador') || lower.includes('projeto')) {
+                      targetUrl = '/projetos';
+                    } else if (lower.includes('apoio') || lower.includes('programa')) {
+                      targetUrl = '/programas-de-apoio';
+                    }
+                  }
+
+                  return (
+                    <span key={item} className="flex items-center gap-xs">
                       <span className="material-symbols-outlined text-[14px]">
                         chevron_right
                       </span>
-                    )}
-                    <span
-                      className={
-                        i === breadcrumb.length - 1
-                          ? 'text-primary font-bold'
-                          : undefined
-                      }
-                    >
-                      {item}
+                      {targetUrl ? (
+                        <Link to={targetUrl} className="hover:text-primary hover:underline transition-colors">
+                          {item}
+                        </Link>
+                      ) : (
+                        <span className={isLast ? 'text-primary font-bold' : undefined}>
+                          {item}
+                        </span>
+                      )}
                     </span>
-                  </span>
-                ))}
+                  );
+                })}
               </div>
               <h1 className="text-[20px] text-on-surface font-bold flex items-center flex-wrap gap-sm">
                 {titulo}
@@ -146,7 +162,9 @@ export const FormPageLayout = ({
               </button>
             )}
             <button
+              type="button"
               disabled={!liberado}
+              onClick={aoSubmeter}
               title={
                 liberado
                   ? undefined
