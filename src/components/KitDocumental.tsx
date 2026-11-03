@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { DocumentoExigido } from '../data/programasApoio';
 import {
   AnexarArquivo,
@@ -14,6 +14,8 @@ interface KitDocumentalProps {
   nota?: string;
   /** Destaque ou ação integrada apresentada junto ao Kit Documental */
   destaque?: React.ReactNode;
+  /** Torna documentos vinculados acionáveis pelo card inteiro. */
+  acaoNoCard?: boolean;
 }
 
 /**
@@ -29,6 +31,7 @@ export const KitDocumental = ({
   titulo = 'Kit de Documentos',
   nota = 'Anexe os documentos obrigatórios para liberar o envio da solicitação.',
   destaque,
+  acaoNoCard = false,
 }: KitDocumentalProps) => {
   const [anexos, setAnexos] = useState<Record<string, File>>({});
   const { registrarPendencias } = useEnvio();
@@ -37,7 +40,7 @@ export const KitDocumental = ({
     if (doc.status !== undefined) {
       return doc.status === 'concluido';
     }
-    return doc.tipo === 'gerado' || Boolean(anexos[doc.id]);
+    return (doc.tipo === 'gerado' && !doc.url_template) || Boolean(anexos[doc.id]);
   };
 
   const concluidos = documentos.filter(estaConcluido).length;
@@ -52,7 +55,7 @@ export const KitDocumental = ({
         if (d.status !== undefined) {
           return d.status !== 'concluido';
         }
-        if (d.tipo === 'gerado' || d.tipo === 'externo') return false;
+        if ((d.tipo === 'gerado' && !d.url_template) || d.tipo === 'externo') return false;
         return !anexos[d.id];
       }).length,
     [documentos, anexos],
@@ -107,6 +110,7 @@ export const KitDocumental = ({
             doc={doc}
             arquivo={anexos[doc.id] ?? null}
             onSelecionar={(a) => selecionar(doc.id, a)}
+            acaoNoCard={acaoNoCard}
           />
         ))}
       </div>
@@ -122,26 +126,50 @@ interface ItemDocumentoProps {
   doc: DocumentoExigido;
   arquivo: File | null;
   onSelecionar: (arquivo: File | null) => void;
+  acaoNoCard: boolean;
 }
 
-const ItemDocumento = ({ doc, arquivo, onSelecionar }: ItemDocumentoProps) => {
+const ItemDocumento = ({ doc, arquivo, onSelecionar, acaoNoCard }: ItemDocumentoProps) => {
+  const navigate = useNavigate();
   const isCustomStatus = doc.status !== undefined;
   const isConcluidoStatus = doc.status === 'concluido';
   const isEmAndamento = doc.status === 'em_andamento';
 
   const gerado = doc.tipo === 'gerado';
-  const concluido = isCustomStatus ? isConcluidoStatus : (gerado || Boolean(arquivo));
+  const concluido = isCustomStatus
+    ? isConcluidoStatus
+    : ((gerado && !doc.url_template) || Boolean(arquivo));
   const detalhe = [doc.descricao, doc.condicao].filter(Boolean).join(' ');
+  const cardAcionavel = acaoNoCard && Boolean(doc.url_template);
+  // Todo documento obrigatório pendente sinaliza ação necessária. Quando há
+  // URL, o card também é navegável; uploads continuam usando o anexo interno.
+  const cardComMotion = acaoNoCard && !concluido && (doc.obrigatorio || Boolean(doc.url_template));
+  const abrirDocumento = () => {
+    if (!doc.url_template) return;
+    doc.onAbrirLink?.();
+    navigate(doc.url_template);
+  };
 
   return (
     <div
-      className={`p-sm bg-surface-container-lowest border rounded transition-colors ${
+      onClick={cardAcionavel ? abrirDocumento : undefined}
+      onKeyDown={(event) => {
+        if (cardAcionavel && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          abrirDocumento();
+        }
+      }}
+      role={cardAcionavel ? 'link' : undefined}
+      tabIndex={cardAcionavel ? 0 : undefined}
+      className={`min-w-0 break-words p-sm bg-surface-container-lowest border rounded transition-colors ${
         concluido
-          ? 'border-outline-variant'
+          ? 'border-secondary/60'
           : doc.url_template
-            ? 'border-primary/30 bg-primary/[0.015] hover:border-primary'
+            ? isEmAndamento
+              ? 'border-amber-400/70 bg-amber-50/30 hover:border-amber-500'
+              : 'border-blue-400/70 bg-blue-50/20 hover:border-blue-500'
             : 'border-outline-variant border-dashed hover:border-primary-container'
-      }`}
+      } ${cardAcionavel ? `cursor-pointer hover:shadow-sm focus:outline-none focus:ring-2 ${concluido ? 'focus:ring-secondary/40' : isEmAndamento ? 'focus:ring-amber-500/40' : 'focus:ring-blue-500/40'}` : ''} ${cardComMotion ? 'relative overflow-hidden before:absolute before:inset-[-2px] before:rounded-[inherit] before:bg-[conic-gradient(from_0deg,transparent_0deg,currentColor_80deg,transparent_160deg)] before:opacity-80 before:animate-[spin_3s_linear_infinite] after:absolute after:inset-[2px] after:rounded-[inherit] after:bg-surface-container-lowest [&>*]:relative [&>*]:z-10' : ''}`}
     >
       <div className="flex items-start justify-between gap-sm">
         <div className="flex items-start gap-sm min-w-0">
@@ -178,10 +206,10 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar }: ItemDocumentoProps) => {
           <div className="flex items-center gap-xs shrink-0">
             {concluido ? (
               <>
-                <span className="text-secondary text-[11px] font-bold uppercase">
+                <span className="text-secondary text-[11px] font-bold uppercase" title="Concluído">
                   Concluído
                 </span>
-                <Link
+                {!acaoNoCard && <Link
                   to={doc.url_template}
                   onClick={doc.onAbrirLink}
                   className="inline-flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-semibold text-primary hover:text-primary-dark hover:bg-primary/5 rounded border border-primary/20 transition-colors"
@@ -189,18 +217,20 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar }: ItemDocumentoProps) => {
                 >
                   <span>{doc.linkTexto || 'Revisar'}</span>
                   <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-                </Link>
+                </Link>}
               </>
             ) : (
               <>
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
                   isEmAndamento
                     ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                    : 'bg-surface-variant text-on-surface-variant'
+                    : 'bg-blue-100 text-blue-800 border border-blue-300'
                 }`}>
-                  {isEmAndamento ? 'Em Preenchimento' : 'Pendente'}
+                  <span className="material-symbols-outlined text-[8px]" title={isEmAndamento ? 'Revisar' : 'Preencher'}>
+                    {isEmAndamento ? 'rate_review' : 'edit'}
+                  </span>
                 </span>
-                <Link
+                {!acaoNoCard && <Link
                   to={doc.url_template}
                   onClick={doc.onAbrirLink}
                   className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-[11px] font-semibold rounded hover:bg-primary-dark transition-colors shadow-xs"
@@ -208,7 +238,7 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar }: ItemDocumentoProps) => {
                 >
                   <span>{doc.linkTexto || 'Preencher'}</span>
                   <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-                </Link>
+                </Link>}
               </>
             )}
           </div>

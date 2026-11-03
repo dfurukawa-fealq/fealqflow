@@ -48,7 +48,7 @@ export const CotasPatrocinio = () => (
     acaoPrincipal="Cadastrar Cotas de Patrocínio"
     acaoIcone="save"
     sidebar={
-      <KitDocumental
+      <KitDocumental acaoNoCard
         documentos={DOCUMENTOS}
         titulo="Formato do Kit de Apresentação"
       />

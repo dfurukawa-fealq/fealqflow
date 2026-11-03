@@ -39,7 +39,7 @@ export const CadastroParceiro = () => (
     titulo="Cadastro de Parceiro"
     codigo="FR-05-DIR"
     acaoPrincipal="Enviar Cadastro de Parceiro Fechado"
-    sidebar={<KitDocumental documentos={DOCUMENTOS} />}
+    sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
   >
     <FormSection numero={1} icone="domain" titulo="Contratante">
       <Field label="Razão Social" span={6} />

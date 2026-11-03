@@ -49,10 +49,10 @@ export default function App() {
     <BrowserRouter>
       <RastreabilidadeProvider>
         <div className="flex min-h-screen">
-          <div className="print:hidden">
+          <div className="hidden lg:block print:hidden">
             <Sidebar />
           </div>
-          <div className="flex-1 ml-[240px] print:ml-0 flex flex-col min-h-screen">
+          <div className="flex-1 lg:ml-[240px] print:ml-0 flex flex-col min-h-screen min-w-0">
             <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/historico" element={<Dashboard />} />

@@ -11,7 +11,7 @@ export const CienciaConcordanciaDepto = () => {
 
   // Dados do Departamento e Aprovação
   const [deptoNome, setDeptoNome] = useState(
-    searchParams.get('depto') || 'Departamento de Engenharia de Alimentos - FZEA/USP'
+    searchParams.get('depto') || ''
   );
   const [modalidadeAprovacao, setModalidadeAprovacao] = useState<'conselho' | 'ad_referendum'>('conselho');
   const [dataConselho, setDataConselho] = useState('');
@@ -20,7 +20,7 @@ export const CienciaConcordanciaDepto = () => {
 
   // Declarante / Assinador
   const [nomeDeclarante] = useState(
-    searchParams.get('declarante') || searchParams.get('coordenador') || 'Prof. Titular / Chefe de Departamento'
+    searchParams.get('declarante') || searchParams.get('coordenador') || ''
   );
   const [cargoDeclarante] = useState('Chefe de Departamento / Coordenador em Representação');
 

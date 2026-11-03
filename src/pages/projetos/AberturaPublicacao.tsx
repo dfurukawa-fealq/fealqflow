@@ -35,7 +35,7 @@ export const AberturaPublicacao = () => (
     titulo="Protocolo de Abertura de Publicação / Livro"
     codigo="CONV-FR-02-PRO"
     acaoPrincipal="Enviar Solicitação de Publicação"
-    sidebar={<KitDocumental documentos={DOCUMENTOS} titulo="Kit de Anexos" />}
+    sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} titulo="Kit de Anexos" />}
   >
     <FormSection numero={1} icone="book" titulo="Dados da Obra">
       <Field label="Título da Obra" />

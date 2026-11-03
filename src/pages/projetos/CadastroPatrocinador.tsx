@@ -33,7 +33,7 @@ export const CadastroPatrocinador = () => (
     codigo="CONV-FR-04-CADT"
     acaoPrincipal="Salvar e Enviar Cadastro"
     acaoIcone="save"
-    sidebar={<KitDocumental documentos={DOCUMENTOS} />}
+    sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
   >
     <FormSection numero={1} icone="domain" titulo="Dados da Pessoa Jurídica">
       <Field label="CNPJ" span={6} placeholder="00.000.000/0000-00" />

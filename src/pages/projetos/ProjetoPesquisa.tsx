@@ -34,7 +34,7 @@ export const ProjetoPesquisa = () => (
     titulo="Projeto de Pesquisa"
     codigo="CONV-FR-03-PRO"
     acaoPrincipal="Submeter Projeto para FEALQ"
-    sidebar={<KitDocumental documentos={DOCUMENTOS} />}
+    sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
   >
     <FormSection numero={1} icone="science" titulo="Dados do Projeto">
       <Field

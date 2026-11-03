@@ -140,9 +140,9 @@ export const OrientacoesCoordenador = () => {
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
   const [nomeCoordenador] = useState(
-    searchParams.get('coordenador') || 'Prof. Dr. Coordenador Responsável'
+    searchParams.get('coordenador') || ''
   );
-  const [cpf] = useState(searchParams.get('cpf') || '000.000.000-00');
+  const [cpf] = useState(searchParams.get('cpf') || '');
 
   // Controle de itens expandidos no accordion
   const [expanded, setExpanded] = useState<Record<number, boolean>>({ 1: true, 2: true });

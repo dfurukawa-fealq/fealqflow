@@ -5,23 +5,42 @@ import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 
+const formatarCpf = (valor: string) => {
+  const numeros = valor.replace(/\D/g, '').slice(0, 11);
+  return numeros
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+};
+
+const formatarRg = (valor: string) => {
+  const partes = valor.trim().split(/\s+/, 2);
+  const numeros = (partes[0] || '').replace(/\D/g, '').slice(0, 9);
+  const rgFormatado = numeros
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1})$/, '$1-$2');
+  const orgaoEmissor = partes[1] ? ` ${partes[1].toUpperCase()}` : '';
+  return `${rgFormatado}${orgaoEmissor}`.trim();
+};
+
 export const TermoLGPDConfidencialidade = () => {
   const [searchParams] = useSearchParams();
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
   // Dados do coordenador e projeto (recebidos via query ou autopreenchidos)
   const [nomeCoordenador, setNomeCoordenador] = useState(
-    searchParams.get('coordenador') || 'Prof. Dr. Coordenador Responsável'
+    searchParams.get('coordenador') || ''
   );
-  const [cpf, setCpf] = useState(searchParams.get('cpf') || '000.000.000-00');
-  const [rg, setRg] = useState(searchParams.get('rg') || '00.000.000-0 SSP/SP');
+  const [cpf, setCpf] = useState(formatarCpf(searchParams.get('cpf') || ''));
+  const [rg, setRg] = useState(formatarRg(searchParams.get('rg') || ''));
   const [departamento, setDepartamento] = useState(
-    searchParams.get('departamento') || 'Departamento de Engenharia / USP'
+    searchParams.get('departamento') || ''
   );
   const [tituloProjeto, setTituloProjeto] = useState(
-    searchParams.get('projeto') || 'Projeto / Evento de Extensão e Capacitação'
+    searchParams.get('projeto') || ''
   );
-  const [email, setEmail] = useState(searchParams.get('email') || 'coordenador@usp.br');
+  const [email, setEmail] = useState(searchParams.get('email') || '');
 
   // Confirmação de Leitura
   const [leuTermo, setLeuTermo] = useState(false);
@@ -191,7 +210,7 @@ export const TermoLGPDConfidencialidade = () => {
             span={3}
             tipo="text"
             valor={cpf}
-            onChange={(val) => setCpf(val)}
+            onChange={(val) => setCpf(formatarCpf(val))}
             obrigatorio
           />
           <Field
@@ -199,7 +218,7 @@ export const TermoLGPDConfidencialidade = () => {
             span={3}
             tipo="text"
             valor={rg}
-            onChange={(val) => setRg(val)}
+            onChange={(val) => setRg(formatarRg(val))}
           />
           <Field
             label="Departamento / Unidade USP"

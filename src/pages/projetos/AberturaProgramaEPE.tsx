@@ -35,7 +35,7 @@ export function AberturaProgramaEPE() {
       titulo="Abertura de Programa EPE"
       codigo="CONV-FR-04-PRO"
       acaoPrincipal="Submeter Programa"
-      sidebar={<KitDocumental documentos={DOCUMENTOS} />}
+      sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
     >
       <FormSection numero={1} icone="domain" titulo="Dados Institucionais">
         <Field

@@ -30,7 +30,7 @@ export const CadastroFinanciadora = () => (
     acaoPrincipal="Salvar Financiadora"
     acaoIcone="save"
     sidebar={
-      <KitDocumental
+      <KitDocumental acaoNoCard
         documentos={DOCUMENTOS}
         nota="Anexe os documentos faltantes para liberar o salvamento do cadastro completo."
       />

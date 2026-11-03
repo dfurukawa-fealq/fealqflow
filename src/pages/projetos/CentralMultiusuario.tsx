@@ -28,7 +28,7 @@ export function CentralMultiusuario() {
       titulo="Central Multiusuário"
       codigo="MULTI-01"
       acaoPrincipal="Submeter Pedido"
-      sidebar={<KitDocumental documentos={DOCUMENTOS} />}
+      sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
     >
       <FormSection
         numero={1}

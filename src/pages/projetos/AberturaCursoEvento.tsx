@@ -76,46 +76,19 @@ export const AberturaCursoEvento: React.FC = () => {
   // --- SEÇÃO 3: EQUIPE DO PROJETO ---
   const [coordNome, setCoordNome] = useState('');
   const [coordCpf, setCoordCpf] = useState('');
+  const [coordRg, setCoordRg] = useState('');
   const [coordEmail, setCoordEmail] = useState('');
   const [coordDepto, setCoordDepto] = useState('');
   const [coordTelefone, setCoordTelefone] = useState('');
 
   // Delegados de Gestão (Conveniar / USP)
   const [delegados, setDelegados] = useState<Delegado[]>([
-    {
-      id: '1',
-      nome: 'Maria Silva',
-      cpf: '123.456.789-00',
-      telefone: '(11) 98765-4321',
-      email: 'maria.silva@usp.br',
-      nivelAcesso: 'Nivel 1 - Ordenador',
-    },
-    {
-      id: '2',
-      nome: 'Carlos Eduardo San',
-      cpf: '987.654.321-11',
-      telefone: '(19) 99123-4567',
-      email: 'carlos.santos@usp.br',
-      nivelAcesso: 'Nivel 2 - Criador',
-    },
+    { id: 'inicial', nome: '', cpf: '', telefone: '', email: '', nivelAcesso: 'Nivel 2 - Criador' },
   ]);
 
   // Equipe Técnica / Comissão de Apoio
   const [equipeTecnica, setEquipeTecnica] = useState<MembroEquipe[]>([
-    {
-      id: '1',
-      nome: 'João Souza',
-      departamento: 'Física Aplicada / Doutorando',
-      telefone: '(11) 91234-5678',
-      email: 'joao.souza@usp.br',
-    },
-    {
-      id: '2',
-      nome: 'Dra. Ana Paula Mendes',
-      departamento: 'Engenharia de Computação / Pesquisadora',
-      telefone: '(19) 3429-8800',
-      email: 'ana.mendes@usp.br',
-    },
+    { id: 'inicial', nome: '', departamento: '', telefone: '', email: '' },
   ]);
 
   // --- SEÇÃO 4: INSTITUIÇÕES ENVOLVIDAS (IN COMPANY & PATROCÍNIO) ---
@@ -135,22 +108,7 @@ export const AberturaCursoEvento: React.FC = () => {
   const [tipoInscricao, setTipoInscricao] = useState<'gratuito' | 'pago'>('pago');
   const [vagasGratuitas, setVagasGratuitas] = useState('');
   const [lotes, setLotes] = useState<LoteInscricao[]>([
-    {
-      id: '1',
-      descricao: '1º Lote - Estudantes de Graduação/Pós',
-      valor: 150,
-      vagas: 40,
-      dataInicio: '',
-      dataFim: '',
-    },
-    {
-      id: '2',
-      descricao: '1º Lote - Profissionais / Geral',
-      valor: 350,
-      vagas: 60,
-      dataInicio: '',
-      dataFim: '',
-    },
+    { id: 'inicial', descricao: '', valor: 0, vagas: 0, dataInicio: '', dataFim: '' },
   ]);
   const [investimentoTexto, setInvestimentoTexto] = useState('');
   const [informacoesAdicionais, setInformacoesAdicionais] = useState('');
@@ -162,8 +120,6 @@ export const AberturaCursoEvento: React.FC = () => {
   const [isencaoTaxaDepto, setIsencaoTaxaDepto] = useState<'sim' | 'nao'>('nao');
 
   // --- ACEITES E LGPD ---
-  const [aceitouLGPD, setAceitouLGPD] = useState(false);
-  const [aceitouOrientacoes, setAceitouOrientacoes] = useState(false);
   const [modalLGPDOpen, setModalLGPDOpen] = useState(false);
   const [modalPDFOpen, setModalPDFOpen] = useState(false);
   const [submetidoSucesso, setSubmetidoSucesso] = useState(false);
@@ -305,7 +261,7 @@ export const AberturaCursoEvento: React.FC = () => {
   const statusDepto = statusFormulario('CERT-DEPTO-01');
 
   const urlLGPD = gerarUrlVinculada(
-    `/projetos/termo-lgpd?coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}&email=${encodeURIComponent(coordEmail || '')}&departamento=${encodeURIComponent(coordDepto || deptoNome || '')}&projeto=${encodeURIComponent(titulo || '')}`,
+    `/projetos/termo-lgpd?coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}&rg=${encodeURIComponent(coordRg || '')}&email=${encodeURIComponent(coordEmail || '')}&departamento=${encodeURIComponent(coordDepto || deptoNome || '')}&projeto=${encodeURIComponent(titulo || '')}`,
     'CERT-LGPD-01',
     'Termo de LGPD e Confidencialidade'
   );
@@ -322,10 +278,13 @@ export const AberturaCursoEvento: React.FC = () => {
     'Ciência e Concordância do Departamento'
   );
 
-  const isLGPDValido = aceitouLGPD || statusLGPD === 'concluido';
-  const isOrientacoesValido = aceitouOrientacoes || statusOrientacoes === 'concluido';
-  const isDeptoValido = statusDepto === 'concluido' || (deptoNome.trim().length > 3 && (aprovacaoDepto === 'ad_referendum' || dataAprovacaoConselho.trim().length > 0));
+  // A conclusão deve vir exclusivamente dos documentos certificados no Kit Documental.
+  // Os campos/aceites locais são apenas dados auxiliares do formulário de evento.
+  const isLGPDValido = statusLGPD === 'concluido';
+  const isOrientacoesValido = statusOrientacoes === 'concluido';
+  const isDeptoValido = statusDepto === 'concluido';
   const isPlanoValido = statusPlanoRecursos === 'concluido';
+  const equipePreenchida = equipeTecnica.some((membro) => membro.nome.trim().length > 0);
 
   // Kit Documental estruturado estritamente conforme a norma institucional FEALQ/USP (PDF)
   const documentosKit: DocumentoExigido[] = [
@@ -407,6 +366,9 @@ export const AberturaCursoEvento: React.FC = () => {
       descricao: 'Docentes, alunos, pesquisadores e comissão técnica.',
       tipo: 'gerado',
       obrigatorio: false,
+      url_template: '#equipe-tecnica',
+      status: equipePreenchida ? 'concluido' : 'pendente',
+      onAbrirLink: () => document.getElementById('equipe-tecnica')?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
     },
     {
       id: 'programacao-evento',
@@ -492,7 +454,7 @@ export const AberturaCursoEvento: React.FC = () => {
   if (isLGPDValido) preenchidos++;
   if (isOrientacoesValido) preenchidos++;
   if (isDeptoValido) preenchidos++;
-  if (tipoInscricao === 'gratuito' ? !!vagasGratuitas : lotes.length > 0) preenchidos++;
+  if (tipoInscricao === 'gratuito' ? !!vagasGratuitas : lotes.some((lote) => lote.descricao.trim() && lote.valor > 0 && lote.vagas > 0)) preenchidos++;
   if (isPlanoValido) preenchidos++;
 
   const percentualConclusao = Math.round((preenchidos / totalPontos) * 100);
@@ -548,7 +510,8 @@ export const AberturaCursoEvento: React.FC = () => {
             title="Gerar PDF para assinatura do Coordenador e Chefe de Depto"
           >
             <span className="material-symbols-outlined text-[18px] text-primary">picture_as_pdf</span>
-            Gerar PDF de Assinatura
+            <span className="sr-only sm:not-sr-only">PDF</span>
+            <span className="hidden sm:inline">Gerar PDF de Assinatura</span>
           </button>
         </div>
       }
@@ -590,6 +553,7 @@ export const AberturaCursoEvento: React.FC = () => {
           <KitDocumental
             documentos={documentosKit}
             titulo="Kit de Documentação"
+            acaoNoCard
           />
 
           {/* Banner de Aviso de Tramitação */}
@@ -680,7 +644,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setPossuiConvenio('sim')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              Sim, possui convênio
+              Sim
             </label>
 
             <label className="flex items-center gap-xs cursor-pointer text-[13px] font-medium text-on-surface">
@@ -692,7 +656,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setPossuiConvenio('nao')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              Não possui convênio
+              Não
             </label>
           </div>
         </div>
@@ -798,7 +762,7 @@ export const AberturaCursoEvento: React.FC = () => {
           obrigatorio
         />
         <Field
-          label="Horário / Turno de Realização"
+          label="Horário / Turno"
           span={3}
           placeholder="Ex: 08:00 às 18:00 (Integral)"
           valor={horarioRealizacao}
@@ -1028,6 +992,13 @@ export const AberturaCursoEvento: React.FC = () => {
               onChange={setCoordCpf}
             />
             <Field
+              label="RG / Órgão Emissor"
+              span={3}
+              placeholder="00.000.000-0 SSP/SP"
+              valor={coordRg}
+              onChange={setCoordRg}
+            />
+            <Field
               label="Telefone p/ Contato"
               span={3}
               tipo="tel"
@@ -1094,7 +1065,7 @@ export const AberturaCursoEvento: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto border border-outline-variant rounded-lg">
-            <table className="w-full text-[12px] text-left">
+            <table className="min-w-[700px] w-full text-[12px] text-left">
               <thead className="bg-surface-container-low text-on-surface-variant font-semibold border-b border-outline-variant">
                 <tr>
                   <th className="p-xs px-sm">Nome</th>
@@ -1176,7 +1147,7 @@ export const AberturaCursoEvento: React.FC = () => {
         </div>
 
         {/* Equipe Técnica / Comissão de Apoio */}
-        <div className="col-span-12 mt-md">
+        <div id="equipe-tecnica" className="col-span-12 mt-md">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-xs mb-xs">
             <div>
               <h4 className="font-bold text-[13px] text-on-surface flex items-center gap-xs">
@@ -1202,7 +1173,7 @@ export const AberturaCursoEvento: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto border border-outline-variant rounded-lg">
-            <table className="w-full text-[12px] text-left">
+            <table className="min-w-[640px] w-full text-[12px] text-left">
               <thead className="bg-surface-container-low text-on-surface-variant font-semibold border-b border-outline-variant">
                 <tr>
                   <th className="p-xs px-sm">Nome</th>
@@ -1560,7 +1531,7 @@ export const AberturaCursoEvento: React.FC = () => {
               </div>
 
               <div className="overflow-x-auto border border-outline-variant rounded-lg">
-                <table className="w-full text-[12px] text-left">
+                <table className="min-w-[760px] w-full text-[12px] text-left">
                   <thead className="bg-surface-container-low text-on-surface-variant font-semibold border-b border-outline-variant">
                     <tr>
                       <th className="p-xs px-sm">Descrição do Lote</th>
@@ -1804,14 +1775,14 @@ export const AberturaCursoEvento: React.FC = () => {
                 <span className="material-symbols-outlined text-[20px]">security</span>
                 Termo de LGPD e Confidencialidade de Dados
               </div>
-              <button
-                type="button"
-                onClick={() => setModalLGPDOpen(true)}
+              <Link
+                to={urlLGPD}
+                onClick={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD)}
                 className="text-[12px] text-primary hover:underline font-medium flex items-center gap-0.5"
               >
                 <span className="material-symbols-outlined text-[15px]">visibility</span>
                 Visualizar Termo Completo Autopreenchido
-              </button>
+              </Link>
             </div>
 
             <p className="text-[12px] text-on-surface-variant leading-relaxed">
@@ -1821,8 +1792,9 @@ export const AberturaCursoEvento: React.FC = () => {
             <label className="flex items-center gap-sm cursor-pointer pt-xs border-t border-primary/20">
               <input
                 type="checkbox"
-                checked={aceitouLGPD}
-                onChange={(e) => setAceitouLGPD(e.target.checked)}
+                checked={isLGPDValido}
+                readOnly
+                disabled
                 className="w-5 h-5 rounded text-primary accent-primary"
               />
               <span className="text-[13px] font-bold text-on-surface">
@@ -1845,8 +1817,9 @@ export const AberturaCursoEvento: React.FC = () => {
             <label className="flex items-center gap-sm cursor-pointer pt-xs border-t border-outline-variant/60">
               <input
                 type="checkbox"
-                checked={aceitouOrientacoes}
-                onChange={(e) => setAceitouOrientacoes(e.target.checked)}
+                checked={isOrientacoesValido}
+                readOnly
+                disabled
                 className="w-5 h-5 rounded text-primary accent-primary"
               />
               <span className="text-[13px] font-bold text-on-surface">
@@ -1904,11 +1877,12 @@ export const AberturaCursoEvento: React.FC = () => {
               <label className="flex items-center gap-xs cursor-pointer text-[12px] font-semibold text-primary">
                 <input
                   type="checkbox"
-                  checked={aceitouLGPD}
-                  onChange={(e) => setAceitouLGPD(e.target.checked)}
+                  checked={isLGPDValido}
+                  readOnly
+                  disabled
                   className="w-4 h-4 rounded text-primary accent-primary"
                 />
-                Confirmar Aceite dos Termos
+                Aceite validado pelo Kit Documental
               </label>
 
               <button
@@ -2010,8 +1984,8 @@ export const AberturaCursoEvento: React.FC = () => {
 
               {/* Bloco 4: Termos e LGPD */}
               <div className="p-sm bg-neutral-50 rounded border border-neutral-200 text-[11px]">
-                <p><strong>Aceite de LGPD:</strong> {aceitouLGPD ? 'CONCORDÂNCIA REGISTRADA DIGITALMENTE' : 'PENDENTE'}</p>
-                <p><strong>Orientações FEALQ:</strong> {aceitouOrientacoes ? 'CONCORDÂNCIA REGISTRADA DIGITALMENTE' : 'PENDENTE'}</p>
+                <p><strong>Aceite de LGPD:</strong> {isLGPDValido ? 'CONCORDÂNCIA REGISTRADA DIGITALMENTE' : 'PENDENTE NO KIT DOCUMENTAL'}</p>
+                <p><strong>Orientações FEALQ:</strong> {isOrientacoesValido ? 'CONCORDÂNCIA REGISTRADA DIGITALMENTE' : 'PENDENTE NO KIT DOCUMENTAL'}</p>
                 <p><strong>Isenção de Taxa Depto:</strong> {isencaoTaxaDepto.toUpperCase()}</p>
               </div>
 

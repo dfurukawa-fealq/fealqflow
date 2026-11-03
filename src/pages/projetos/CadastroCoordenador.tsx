@@ -44,7 +44,7 @@ export const CadastroCoordenador = () => (
     alerta={TRAVA}
     acaoPrincipal="Salvar e Cadastrar Coordenador"
     acaoIcone="save"
-    sidebar={<KitDocumental documentos={DOCUMENTOS} />}
+    sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
   >
     <FormSection numero={1} icone="badge" titulo="Dados Pessoais">
       <Field label="Nome Completo" placeholder="Nome conforme documento" />

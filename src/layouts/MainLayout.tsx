@@ -11,11 +11,11 @@ export function MainLayout({ children, showSidebar = true }: MainLayoutProps) {
   return (
     <div className="flex min-h-screen">
       {showSidebar && (
-        <div className="print:hidden">
+          <div className="hidden lg:block print:hidden">
           <Sidebar />
         </div>
       )}
-      <div className={`flex-1 flex flex-col min-h-screen ${showSidebar ? 'ml-[240px] print:ml-0' : ''}`}>
+      <div className={`flex-1 flex flex-col min-h-screen min-w-0 ${showSidebar ? 'lg:ml-[240px] print:ml-0' : ''}`}>
         <LayoutProvider showSidebar={showSidebar}>{children}</LayoutProvider>
       </div>
     </div>
