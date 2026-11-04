@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
+import { CertificacaoSidebarCard } from '../../components/form/CertificacaoSidebarCard';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
+import { formatCPF } from '../../utils/formatters';
+import { sanitizeInputText, sanitizeProtocolId, getSafeReturnUrl } from '../../utils/security';
 
 interface OrientacaoItem {
   numero: number;
@@ -137,12 +140,13 @@ const ORIENTACOES_OFICIAIS: OrientacaoItem[] = [
 
 export const OrientacoesCoordenador = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
   const [nomeCoordenador] = useState(
-    searchParams.get('coordenador') || ''
+    sanitizeInputText(searchParams.get('coordenador')) || ''
   );
-  const [cpf] = useState(searchParams.get('cpf') || '');
+  const [cpf] = useState(formatCPF(searchParams.get('cpf') || ''));
 
   // Controle de itens expandidos no accordion
   const [expanded, setExpanded] = useState<Record<number, boolean>>({ 1: true, 2: true });
@@ -200,8 +204,9 @@ export const OrientacoesCoordenador = () => {
     });
   };
 
-  const protocoloUrlParam = searchParams.get('protocolo') || protocolId;
-  const linkRetorno = `/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}`;
+  const rawProtocolo = searchParams.get('protocolo');
+  const protocoloUrlParam = rawProtocolo ? sanitizeProtocolId(rawProtocolo) : protocolId;
+  const linkRetorno = getSafeReturnUrl(`/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}`);
 
   return (
     <FormPageLayout
@@ -213,73 +218,50 @@ export const OrientacoesCoordenador = () => {
       acaoIcone="verified"
       podeEnviar={confirmado}
       aoSubmeter={() => {
-        window.location.href = linkRetorno;
+        navigate(linkRetorno);
       }}
       sidebar={
-        <div className="flex flex-col gap-lg">
-          {/* Card de Progresso de Leitura */}
-          <div className="bg-surface-container-low border border-outline-variant rounded-lg p-lg shadow-sm">
-            <div className="flex items-center gap-xs mb-sm">
-              <span className="material-symbols-outlined text-primary text-[20px]">
-                {confirmado ? 'verified' : 'fact_check'}
-              </span>
-              <h3 className="text-[14px] font-bold text-on-surface">Progresso da Leitura</h3>
-            </div>
-
-            <div className={`p-sm rounded border mb-sm ${
-              confirmado
-                ? 'bg-green-50 border-green-400 text-green-900'
-                : 'bg-amber-50 border-amber-300 text-amber-900'
-            }`}>
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] font-bold uppercase tracking-wide">
-                  {confirmado ? 'Certificação Concluída' : `${totalLidos}/15 Itens Marcados`}
-                </span>
-                <span className="text-[11px] font-bold">{percentualLido}%</span>
-              </div>
-              <div className="w-full bg-surface-variant/40 h-2 rounded-full overflow-hidden mt-1.5">
-                <div
-                  className={`h-full transition-all duration-300 ${confirmado ? 'bg-green-600' : 'bg-primary'}`}
-                  style={{ width: `${percentualLido}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="text-[11px] text-on-surface-variant flex flex-col gap-1 border-t border-outline-variant/60 pt-2">
-              <div className="flex justify-between">
-                <span>Protocolo:</span>
-                <span className="font-mono font-bold text-primary">{protocolId}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Total de Orientações:</span>
-                <span className="font-medium">15 Diretrizes Institucionais</span>
-              </div>
-              {confirmado && dataCertificacao && (
-                <div className="flex justify-between text-green-800 font-medium">
-                  <span>Carimbado em:</span>
-                  <span>{dataCertificacao} às {horaCertificacao}</span>
+        <CertificacaoSidebarCard
+          titulo="Progresso da Leitura"
+          icone="fact_check"
+          confirmado={confirmado}
+          statusLabelConfirmado="Certificação Concluída"
+          statusLabelPendente={`${totalLidos}/15 Itens Marcados (${percentualLido}%)`}
+          mensagemConfirmado={`Orientações certificadas sob código ${codigoCertificacao}. Vinculado ao protocolo.`}
+          mensagemPendente="A leitura de todas as 15 diretrizes é obrigatória para certificar o coordenador."
+          protocoloId={protocolId}
+          carimboData={dataCertificacao}
+          carimboHora={horaCertificacao}
+          linkRetorno={linkRetorno}
+          metaItems={[
+            { label: 'Total de Orientações', valor: '15 Diretrizes Institucionais' },
+            {
+              label: 'Progresso',
+              valor: (
+                <div className="flex items-center gap-2">
+                  <div className="w-16 bg-surface-variant/40 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${confirmado ? 'bg-green-600' : 'bg-primary'}`}
+                      style={{ width: `${percentualLido}%` }}
+                    />
+                  </div>
+                  <span>{percentualLido}%</span>
                 </div>
-              )}
-            </div>
-
-            <div className="mt-md pt-sm border-t border-outline-variant flex flex-col gap-xs">
-              <button
-                type="button"
-                onClick={marcarTodosComoLidos}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-md py-1.5 rounded border border-primary/30 text-primary text-[11px] font-semibold hover:bg-primary/5 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[15px]">done_all</span>
-                Marcar Todos como Lidos
-              </button>
-              <Link
-                to={linkRetorno}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-md py-2 rounded bg-surface-container border border-outline text-on-surface text-[12px] font-semibold hover:bg-surface-container-high transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                Retornar ao Protocolo
-              </Link>
-            </div>
-          </div>
+              ),
+            },
+          ]}
+        >
+          {/* Ação rápida para marcar todos */}
+          {!confirmado && (
+            <button
+              type="button"
+              onClick={marcarTodosComoLidos}
+              className="w-full inline-flex items-center justify-center gap-1.5 px-md py-2 rounded bg-surface-container-low border border-primary/30 text-primary text-[12px] font-semibold hover:bg-primary/5 transition-colors -mt-md"
+            >
+              <span className="material-symbols-outlined text-[16px]">done_all</span>
+              Marcar Todos os 15 Itens como Lidos
+            </button>
+          )}
 
           {/* Destaque Importante */}
           <div className="bg-surface-container-low border border-outline-variant rounded-lg p-lg text-[12px] text-on-surface-variant leading-relaxed">
@@ -291,7 +273,7 @@ export const OrientacoesCoordenador = () => {
               O cumprimento rigoroso destas diretrizes assegura a regularidade perante o Tribunal de Contas, a Reitoria da USP e a Receita Federal, resguardando o Coordenador contra glosas financeiras ou devoluções de recursos.
             </p>
           </div>
-        </div>
+        </CertificacaoSidebarCard>
       }
     >
       <div className="flex flex-col gap-lg">

@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "FealqFlow",
+  "description": "Portal de Formulários e Gestão de Protocolos e Programas de Apoio da FEALQ",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

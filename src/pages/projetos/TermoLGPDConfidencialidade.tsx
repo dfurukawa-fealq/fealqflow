@@ -1,46 +1,31 @@
 import React, { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
+import { CertificacaoSidebarCard } from '../../components/form/CertificacaoSidebarCard';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
-
-const formatarCpf = (valor: string) => {
-  const numeros = valor.replace(/\D/g, '').slice(0, 11);
-  return numeros
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-};
-
-const formatarRg = (valor: string) => {
-  const partes = valor.trim().split(/\s+/, 2);
-  const numeros = (partes[0] || '').replace(/\D/g, '').slice(0, 9);
-  const rgFormatado = numeros
-    .replace(/(\d{2})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1})$/, '$1-$2');
-  const orgaoEmissor = partes[1] ? ` ${partes[1].toUpperCase()}` : '';
-  return `${rgFormatado}${orgaoEmissor}`.trim();
-};
+import { formatCPF, formatRG } from '../../utils/formatters';
+import { sanitizeInputText, sanitizeProtocolId, getSafeReturnUrl } from '../../utils/security';
 
 export const TermoLGPDConfidencialidade = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
   // Dados do coordenador e projeto (recebidos via query ou autopreenchidos)
   const [nomeCoordenador, setNomeCoordenador] = useState(
-    searchParams.get('coordenador') || ''
+    sanitizeInputText(searchParams.get('coordenador')) || ''
   );
-  const [cpf, setCpf] = useState(formatarCpf(searchParams.get('cpf') || ''));
-  const [rg, setRg] = useState(formatarRg(searchParams.get('rg') || ''));
+  const [cpf, setCpf] = useState(formatCPF(searchParams.get('cpf') || ''));
+  const [rg, setRg] = useState(formatRG(searchParams.get('rg') || ''));
   const [departamento, setDepartamento] = useState(
-    searchParams.get('departamento') || ''
+    sanitizeInputText(searchParams.get('departamento')) || ''
   );
   const [tituloProjeto, setTituloProjeto] = useState(
-    searchParams.get('projeto') || ''
+    sanitizeInputText(searchParams.get('projeto')) || ''
   );
-  const [email, setEmail] = useState(searchParams.get('email') || '');
+  const [email, setEmail] = useState(sanitizeInputText(searchParams.get('email')) || '');
 
   // Confirmação de Leitura
   const [leuTermo, setLeuTermo] = useState(false);
@@ -77,8 +62,9 @@ export const TermoLGPDConfidencialidade = () => {
     });
   };
 
-  const protocoloUrlParam = searchParams.get('protocolo') || protocolId;
-  const linkRetorno = `/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}`;
+  const rawProtocolo = searchParams.get('protocolo');
+  const protocoloUrlParam = rawProtocolo ? sanitizeProtocolId(rawProtocolo) : protocolId;
+  const linkRetorno = getSafeReturnUrl(`/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}`);
 
   return (
     <FormPageLayout
@@ -90,67 +76,24 @@ export const TermoLGPDConfidencialidade = () => {
       acaoIcone="verified"
       podeEnviar={confirmado}
       aoSubmeter={() => {
-        window.location.href = linkRetorno;
+        navigate(linkRetorno);
       }}
       sidebar={
-        <div className="flex flex-col gap-lg">
-          {/* Card de Status da Leitura */}
-          <div className="bg-surface-container-low border border-outline-variant rounded-lg p-lg shadow-sm">
-            <div className="flex items-center gap-xs mb-sm">
-              <span className="material-symbols-outlined text-primary text-[20px]">
-                {confirmado ? 'verified' : 'pending_actions'}
-              </span>
-              <h3 className="text-[14px] font-bold text-on-surface">Status da Certificação</h3>
-            </div>
-
-            <div className={`p-sm rounded border mb-sm ${
-              confirmado
-                ? 'bg-green-50 border-green-400 text-green-900'
-                : 'bg-amber-50 border-amber-300 text-amber-900'
-            }`}>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">
-                  {confirmado ? 'check_circle' : 'info'}
-                </span>
-                <span className="text-[12px] font-bold uppercase tracking-wide">
-                  {confirmado ? 'Leitura Confirmada' : 'Leitura Obrigatória Pendente'}
-                </span>
-              </div>
-              <p className="text-[11px] mt-1 leading-snug">
-                {confirmado
-                  ? `Termo certificado sob código ${codigoCertificacao}. Registrado e vinculado ao protocolo.`
-                  : 'A leitura integral e o aceite formal deste termo são requisitos legais para a submissão do protocolo.'}
-              </p>
-            </div>
-
-            <div className="text-[11px] text-on-surface-variant flex flex-col gap-1 border-t border-outline-variant/60 pt-2">
-              <div className="flex justify-between">
-                <span>Protocolo Vinculado:</span>
-                <span className="font-mono font-bold text-primary">{protocolId}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Versão do Modelo:</span>
-                <span className="font-medium">Rev. 05 (FEALQ/USP)</span>
-              </div>
-              {confirmado && dataCertificacao && (
-                <div className="flex justify-between text-green-800 font-medium">
-                  <span>Carimbo:</span>
-                  <span>{dataCertificacao} às {horaCertificacao}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-md pt-sm border-t border-outline-variant">
-              <Link
-                to={linkRetorno}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-md py-2 rounded bg-surface-container border border-outline text-on-surface text-[12px] font-semibold hover:bg-surface-container-high transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                Retornar ao Protocolo Principal
-              </Link>
-            </div>
-          </div>
-
+        <CertificacaoSidebarCard
+          titulo="Status da Certificação"
+          confirmado={confirmado}
+          statusLabelConfirmado="Leitura Confirmada"
+          statusLabelPendente="Leitura Obrigatória Pendente"
+          mensagemConfirmado={`Termo certificado sob código ${codigoCertificacao}. Registrado e vinculado ao protocolo.`}
+          mensagemPendente="A leitura integral e o aceite formal deste termo são requisitos legais para a submissão do protocolo."
+          protocoloId={protocolId}
+          carimboData={dataCertificacao}
+          carimboHora={horaCertificacao}
+          linkRetorno={linkRetorno}
+          metaItems={[
+            { label: 'Versão do Modelo', valor: 'Rev. 05 (FEALQ/USP)' },
+          ]}
+        >
           {/* Orientações Legais */}
           <div className="bg-surface-container-low border border-outline-variant rounded-lg p-lg text-[12px] text-on-surface-variant leading-relaxed">
             <h4 className="font-bold text-on-surface mb-xs flex items-center gap-1">
@@ -164,7 +107,7 @@ export const TermoLGPDConfidencialidade = () => {
               Os dados coletados destinam-se exclusivamente à gestão acadêmica, técnica e contábil, sendo expressamente vedada sua cessão ou exploração comercial não autorizada.
             </p>
           </div>
-        </div>
+        </CertificacaoSidebarCard>
       }
     >
       <div className="flex flex-col gap-lg">
@@ -210,7 +153,7 @@ export const TermoLGPDConfidencialidade = () => {
             span={3}
             tipo="text"
             valor={cpf}
-            onChange={(val) => setCpf(formatarCpf(val))}
+            onChange={(val) => setCpf(formatCPF(val))}
             obrigatorio
           />
           <Field
@@ -218,7 +161,7 @@ export const TermoLGPDConfidencialidade = () => {
             span={3}
             tipo="text"
             valor={rg}
-            onChange={(val) => setRg(formatarRg(val))}
+            onChange={(val) => setRg(formatRG(val))}
           />
           <Field
             label="Departamento / Unidade USP"

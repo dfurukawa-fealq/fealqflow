@@ -5,7 +5,6 @@
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './pages/Dashboard';
 
 // Projetos
 import {
@@ -26,6 +25,7 @@ import {
   TermoLGPDConfidencialidade,
   OrientacoesCoordenador,
   CienciaConcordanciaDepto,
+  PainelSolicitacoesProjetos,
 } from './pages/projetos';
 
 // Programas de Apoio
@@ -40,8 +40,10 @@ import {
   InteresseComunidade,
   MaterialEventos,
   CulturaExtensao,
+  PainelSolicitacoesApoio,
 } from './pages/programas-de-apoio';
 
+import { HistoricoPendencias } from './pages/HistoricoPendencias';
 import { RastreabilidadeProvider } from './contexts/RastreabilidadeContext';
 
 export default function App() {
@@ -54,10 +56,13 @@ export default function App() {
           </div>
           <div className="flex-1 lg:ml-[240px] print:ml-0 flex flex-col min-h-screen min-w-0">
             <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/historico" element={<Dashboard />} />
+            {/* Default root routes to Programas de Apoio requests panel as specified */}
+            <Route path="/" element={<PainelSolicitacoesApoio />} />
+            <Route path="/historico" element={<HistoricoPendencias />} />
 
             {/* Projetos Routes */}
+            <Route path="/projetos/painel" element={<PainelSolicitacoesProjetos />} />
+            <Route path="/projetos/solicitacoes" element={<Navigate to="/projetos/painel" replace />} />
             <Route path="/projetos" element={<ProjetosPage />} />
             <Route path="/projetos/form-coordenador" element={<CadastroCoordenador />} />
             <Route path="/projetos/form-curso" element={<AberturaCurso />} />
@@ -102,6 +107,8 @@ export default function App() {
             <Route path="/form-central" element={<Navigate to="/projetos/form-central" replace />} />
 
             {/* Programas de Apoio Routes */}
+            <Route path="/programas-de-apoio/painel" element={<PainelSolicitacoesApoio />} />
+            <Route path="/programas-de-apoio/solicitacoes" element={<Navigate to="/programas-de-apoio/painel" replace />} />
             <Route path="/programas-de-apoio" element={<ProgramasApoioPage />} />
             <Route path="/programas" element={<Navigate to="/programas-de-apoio" replace />} />
             <Route path="/programas-de-apoio/apoio-bolsa-pos" element={<BolsaPosGraduacao />} />

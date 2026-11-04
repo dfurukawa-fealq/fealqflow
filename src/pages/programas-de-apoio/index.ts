@@ -8,3 +8,4 @@ export { AuxilioPublicacao } from './AuxilioPublicacao';
 export { InteresseComunidade } from './InteresseComunidade';
 export { MaterialEventos } from './MaterialEventos';
 export { CulturaExtensao } from './CulturaExtensao';
+export { PainelSolicitacoesApoio } from './PainelSolicitacoesApoio';

@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
+import { CertificacaoSidebarCard } from '../../components/form/CertificacaoSidebarCard';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
+import { sanitizeInputText, sanitizeProtocolId, getSafeReturnUrl } from '../../utils/security';
 
 export const CienciaConcordanciaDepto = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
   // Dados do Departamento e Aprovação
   const [deptoNome, setDeptoNome] = useState(
-    searchParams.get('depto') || ''
+    sanitizeInputText(searchParams.get('depto')) || ''
   );
   const [modalidadeAprovacao, setModalidadeAprovacao] = useState<'conselho' | 'ad_referendum'>('conselho');
   const [dataConselho, setDataConselho] = useState('');
@@ -20,7 +23,7 @@ export const CienciaConcordanciaDepto = () => {
 
   // Declarante / Assinador
   const [nomeDeclarante] = useState(
-    searchParams.get('declarante') || searchParams.get('coordenador') || ''
+    sanitizeInputText(searchParams.get('declarante') || searchParams.get('coordenador')) || ''
   );
   const [cargoDeclarante] = useState('Chefe de Departamento / Coordenador em Representação');
 
@@ -62,8 +65,9 @@ export const CienciaConcordanciaDepto = () => {
     });
   };
 
-  const protocoloUrlParam = searchParams.get('protocolo') || protocolId;
-  const linkRetorno = `/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}`;
+  const rawProtocolo = searchParams.get('protocolo');
+  const protocoloUrlParam = rawProtocolo ? sanitizeProtocolId(rawProtocolo) : protocolId;
+  const linkRetorno = getSafeReturnUrl(`/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}`);
 
   const podeConfirmar =
     declaracaoVerdade &&
@@ -80,72 +84,32 @@ export const CienciaConcordanciaDepto = () => {
       acaoIcone="verified"
       podeEnviar={confirmado}
       aoSubmeter={() => {
-        window.location.href = linkRetorno;
+        navigate(linkRetorno);
       }}
       sidebar={
-        <div className="flex flex-col gap-lg">
-          {/* Card de Status da Certificação Departamental */}
-          <div className="bg-surface-container-low border border-outline-variant rounded-lg p-lg shadow-sm">
-            <div className="flex items-center gap-xs mb-sm">
-              <span className="material-symbols-outlined text-primary text-[20px]">
-                {confirmado ? 'verified' : 'domain'}
-              </span>
-              <h3 className="text-[14px] font-bold text-on-surface">Deliberação Departamental</h3>
-            </div>
-
-            <div className={`p-sm rounded border mb-sm ${
-              confirmado
-                ? 'bg-green-50 border-green-400 text-green-900'
-                : 'bg-amber-50 border-amber-300 text-amber-900'
-            }`}>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">
-                  {confirmado ? 'check_circle' : 'pending'}
-                </span>
-                <span className="text-[12px] font-bold uppercase tracking-wide">
-                  {confirmado ? 'Ciência Concluída' : 'Aguardando Ciência'}
-                </span>
-              </div>
-              <p className="text-[11px] mt-1 leading-snug">
-                {confirmado
-                  ? `Deliberação registrada sob o selo ${codigoCertificacao}.`
-                  : 'Necessário preencher o departamento e atestar a modalidade de aprovação para liberar a submissão.'}
-              </p>
-            </div>
-
-            <div className="text-[11px] text-on-surface-variant flex flex-col gap-1 border-t border-outline-variant/60 pt-2">
-              <div className="flex justify-between">
-                <span>Protocolo:</span>
-                <span className="font-mono font-bold text-primary">{protocolId}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Modalidade:</span>
-                <span className="font-medium">
-                  {modalidadeAprovacao === 'conselho' ? 'Conselho do Depto.' : 'Ad Referendum'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Isenção de Taxa:</span>
-                <span className="font-medium uppercase">{isentaTaxa}</span>
-              </div>
-              {confirmado && dataCertificacao && (
-                <div className="flex justify-between text-green-800 font-medium">
-                  <span>Carimbado em:</span>
-                  <span>{dataCertificacao} às {horaCertificacao}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-md pt-sm border-t border-outline-variant">
-              <Link
-                to={linkRetorno}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-md py-2 rounded bg-surface-container border border-outline text-on-surface text-[12px] font-semibold hover:bg-surface-container-high transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                Retornar ao Protocolo Principal
-              </Link>
-            </div>
-          </div>
+        <CertificacaoSidebarCard
+          titulo="Deliberação Departamental"
+          icone="domain"
+          confirmado={confirmado}
+          statusLabelConfirmado="Ciência Concluída"
+          statusLabelPendente="Aguardando Ciência"
+          mensagemConfirmado={`Deliberação registrada sob o selo ${codigoCertificacao}.`}
+          mensagemPendente="Necessário preencher o departamento e atestar a modalidade de aprovação para liberar a submissão."
+          protocoloId={protocolId}
+          carimboData={dataCertificacao}
+          carimboHora={horaCertificacao}
+          linkRetorno={linkRetorno}
+          metaItems={[
+            {
+              label: 'Modalidade',
+              valor: modalidadeAprovacao === 'conselho' ? 'Conselho do Depto.' : 'Ad Referendum',
+            },
+            {
+              label: 'Isenção de Taxa',
+              valor: isentaTaxa.toUpperCase(),
+            },
+          ]}
+        >
 
           {/* Destaque das Normas USP */}
           <div className="bg-surface-container-low border border-outline-variant rounded-lg p-lg text-[12px] text-on-surface-variant leading-relaxed">
@@ -160,7 +124,7 @@ export const CienciaConcordanciaDepto = () => {
               Caso haja isenção da taxa departamental em prol do evento, a deliberação formal constará dos registros do FPA da FEALQ.
             </p>
           </div>
-        </div>
+        </CertificacaoSidebarCard>
       }
     >
       <div className="flex flex-col gap-lg">

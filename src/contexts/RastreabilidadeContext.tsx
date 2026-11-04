@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { safeGetItem, safeSetItem, safeJsonParse } from '../utils/safeStorage';
+import { sanitizeProtocolId } from '../utils/security';
 
 export interface FormularioVinculado {
   formCodigo: string;
@@ -46,41 +48,35 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
   const location = useLocation();
 
   // Lê parâmetros vindos da URL caso um formulário filho tenha sido aberto a partir de um pai
-  const paramProtocolo = searchParams.get('protocolo');
+  const rawParamProtocolo = searchParams.get('protocolo');
+  const paramProtocolo = rawParamProtocolo ? sanitizeProtocolId(rawParamProtocolo) : null;
   const paramSessao = searchParams.get('sessao');
   const paramOrigem = searchParams.get('origem');
 
   const [protocolId, setProtocolId] = useState<string>(() => {
     if (paramProtocolo) return paramProtocolo;
-    const salvo = localStorage.getItem(`${STORAGE_PREFIX}active_protocol`);
-    if (salvo) return salvo;
+    const salvo = safeGetItem(`${STORAGE_PREFIX}active_protocol`);
+    if (salvo) return sanitizeProtocolId(salvo);
     const ano = new Date().getFullYear();
     const rand = Math.floor(1000 + Math.random() * 9000);
     const novo = `FEALQ-${ano}-${rand}`;
-    localStorage.setItem(`${STORAGE_PREFIX}active_protocol`, novo);
+    safeSetItem(`${STORAGE_PREFIX}active_protocol`, novo);
     return novo;
   });
 
   const [sessionId, setSessionId] = useState<string>(() => {
     if (paramSessao) return paramSessao;
-    const salvo = localStorage.getItem(`${STORAGE_PREFIX}active_session`);
+    const salvo = safeGetItem(`${STORAGE_PREFIX}active_session`);
     if (salvo) return salvo;
     const novo = 'sess_' + Math.random().toString(36).substring(2, 12);
-    localStorage.setItem(`${STORAGE_PREFIX}active_session`, novo);
+    safeSetItem(`${STORAGE_PREFIX}active_session`, novo);
     return novo;
   });
 
   const [sessao, setSessao] = useState<SessaoRastreabilidade>(() => {
     const key = `${STORAGE_PREFIX}sessao_${protocolId}`;
-    const salvo = localStorage.getItem(key);
-    if (salvo) {
-      try {
-        return JSON.parse(salvo);
-      } catch {
-        // fallback
-      }
-    }
-    return {
+    const salvo = safeGetItem(key);
+    const padrao: SessaoRastreabilidade = {
       sessionId,
       protocolId,
       formOrigem: paramOrigem || 'AberturaCursoEvento',
@@ -94,24 +90,25 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
         },
       },
     };
+    return safeJsonParse<SessaoRastreabilidade>(salvo, padrao);
   });
 
   // Sincroniza parâmetros de URL quando a rota muda
   useEffect(() => {
     if (paramProtocolo && paramProtocolo !== protocolId) {
       setProtocolId(paramProtocolo);
-      localStorage.setItem(`${STORAGE_PREFIX}active_protocol`, paramProtocolo);
+      safeSetItem(`${STORAGE_PREFIX}active_protocol`, paramProtocolo);
     }
     if (paramSessao && paramSessao !== sessionId) {
       setSessionId(paramSessao);
-      localStorage.setItem(`${STORAGE_PREFIX}active_session`, paramSessao);
+      safeSetItem(`${STORAGE_PREFIX}active_session`, paramSessao);
     }
   }, [paramProtocolo, paramSessao, protocolId, sessionId]);
 
-  // Persiste sessão no localStorage e tenta sincronizar com a API se disponível
+  // Persiste sessão no safeStorage e tenta sincronizar com a API se disponível
   useEffect(() => {
     const key = `${STORAGE_PREFIX}sessao_${protocolId}`;
-    localStorage.setItem(key, JSON.stringify(sessao));
+    safeSetItem(key, JSON.stringify(sessao));
 
     // Tentativa não-bloqueante de envio para backend Flask/SQLite
     if (typeof fetch !== 'undefined') {
@@ -139,8 +136,8 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
     const novaSessaoId = 'sess_' + Math.random().toString(36).substring(2, 12);
     setProtocolId(novoProtocolo);
     setSessionId(novaSessaoId);
-    localStorage.setItem(`${STORAGE_PREFIX}active_protocol`, novoProtocolo);
-    localStorage.setItem(`${STORAGE_PREFIX}active_session`, novaSessaoId);
+    safeSetItem(`${STORAGE_PREFIX}active_protocol`, novoProtocolo);
+    safeSetItem(`${STORAGE_PREFIX}active_session`, novaSessaoId);
 
     const novaSessao: SessaoRastreabilidade = {
       sessionId: novaSessaoId,

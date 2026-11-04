@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { LinhaApoio, FormularioApoio, Orcamento, MovimentacaoOrcamentaria } from '../types/admin';
 import { PROGRAMAS_APOIO } from '../data/programasApoio';
+import { safeGetItem, safeSetItem, safeJsonParse } from '../utils/safeStorage';
 
 interface AdminContextData {
   linhasApoio: LinhaApoio[];
@@ -25,8 +26,8 @@ const AdminContext = createContext<AdminContextData>({} as AdminContextData);
 
 export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [linhasApoio, setLinhasApoio] = useState<LinhaApoio[]>(() => {
-    const saved = localStorage.getItem('@Fealq:linhasApoio');
-    if (saved) return JSON.parse(saved);
+    const saved = safeGetItem('@Fealq:linhasApoio');
+    if (saved) return safeJsonParse(saved, []);
     
     // Extract unique linhas from PROGRAMAS_APOIO
     const linhasMap = new Map();
@@ -39,9 +40,9 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const [formularios, setFormularios] = useState<FormularioApoio[]>(() => {
-    const saved = localStorage.getItem('@Fealq:formularios');
+    const saved = safeGetItem('@Fealq:formularios');
     if (saved) {
-      const parsed = JSON.parse(saved);
+      const parsed = safeJsonParse<any[]>(saved, []);
       // Migrate array of strings to objects if necessary, and migrate periodos
       return parsed.map((f: any) => ({
         ...f,
@@ -92,11 +93,8 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoOrcamentaria[]>(() => {
-    const saved = localStorage.getItem('@Fealq:movimentacoes_v2');
-    if (saved) return JSON.parse(saved);
-    
-    // Generate some fake transactions to populate the dashboard charts (specially "Reducao" and "Transferencia" out)
-    return [
+    const saved = safeGetItem('@Fealq:movimentacoes_v2');
+    const defaultMovimentacoes: MovimentacaoOrcamentaria[] = [
       { id: 'mock1', data: '2026-08-01', tipo: 'Aporte', valor: 50000, orcamentoDestinoId: 'orc-0', justificativa: 'Suplementação' },
       { id: 'mock2', data: '2026-08-05', tipo: 'Reducao', valor: 2500, orcamentoOrigemId: 'orc-1', justificativa: 'Ajuste contábil' },
       { id: 'mock3', data: '2026-08-10', tipo: 'Transferencia', valor: 15000, orcamentoOrigemId: 'orc-0', orcamentoDestinoId: 'orc-2', justificativa: 'Remanejamento' },
@@ -108,36 +106,35 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
       { id: 'mock9', data: '2026-08-28', tipo: 'Transferencia', valor: 8000, orcamentoOrigemId: 'orc-7', orcamentoDestinoId: 'orc-1', justificativa: 'Repasse' },
       { id: 'mock10', data: '2026-09-02', tipo: 'Reducao', valor: 6200, orcamentoOrigemId: 'orc-0', justificativa: 'Corte da retoria' },
     ];
+    return safeJsonParse(saved, defaultMovimentacoes);
   });
 
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>(() => {
-    const saved = localStorage.getItem('@Fealq:orcamentos_v2');
-    if (saved) return JSON.parse(saved);
-    
-    // Auto-generate budgets for ALL existing forms
-    return PROGRAMAS_APOIO.map((p, idx) => ({
+    const saved = safeGetItem('@Fealq:orcamentos_v2');
+    const defaultOrcamentos: Orcamento[] = PROGRAMAS_APOIO.map((p, idx) => ({
       id: `orc-${idx}`,
       formularioId: p.id,
       ano: 2026,
-      valorGlobal: 100000 + (Math.random() * 200000), // Random between 100k and 300k
-      tetoPorPedido: 2000 + (Math.random() * 8000), // Random between 2k and 10k
+      valorGlobal: 100000 + (Math.random() * 200000),
+      tetoPorPedido: 2000 + (Math.random() * 8000),
     }));
+    return safeJsonParse(saved, defaultOrcamentos);
   });
 
   useEffect(() => {
-    localStorage.setItem('@Fealq:linhasApoio', JSON.stringify(linhasApoio));
+    safeSetItem('@Fealq:linhasApoio', JSON.stringify(linhasApoio));
   }, [linhasApoio]);
 
   useEffect(() => {
-    localStorage.setItem('@Fealq:formularios', JSON.stringify(formularios));
+    safeSetItem('@Fealq:formularios', JSON.stringify(formularios));
   }, [formularios]);
 
   useEffect(() => {
-    localStorage.setItem('@Fealq:orcamentos_v2', JSON.stringify(orcamentos));
+    safeSetItem('@Fealq:orcamentos_v2', JSON.stringify(orcamentos));
   }, [orcamentos]);
 
   useEffect(() => {
-    localStorage.setItem('@Fealq:movimentacoes_v2', JSON.stringify(movimentacoes));
+    safeSetItem('@Fealq:movimentacoes_v2', JSON.stringify(movimentacoes));
   }, [movimentacoes]);
 
   // Linhas Apoio

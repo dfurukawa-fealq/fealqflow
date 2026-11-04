@@ -7,6 +7,8 @@ import { StatusCard } from '../../components/form/StatusCard';
 import { KitDocumental } from '../../components/KitDocumental';
 import { DocumentoExigido } from '../../data/programasApoio';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
+import { buscarEnderecoPorCep } from '../../utils/cep';
+import { formatCEP, formatCPF } from '../../utils/formatters';
 
 interface Delegado {
   id: string;
@@ -126,22 +128,19 @@ export const AberturaCursoEvento: React.FC = () => {
   const [submetidoSucesso, setSubmetidoSucesso] = useState(false);
   const [avisoValidacao, setAvisoValidacao] = useState('');
 
-  // Busca de CEP via API pública com tratamento gracioso
+  // Busca de CEP resiliente com timeout e tratamento de falhas
   const handleBuscarCep = async () => {
     const limpo = cep.replace(/\D/g, '');
     if (limpo.length !== 8) return;
     setBuscandoCep(true);
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${limpo}/json/`);
-      const data = await res.json();
-      if (!data.erro) {
-        setLogradouro(data.logradouro || '');
-        setBairro(data.bairro || '');
-        setCidade(data.localidade || '');
-        setUf(data.uf || '');
+      const resultado = await buscarEnderecoPorCep(limpo);
+      if (resultado.sucesso) {
+        setLogradouro(resultado.logradouro);
+        setBairro(resultado.bairro);
+        setCidade(resultado.cidade);
+        setUf(resultado.uf);
       }
-    } catch {
-      // Falha silenciosa ou fallback
     } finally {
       setBuscandoCep(false);
     }

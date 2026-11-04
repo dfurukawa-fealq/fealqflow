@@ -16,3 +16,4 @@ export { CentralMultiusuario } from './CentralMultiusuario';
 export { TermoLGPDConfidencialidade } from './TermoLGPDConfidencialidade';
 export { OrientacoesCoordenador } from './OrientacoesCoordenador';
 export { CienciaConcordanciaDepto } from './CienciaConcordanciaDepto';
+export { PainelSolicitacoesProjetos } from './PainelSolicitacoesProjetos';
