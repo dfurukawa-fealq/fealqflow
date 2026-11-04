@@ -35,7 +35,7 @@ interface LoteInscricao {
 }
 
 export const AberturaCursoEvento: React.FC = () => {
-  const { protocolId, gerarUrlVinculada, statusFormulario, registrarAberturaFormulario } = useRastreabilidade();
+  const { protocolId, gerarUrlVinculada, statusFormulario, registrarAberturaFormulario, marcarFormularioConcluido } = useRastreabilidade();
   const statusPlanoRecursos = statusFormulario('CONV-PL-01');
   const urlPlanoRecursos = gerarUrlVinculada('/projetos/form-plano-recursos', 'CONV-PL-01', 'Plano de Aplicação de Recursos');
 
@@ -121,6 +121,7 @@ export const AberturaCursoEvento: React.FC = () => {
 
   // --- ACEITES E LGPD ---
   const [modalLGPDOpen, setModalLGPDOpen] = useState(false);
+  const [modalAceiteLGPD, setModalAceiteLGPD] = useState(false);
   const [modalPDFOpen, setModalPDFOpen] = useState(false);
   const [submetidoSucesso, setSubmetidoSucesso] = useState(false);
   const [avisoValidacao, setAvisoValidacao] = useState('');
@@ -286,34 +287,35 @@ export const AberturaCursoEvento: React.FC = () => {
   const isPlanoValido = statusPlanoRecursos === 'concluido';
   const equipePreenchida = equipeTecnica.some((membro) => membro.nome.trim().length > 0);
 
-  // Kit Documental estruturado estritamente conforme a norma institucional FEALQ/USP (PDF)
-  const documentosKit: DocumentoExigido[] = [
-    {
-      id: 'orientacoes-coordenador',
-      label: 'Orientações ao Coordenador FEALQ',
-      descricao:
-        isOrientacoesValido
-          ? 'Leitura das 15 diretrizes institucionais confirmada e certificada.'
-          : '15 regras e diretrizes operacionais de gestão. Confirmação de leitura obrigatória.',
-      tipo: 'gerado',
-      obrigatorio: true,
-      url_template: urlOrientacoes,
-      status: isOrientacoesValido ? 'concluido' : statusOrientacoes,
-      onAbrirLink: () =>
-        registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes),
-      linkTexto: isOrientacoesValido ? 'Revisar' : 'Ler e Confirmar',
-    },
+  // --- CONFIGURAÇÃO DO KIT DE DOCUMENTAÇÃO (DIRETRIZ FEALQ/USP) ---
+  // Quando "SEM CONVÊNIO USP":
+  //   a. Termo de LGPD {formulário com autopreenchimento e FLAG para aceite OBRIGATÓRIO}
+  //   b. Cadastro do coordenador {formulário não obrigatório}
+  //   c. Cadastro de equipe envolvida {formulário não obrigatório}
+  //   d. Programação do curso/evento {anexo não obrigatório}
+  //   e. Plano de aplicação de recursos {formulário não obrigatório}
+  //
+  // Quando "COM CONVÊNIO USP":
+  //   a. Termo de LGPD {formulário com autopreenchimento e FLAG para aceite OBRIGATÓRIO}
+  //   b. Cadastro do coordenador {formulário não obrigatório}
+  //   c. Cadastro de equipe envolvida {formulário não obrigatório}
+  //   d. Programação do curso/evento {anexo não obrigatório}
+  //   e. Convênio USP assinado {anexo não obrigatório}
+  //   f. Caracterização acadêmica {anexo não obrigatório}
+  //   g. Caracterização financeira {anexo não obrigatório}
+
+  const documentosBase: DocumentoExigido[] = [
     {
       id: 'termo-lgpd',
       label: 'Termo de LGPD e Confidencialidade (FR 01 - PRO)',
-      descricao:
-        isLGPDValido
-          ? 'Termo assinado e certificado eletronicamente.'
-          : 'Autopreenchido com dados da coordenação e evento. Aceite e leitura obrigatórios.',
+      descricao: isLGPDValido
+        ? 'Termo assinado e certificado eletronicamente.'
+        : 'Autopreenchido com dados da coordenação e evento. Aceite e leitura obrigatórios.',
       tipo: 'gerado',
       obrigatorio: true,
+      condicao: 'Obrigatório',
       url_template: urlLGPD,
-      status: isLGPDValido ? 'concluido' : statusLGPD,
+      status: isLGPDValido ? 'concluido' : (statusLGPD || 'pendente'),
       onAbrirLink: () =>
         registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD),
       linkTexto: isLGPDValido ? 'Revisar' : 'Ler e Assinar',
@@ -323,42 +325,14 @@ export const AberturaCursoEvento: React.FC = () => {
       },
     },
     {
-      id: 'ciencia-departamento',
-      label: 'Ciência e Concordância do Departamento (USP)',
-      descricao:
-        isDeptoValido
-          ? 'Deliberação e aprovação departamental registradas com sucesso.'
-          : 'Aprovação pelo Conselho do Departamento ou ad referendum e isenção de taxa.',
-      tipo: 'gerado',
-      obrigatorio: true,
-      url_template: urlDepto,
-      status: isDeptoValido ? 'concluido' : statusDepto,
-      onAbrirLink: () =>
-        registrarAberturaFormulario('CERT-DEPTO-01', 'Ciência e Concordância do Departamento', urlDepto),
-      linkTexto: isDeptoValido ? 'Revisar' : 'Certificar',
-    },
-    {
-      id: 'plano-aplicacao-recursos',
-      label: 'Plano de Aplicação de Recursos (CONV-PL-01)',
-      descricao:
-        isPlanoValido
-          ? 'Orçamento preenchido e vinculado com sucesso ao protocolo.'
-          : 'Obrigatório para fechamento orçamentário e envio da proposta.',
-      tipo: 'gerado',
-      obrigatorio: true,
-      url_template: urlPlanoRecursos,
-      status: statusPlanoRecursos,
-      onAbrirLink: () =>
-        registrarAberturaFormulario('CONV-PL-01', 'Plano de Aplicação de Recursos', urlPlanoRecursos),
-      linkTexto: isPlanoValido ? 'Revisar' : 'Preencher',
-    },
-    {
       id: 'cadastro-coordenador',
       label: 'Cadastro de Coordenador (Sem Certidões)',
       descricao: 'Caso não possua cadastro prévio na FEALQ.',
       tipo: 'gerado',
       obrigatorio: false,
+      condicao: 'Condicional',
       url_template: `/projetos/form-coordenador?protocolo=${protocolId}`,
+      linkTexto: 'Preencher',
     },
     {
       id: 'cadastro-equipe',
@@ -366,9 +340,12 @@ export const AberturaCursoEvento: React.FC = () => {
       descricao: 'Docentes, alunos, pesquisadores e comissão técnica.',
       tipo: 'gerado',
       obrigatorio: false,
+      condicao: 'Condicional',
       url_template: '#equipe-tecnica',
-      status: equipePreenchida ? 'concluido' : 'pendente',
-      onAbrirLink: () => document.getElementById('equipe-tecnica')?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+      status: equipePreenchida ? 'concluido' : undefined,
+      onAbrirLink: () =>
+        document.getElementById('equipe-tecnica')?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+      linkTexto: equipePreenchida ? 'Revisar' : 'Preencher',
     },
     {
       id: 'programacao-evento',
@@ -376,32 +353,59 @@ export const AberturaCursoEvento: React.FC = () => {
       descricao: 'Cronograma, ementa, datas e palestrantes.',
       tipo: 'upload',
       obrigatorio: false,
+      condicao: 'Anexo Opcional',
     },
-    ...(possuiConvenio === 'sim'
+  ];
+
+  const documentosDinamicos: DocumentoExigido[] =
+    possuiConvenio === 'sim'
       ? [
           {
             id: 'convenio-usp-assinado',
             label: 'Convênio USP Assinado (PDF)',
             descricao: 'Cópia digitalizada do termo de convênio firmado com a USP.',
-            tipo: 'upload' as const,
+            tipo: 'upload',
             obrigatorio: false,
+            condicao: 'Anexo Opcional',
           },
           {
             id: 'caracterizacao-academica',
             label: 'Caracterização Acadêmica (USP)',
             descricao: 'Formulário acadêmico de extensão universitária.',
-            tipo: 'upload' as const,
+            tipo: 'upload',
             obrigatorio: false,
+            condicao: 'Anexo Opcional',
           },
           {
             id: 'caracterizacao-financeira',
             label: 'Caracterização Financeira (USP)',
             descricao: 'Planilha/demonstrativo de custos aprovado na instância acadêmica.',
-            tipo: 'upload' as const,
+            tipo: 'upload',
             obrigatorio: false,
+            condicao: 'Anexo Opcional',
           },
         ]
-      : []),
+      : [
+          {
+            id: 'plano-aplicacao-recursos',
+            label: 'Plano de Aplicação de Recursos (CONV-PL-01)',
+            descricao: isPlanoValido
+              ? 'Orçamento preenchido e vinculado com sucesso ao protocolo.'
+              : 'Estruturação orçamentária de receitas e despesas do evento.',
+            tipo: 'gerado',
+            obrigatorio: false,
+            condicao: 'Opcional',
+            url_template: urlPlanoRecursos,
+            status: isPlanoValido ? 'concluido' : undefined,
+            onAbrirLink: () =>
+              registrarAberturaFormulario('CONV-PL-01', 'Plano de Aplicação de Recursos', urlPlanoRecursos),
+            linkTexto: isPlanoValido ? 'Revisar' : 'Preencher',
+          },
+        ];
+
+  const documentosKit: DocumentoExigido[] = [
+    ...documentosBase,
+    ...documentosDinamicos,
     ...(inCompany === 'sim'
       ? [
           {
@@ -410,6 +414,7 @@ export const AberturaCursoEvento: React.FC = () => {
             descricao: 'Formulário preenchido diretamente pela empresa parceira.',
             tipo: 'gerado' as const,
             obrigatorio: false,
+            condicao: 'Condicional',
             url_template: `/projetos/form-parceiro?protocolo=${protocolId}`,
           },
         ]
@@ -422,6 +427,7 @@ export const AberturaCursoEvento: React.FC = () => {
             descricao: 'Termo formal de aceite de cotas de apoio financeiro.',
             tipo: 'upload' as const,
             obrigatorio: false,
+            condicao: 'Condicional',
           },
           {
             id: 'cotas-patrocinio',
@@ -429,6 +435,7 @@ export const AberturaCursoEvento: React.FC = () => {
             descricao: 'Definição de cotas Ouro, Prata, Bronze e benefícios.',
             tipo: 'gerado' as const,
             obrigatorio: false,
+            condicao: 'Condicional',
             url_template: `/projetos/form-cotas?protocolo=${protocolId}`,
           },
           {
@@ -437,6 +444,7 @@ export const AberturaCursoEvento: React.FC = () => {
             descricao: 'Enviado por link ao patrocinador para dados cadastrais.',
             tipo: 'gerado' as const,
             obrigatorio: false,
+            condicao: 'Condicional',
             url_template: `/projetos/form-patrocinador?protocolo=${protocolId}`,
           },
         ]
@@ -445,47 +453,27 @@ export const AberturaCursoEvento: React.FC = () => {
 
   // Cálculo de progresso de preenchimento
   let preenchidos = 0;
-  let totalPontos = 10;
-  if (titulo) preenchidos++;
-  if (publicoAlvo) preenchidos++;
-  if (cargaHoraria) preenchidos++;
-  if (coordNome && coordCpf) preenchidos++;
-  if (objetoProjeto) preenchidos++;
+  let totalPontos = 5;
+  if (titulo.trim()) preenchidos++;
+  if (coordNome.trim() && coordCpf.trim()) preenchidos++;
+  if (publicoAlvo.trim()) preenchidos++;
+  if (objetoProjeto.trim()) preenchidos++;
   if (isLGPDValido) preenchidos++;
-  if (isOrientacoesValido) preenchidos++;
-  if (isDeptoValido) preenchidos++;
-  if (tipoInscricao === 'gratuito' ? !!vagasGratuitas : lotes.some((lote) => lote.descricao.trim() && lote.valor > 0 && lote.vagas > 0)) preenchidos++;
-  if (isPlanoValido) preenchidos++;
 
-  const percentualConclusao = Math.round((preenchidos / totalPontos) * 100);
+  const percentualConclusao = Math.min(100, Math.round((preenchidos / totalPontos) * 100));
   const podeSubmeter =
     titulo.trim() !== '' &&
     coordNome.trim() !== '' &&
     coordCpf.trim() !== '' &&
-    isLGPDValido &&
-    isOrientacoesValido &&
-    isDeptoValido &&
-    isPlanoValido;
+    isLGPDValido;
 
   const handleSubmit = () => {
     if (!podeSubmeter) {
-      if (!isPlanoValido) {
-        setAvisoValidacao('O preenchimento do Plano de Aplicação de Recursos (CONV-PL-01) é obrigatório antes da submissão do protocolo.');
-        return;
-      }
       if (!isLGPDValido) {
-        setAvisoValidacao('A confirmação de leitura do Termo de LGPD e Confidencialidade é obrigatória.');
+        setAvisoValidacao('A confirmação de leitura e aceite formal do Termo de LGPD e Confidencialidade (FLAG OBRIGATÓRIA) é indispensável para submeter o protocolo.');
         return;
       }
-      if (!isOrientacoesValido) {
-        setAvisoValidacao('A confirmação de leitura das 15 Orientações ao Coordenador é obrigatória.');
-        return;
-      }
-      if (!isDeptoValido) {
-        setAvisoValidacao('A ciência e aprovação do Departamento (USP) são obrigatórias.');
-        return;
-      }
-      setAvisoValidacao('Por favor, preencha todos os campos obrigatórios do projeto.');
+      setAvisoValidacao('Por favor, preencha todos os campos obrigatórios do projeto (Título, Coordenador e CPF).');
       return;
     }
     setAvisoValidacao('');
@@ -536,16 +524,10 @@ export const AberturaCursoEvento: React.FC = () => {
             percentual={percentualConclusao}
             nota={
               podeSubmeter
-                ? 'Campos essenciais, certificações e Plano de Aplicação preenchidos. Pronto para submissão e validação do gestor!'
-                : !isPlanoValido
-                  ? 'Preencha o Plano de Aplicação de Recursos (CONV-PL-01) no Kit de Documentação para liberar a submissão.'
-                  : !isLGPDValido
-                    ? 'Confirme a leitura e aceite do Termo de LGPD (FR 01 - PRO) no Kit de Documentação.'
-                    : !isOrientacoesValido
-                      ? 'Confirme a leitura das 15 Orientações ao Coordenador no Kit de Documentação.'
-                      : !isDeptoValido
-                        ? 'Confirme a Ciência e Deliberação do Departamento da USP no Kit de Documentação.'
-                        : 'Preencha o título e dados do coordenador para liberar a submissão.'
+                ? 'Campos essenciais e Termo de LGPD preenchidos com sucesso. Pronto para submissão do protocolo!'
+                : !isLGPDValido
+                  ? 'Confirme a leitura e o aceite do Termo de LGPD e Confidencialidade no Kit de Documentação (FLAG OBRIGATÓRIA).'
+                  : 'Preencha o título do evento e os dados do coordenador para liberar a submissão.'
             }
           />
 
@@ -634,8 +616,9 @@ export const AberturaCursoEvento: React.FC = () => {
             </span>
           </div>
 
+          {/* SIM = COM CONVÊNIO USP | NÃO = SEM CONVÊNIO USP */}
           <div className="flex items-center gap-lg">
-            <label className="flex items-center gap-xs cursor-pointer text-[13px] font-medium text-on-surface">
+            <label className="flex items-center gap-xs cursor-pointer text-[13px] font-semibold text-on-surface">
               <input
                 type="radio"
                 name="possuiConvenio"
@@ -644,10 +627,10 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setPossuiConvenio('sim')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              Sim
+              SIM
             </label>
 
-            <label className="flex items-center gap-xs cursor-pointer text-[13px] font-medium text-on-surface">
+            <label className="flex items-center gap-xs cursor-pointer text-[13px] font-semibold text-on-surface">
               <input
                 type="radio"
                 name="possuiConvenio"
@@ -656,7 +639,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setPossuiConvenio('nao')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              Não
+              NÃO
             </label>
           </div>
         </div>
@@ -1770,37 +1753,68 @@ export const AberturaCursoEvento: React.FC = () => {
         <div className="col-span-12 space-y-md">
           {/* Card de Aceite do Termo de LGPD */}
           <div className="p-md rounded-lg border border-primary/30 bg-primary/5 flex flex-col gap-sm">
-            <div className="flex items-start justify-between gap-md">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-sm">
               <div className="flex items-center gap-xs text-primary font-bold text-[14px]">
                 <span className="material-symbols-outlined text-[20px]">security</span>
-                Termo de LGPD e Confidencialidade de Dados
+                Termo de LGPD e Confidencialidade de Dados (FR 01 - PRO)
               </div>
-              <Link
-                to={urlLGPD}
-                onClick={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD)}
-                className="text-[12px] text-primary hover:underline font-medium flex items-center gap-0.5"
-              >
-                <span className="material-symbols-outlined text-[15px]">visibility</span>
-                Visualizar Termo Completo Autopreenchido
-              </Link>
+              <div className="flex items-center gap-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalAceiteLGPD(isLGPDValido);
+                    setModalLGPDOpen(true);
+                  }}
+                  className="text-[12px] text-primary hover:underline font-semibold flex items-center gap-0.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">assignment_turned_in</span>
+                  {isLGPDValido ? 'Revisar no Modal' : 'Ler e Assinar no Modal'}
+                </button>
+                <Link
+                  to={urlLGPD}
+                  onClick={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD)}
+                  className="text-[12px] text-primary hover:underline font-medium flex items-center gap-0.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">open_in_new</span>
+                  Página Exclusiva
+                </Link>
+              </div>
             </div>
 
             <p className="text-[12px] text-on-surface-variant leading-relaxed">
               O presente termo regulamenta o sigilo e a adequada proteção e tratamento de dados pessoais de alunos, palestrantes, comissão e parceiros do curso/evento <strong>{titulo || '[Título do Evento]'}</strong>, sob coordenação de <strong>{coordNome || '[Nome do Coordenador]'}</strong>, nos estritos termos da Lei nº 13.709/2018 (LGPD).
             </p>
 
-            <label className="flex items-center gap-sm cursor-pointer pt-xs border-t border-primary/20">
-              <input
-                type="checkbox"
-                checked={isLGPDValido}
-                readOnly
-                disabled
-                className="w-5 h-5 rounded text-primary accent-primary"
-              />
-              <span className="text-[13px] font-bold text-on-surface">
-                Declaro ter lido e aceito integralmente o Termo de LGPD e Confidencialidade (FLAG OBRIGATÓRIA) *
-              </span>
-            </label>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-sm pt-xs border-t border-primary/20">
+              <label className="flex items-center gap-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isLGPDValido}
+                  onChange={(e) => {
+                    if (e.target.checked && !isLGPDValido) {
+                      setModalAceiteLGPD(false);
+                      setModalLGPDOpen(true);
+                    }
+                  }}
+                  className="w-5 h-5 rounded text-primary accent-primary cursor-pointer"
+                />
+                <span className="text-[13px] font-bold text-on-surface">
+                  Declaro ter lido e aceito integralmente o Termo de LGPD e Confidencialidade (FLAG OBRIGATÓRIA) *
+                </span>
+              </label>
+
+              {isLGPDValido ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-800 bg-green-100 border border-green-300 px-2 py-0.5 rounded-full shrink-0">
+                  <span className="material-symbols-outlined text-[14px]">verified</span>
+                  Certificado Eletronicamente
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full shrink-0">
+                  <span className="material-symbols-outlined text-[14px]">pending</span>
+                  Assinatura Pendente
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Card de Aceite das Orientações ao Coordenador */}
@@ -1850,10 +1864,16 @@ export const AberturaCursoEvento: React.FC = () => {
 
             <div className="overflow-y-auto pr-xs space-y-sm text-[13px] text-on-surface leading-relaxed">
               <div className="p-sm bg-surface-container-low rounded-lg border border-outline-variant/60 mb-sm text-[12px]">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-primary">Dados Autopreenchidos do Protocolo</span>
+                  <span className="text-[10px] bg-primary/10 text-primary font-mono px-2 py-0.5 rounded font-bold">
+                    Protocolo: {protocolId}
+                  </span>
+                </div>
                 <p><strong>Evento/Curso:</strong> {titulo || 'Nome do Curso/Evento Não Informado'}</p>
                 <p><strong>Edição / Tipo:</strong> {edicao || 'Edição Padrão'} ({tipoEvento})</p>
                 <p><strong>Coordenador Responsável:</strong> {coordNome || 'Nome Não Informado'} - CPF: {coordCpf || 'Não informado'}</p>
-                <p><strong>Departamento/Instituição:</strong> {coordDepto || 'Não informado'}</p>
+                <p><strong>Departamento/Instituição:</strong> {coordDepto || deptoNome || 'Não informado'}</p>
                 <p><strong>E-mail Institucional:</strong> {coordEmail || 'Não informado'}</p>
               </div>
 
@@ -1871,27 +1891,75 @@ export const AberturaCursoEvento: React.FC = () => {
               <p>
                 Serão empregadas medidas técnicas e administrativas aptas a proteger os dados pessoais contra acessos não autorizados e situações acidentais ou ilícitas de destruição, perda, alteração ou comunicação.
               </p>
+
+              <h5 className="font-bold text-[14px] text-primary">Cláusula 4ª - Notificação de Incidentes</h5>
+              <p>
+                Qualquer evento de segurança envolvendo dados de titulares vinculados ao projeto será prontamente reportado ao DPO e à Diretoria da FEALQ para adoção imediata das medidas cabíveis.
+              </p>
+
+              <h5 className="font-bold text-[14px] text-primary">Cláusula 5ª - Eliminação Segura dos Dados</h5>
+              <p>
+                Após a prestação de contas e expiração dos prazos regulatórios, os dados deverão ser eliminados com padrões seguros de descarte digital.
+              </p>
             </div>
 
-            <div className="pt-md mt-md border-t border-outline-variant flex items-center justify-between">
-              <label className="flex items-center gap-xs cursor-pointer text-[12px] font-semibold text-primary">
+            <div className="pt-md mt-md border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-md">
+              <label className="flex items-start gap-2 cursor-pointer text-[12px] font-semibold text-on-surface">
                 <input
                   type="checkbox"
-                  checked={isLGPDValido}
-                  readOnly
-                  disabled
-                  className="w-4 h-4 rounded text-primary accent-primary"
+                  checked={isLGPDValido || modalAceiteLGPD}
+                  disabled={isLGPDValido}
+                  onChange={(e) => setModalAceiteLGPD(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 rounded text-primary accent-primary"
                 />
-                Aceite validado pelo Kit Documental
+                <span>
+                  Declaro sob as penas da lei que li e concordo com os termos de LGPD (FLAG OBRIGATÓRIO) *
+                </span>
               </label>
 
-              <button
-                type="button"
-                onClick={() => setModalLGPDOpen(false)}
-                className="px-md py-1.5 bg-primary text-white text-[13px] font-medium rounded hover:bg-primary-dark"
-              >
-                Concluir Leitura
-              </button>
+              <div className="flex items-center gap-xs">
+                {!isLGPDValido ? (
+                  <button
+                    type="button"
+                    disabled={!modalAceiteLGPD}
+                    onClick={() => {
+                      marcarFormularioConcluido('CERT-LGPD-01', {
+                        termo: 'FR 01 – PRO - Rev. 05',
+                        nomeCoordenador: coordNome,
+                        cpf: coordCpf,
+                        rg: coordRg,
+                        departamento: coordDepto || deptoNome,
+                        tituloProjeto: titulo,
+                        email: coordEmail,
+                        codigoCertificacao: `FEALQ-LGPD-${protocolId}`,
+                        assinadoEm: new Date().toISOString(),
+                        status: 'concluido',
+                      });
+                      setModalLGPDOpen(false);
+                    }}
+                    className={`px-md py-2 text-[12px] font-semibold rounded transition-colors flex items-center gap-1 ${
+                      modalAceiteLGPD
+                        ? 'bg-primary text-white hover:bg-primary-dark shadow-sm cursor-pointer'
+                        : 'bg-surface-variant text-on-surface-variant opacity-60 cursor-not-allowed'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">verified</span>
+                    Assinar Eletronicamente
+                  </button>
+                ) : (
+                  <span className="text-[12px] font-semibold text-green-700 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                    Termo Já Certificado
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setModalLGPDOpen(false)}
+                  className="px-md py-2 border border-outline text-on-surface text-[12px] font-medium rounded hover:bg-surface-container-low"
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
           </div>
         </div>
