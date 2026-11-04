@@ -912,7 +912,7 @@ const generateHtml = (programa: ProgramaApoio) => {
 
 PROGRAMAS_APOIO.forEach(programa => {
   const fileName = `${programa.id}.html`;
-  const filePath = path.join('public/src', fileName);
+  const filePath = path.join('apps/frontend/public/src', fileName);
   fs.writeFileSync(filePath, generateHtml(programa));
   console.log(`Generated exact clone with toggle and spacing fixes for ${filePath}`);
 });

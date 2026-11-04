@@ -134,10 +134,10 @@ const generateHtml = () => {
 </html>`;
 };
 
-if (!fs.existsSync('public/src')) {
-  fs.mkdirSync('public/src', { recursive: true });
+if (!fs.existsSync('apps/frontend/public/src')) {
+  fs.mkdirSync('apps/frontend/public/src', { recursive: true });
 }
 
-const filePath = path.join('public/src', 'programas.html');
+const filePath = path.join('apps/frontend/public/src', 'programas.html');
 fs.writeFileSync(filePath, generateHtml());
 console.log(`Generated list at ${filePath}`);

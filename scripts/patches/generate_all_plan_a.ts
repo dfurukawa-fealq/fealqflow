@@ -133,13 +133,13 @@ const generateHtml = (programa: ProgramaApoio) => {
 </html>`;
 }
 
-if (!fs.existsSync('public/src')) {
-  fs.mkdirSync('public/src', { recursive: true });
+if (!fs.existsSync('apps/frontend/public/src')) {
+  fs.mkdirSync('apps/frontend/public/src', { recursive: true });
 }
 
 PROGRAMAS_APOIO.forEach(programa => {
   const fileName = `${programa.id}.html`;
-  const filePath = path.join('public/src', fileName);
+  const filePath = path.join('apps/frontend/public/src', fileName);
   fs.writeFileSync(filePath, generateHtml(programa));
   console.log(`Generated ${filePath}`);
 });

@@ -1,0 +1,39 @@
+[
+  {
+    "id": "projeto-abertura-curso-evento",
+    "formulario": "Protocolo de Abertura de Curso/Evento",
+    "linha_de_incentivo": "Projetos",
+    "status_de_abertura": "Aberto",
+    "normas": "Formulário para abertura e tramitação de cursos e eventos vinculados à FEALQ/USP.",
+    "documentos_solicitados": []
+  },
+  {
+    "id": "projeto-pesquisa",
+    "formulario": "Projeto de Pesquisa",
+    "linha_de_incentivo": "Projetos",
+    "status_de_abertura": "Aberto",
+    "normas": "Formulário para cadastro e tramitação de projetos de pesquisa.",
+    "documentos_solicitados": []
+  },
+  {
+    "id": "projeto-publicacao",
+    "formulario": "Abertura de Publicação",
+    "linha_de_incentivo": "Projetos",
+    "status_de_abertura": "Aberto",
+    "normas": "Formulário para solicitação de apoio e tramitação de publicações.",
+    "documentos_solicitados": []
+  },
+  { "id": "projeto-coordenador", "formulario": "Cadastro De Coordenador", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Cadastro de dados do coordenador responsável pelo projeto." },
+  { "id": "projeto-pesquisa-v2", "formulario": "Protocolo de Abertura de Projeto de Pesquisa v2", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Formulário para abertura de projeto de pesquisa." },
+  { "id": "projeto-plano-trabalho", "formulario": "Plano de Trabalho", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Plano de trabalho e cronograma físico." },
+  { "id": "projeto-patrocinador", "formulario": "Cadastro de Patrocinador", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Cadastro de patrocinador e documentos institucionais." },
+  { "id": "projeto-parceiro", "formulario": "Cadastro de Parceiro – Evento/Curso fechado", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Cadastro de parceiro para evento ou curso fechado." },
+  { "id": "projeto-cotas", "formulario": "Cotas de Patrocínio", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Definição das cotas de patrocínio." },
+  { "id": "projeto-financiadora", "formulario": "Cadastro de Financiadora", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Cadastro de instituição financiadora." },
+  { "id": "projeto-plano-recursos", "formulario": "Plano de Aplicação de Recursos", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Planejamento e aplicação dos recursos do projeto." },
+  { "id": "projeto-programa-epe", "formulario": "Protocolo de Abertura de Programa de EPE", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Abertura de programa de educação profissional e extensão." },
+  { "id": "projeto-central-multiusuario", "formulario": "Protocolo de Abertura de Central Multiusuário", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Abertura e regulamentação de central multiusuário." },
+  { "id": "documento-orientacoes-coordenador", "formulario": "Orientações ao Coordenador FEALQ (15 Regras)", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Documento de leitura obrigatória para o coordenador." },
+  { "id": "documento-termo-lgpd", "formulario": "Termo de LGPD e Confidencialidade (FR 01 - PRO)", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Termo de aceite e assinatura." },
+  { "id": "documento-ciencia-departamento", "formulario": "Ciência e Concordância do Departamento (USP)", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Documento de aprovação departamental." }
+]

@@ -2,12 +2,19 @@
   "name": "react-example",
   "private": true,
   "version": "0.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "tsx scripts/patches/patch_generate_plan_a_exact.ts && tsx scripts/patches/generate_plan_a_list.ts && vite build",
-    "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
+    "dev": "vite --config apps/frontend/vite.config.ts --port=3000 --host=0.0.0.0",
+    "api": "node apps/backend/server/index.mjs",
+    "docker:build": "docker build -t fealqflow:latest .",
+    "docker:up": "docker compose up -d --build",
+    "build": "tsx scripts/patches/patch_generate_plan_a_exact.ts && tsx scripts/patches/generate_plan_a_list.ts && vite build --config apps/frontend/vite.config.ts",
+    "preview": "vite preview --config apps/frontend/vite.config.ts",
+    "clean": "rm -rf dist apps/frontend/public/src",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
@@ -15,6 +22,7 @@
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "clsx": "^2.1.1",
+    "docx-preview": "^0.4.1",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "motion": "^12.23.24",
