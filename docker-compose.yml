@@ -8,7 +8,6 @@ services:
       context: .
       dockerfile: Dockerfile
       target: backend
-    image: fealqflow-backend:latest
     container_name: fealqflow-backend
     restart: unless-stopped
     environment:
@@ -38,7 +37,6 @@ services:
       context: .
       dockerfile: Dockerfile
       target: frontend
-    image: fealqflow-frontend:latest
     container_name: fealqflow-frontend
     restart: unless-stopped
     depends_on:
