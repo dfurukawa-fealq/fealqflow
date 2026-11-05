@@ -116,6 +116,7 @@ const serializar = (row) => ({
   periodosSubmissao: parseJson(row.periodos_submissao, []),
   documentosSolicitados: parseJson(row.documentos_solicitados, []),
   active: Boolean(row.active),
+  nSeq: Number(row.nseq || 0),
 });
 
 const normalizarChaveDocumento = (nome) => nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
@@ -229,6 +230,49 @@ app.get('/api/auth/me', asyncRoute(async (request, response) => {
   const usuario = await buscarSessao(request);
   if (!usuario) definirCookieSessao(response, '', 0);
   return response.json({ user: usuario ? usuarioPublico(usuario) : null });
+}));
+
+app.get('/api/usuarios', exigirAdmin, asyncRoute(async (_request, response) => {
+  const { rows } = await pool.query(`
+    SELECT id, username, role, is_active, created_at, updated_at, last_login_at
+    FROM users ORDER BY username
+  `);
+  return response.json(rows);
+}));
+
+app.post('/api/usuarios', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  const username = typeof request.body?.username === 'string' ? request.body.username.trim().toLocaleLowerCase('pt-BR') : '';
+  const password = typeof request.body?.password === 'string' ? request.body.password : '';
+  const role = request.body?.role === 'user' ? 'user' : 'admin';
+  if (!username || username.length > 120 || [...password].length < 12) {
+    return response.status(400).json({ error: 'Usuário válido e senha com pelo menos 12 caracteres são obrigatórios.' });
+  }
+  const existente = await pool.query('SELECT 1 FROM users WHERE username = $1', [username]);
+  if (existente.rowCount) return response.status(409).json({ error: 'Usuário já cadastrado.' });
+  const hash = await hashPassword(password);
+  const { rows } = await pool.query(`
+    INSERT INTO users (id, username, password_hash, role, is_active)
+    VALUES ($1, $2, $3, $4, TRUE)
+    RETURNING id, username, role, is_active, created_at, updated_at, last_login_at
+  `, [randomUUID(), username, hash, role]);
+  return response.status(201).json(rows[0]);
+}));
+
+app.put('/api/usuarios/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  const username = typeof request.body?.username === 'string' ? request.body.username.trim().toLocaleLowerCase('pt-BR') : '';
+  const role = request.body?.role === 'user' ? 'user' : 'admin';
+  const ativo = request.body?.is_active !== false;
+  if (!username || username.length > 120) return response.status(400).json({ error: 'Usuário inválido.' });
+  const password = typeof request.body?.password === 'string' ? request.body.password : '';
+  const hash = password ? await hashPassword(password) : null;
+  const { rows } = await pool.query(`
+    UPDATE users SET username = $1, role = $2, is_active = $3,
+      password_hash = COALESCE($4, password_hash), updated_at = CURRENT_TIMESTAMP
+    WHERE id = $5
+    RETURNING id, username, role, is_active, created_at, updated_at, last_login_at
+  `, [username, role, ativo, hash, request.params.id]);
+  if (!rows[0]) return response.status(404).json({ error: 'Usuário não encontrado.' });
+  return response.json(rows[0]);
 }));
 
 app.post('/api/auth/logout', validarOrigem, asyncRoute(async (request, response) => {
@@ -418,7 +462,7 @@ app.delete('/api/documentos/:id', validarOrigem, exigirAdmin, asyncRoute(async (
 }));
 
 app.get('/api/formularios', asyncRoute(async (_request, response) => {
-  const { rows } = await pool.query('SELECT * FROM cadastros_formularios ORDER BY nome');
+  const { rows } = await pool.query('SELECT * FROM cadastros_formularios ORDER BY nseq ASC, nome ASC');
   return response.json(rows.map(serializar));
 }));
 
@@ -432,11 +476,11 @@ app.post('/api/formularios', validarOrigem, exigirAdmin, asyncRoute(async (reque
   try {
     const { rows } = await pool.query(`
       INSERT INTO cadastros_formularios
-        (id, nome, tipo, tipo_cadastro, linha_apoio_id, status, normas, periodos_submissao, documentos_solicitados)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb)
+        (id, nome, tipo, tipo_cadastro, linha_apoio_id, status, normas, periodos_submissao, documentos_solicitados, nseq)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10)
       RETURNING *
     `, [id, request.body.nome.trim(), request.body.area, request.body.tipo, request.body.linhaApoioId || '',
-      request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []), JSON.stringify(documentos)]);
+      request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []), JSON.stringify(documentos), Number(request.body.nSeq || 0)]);
     return response.status(201).json(serializar(rows[0]));
   } catch (erro) {
     if (erro?.code === '23505') return response.status(409).json({ error: 'Este ID já existe; use PUT para atualizar o cadastro.' });
@@ -445,6 +489,16 @@ app.post('/api/formularios', validarOrigem, exigirAdmin, asyncRoute(async (reque
 }));
 
 app.put('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  const chavesAtualizacaoParcial = Object.keys(request.body || {});
+  if (chavesAtualizacaoParcial.length > 0 && chavesAtualizacaoParcial.every((chave) => chave === 'active' || chave === 'nSeq')) {
+    const { rows } = await pool.query(`
+      UPDATE cadastros_formularios SET
+        active = COALESCE($1, active), nseq = COALESCE($2, nseq), atualizado_em = CURRENT_TIMESTAMP
+      WHERE id = $3 RETURNING *
+    `, [typeof request.body.active === 'boolean' ? request.body.active : null, Number.isFinite(Number(request.body.nSeq)) ? Number(request.body.nSeq) : null, request.params.id]);
+    if (!rows[0]) return response.status(404).json({ error: 'Formulário não encontrado.' });
+    return response.json(serializar(rows[0]));
+  }
   const error = validar(request.body);
   if (error) return response.status(400).json({ error });
   if (!validarId(request.params.id) || (request.body.id && request.body.id !== request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
@@ -452,12 +506,12 @@ app.put('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (re
     UPDATE cadastros_formularios SET
       nome = $1, tipo = $2, tipo_cadastro = $3, linha_apoio_id = $4, status = $5, normas = $6,
       periodos_submissao = $7::jsonb, documentos_solicitados = $8::jsonb,
-      active = $9, atualizado_em = CURRENT_TIMESTAMP
-    WHERE id = $10
+      active = $9, nseq = $10, atualizado_em = CURRENT_TIMESTAMP
+    WHERE id = $11
     RETURNING *
   `, [request.body.nome.trim(), request.body.area, request.body.tipo, request.body.linhaApoioId || '',
     request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []),
-    JSON.stringify(request.body.documentosSolicitados || []), request.body.active !== false, request.params.id]);
+    JSON.stringify(request.body.documentosSolicitados || []), request.body.active !== false, Number(request.body.nSeq || 0), request.params.id]);
   if (!rows[0]) return response.status(404).json({ error: 'Formulário não encontrado.' });
   return response.json(serializar(rows[0]));
 }));

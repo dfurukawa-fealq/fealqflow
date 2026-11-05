@@ -1,11 +1,12 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { useUser } from '../contexts/UserContext';
 
 export const Sidebar = () => {
   const location = useLocation();
   const path = location.pathname;
-  const { usuario } = useUser();
+  const { usuario, logout } = useUser();
+  const navigate = useNavigate();
   const isAdmin = usuario?.role === 'admin';
 
   // Active checks
@@ -167,6 +168,15 @@ export const Sidebar = () => {
             <span className="material-symbols-outlined text-lg">description</span>
             <span>Documentos</span>
           </Link>
+          <Link to="/admin/usuarios" className={clsx(
+            'flex items-center space-x-3 px-xl py-2.5 transition-colors text-sm',
+            path === '/admin/usuarios'
+              ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
+              : 'text-surface-variant/80 hover:bg-white/5 hover:text-white'
+          )}>
+            <span className="material-symbols-outlined text-lg">group</span>
+            <span>Usuários</span>
+          </Link>
         </div>
 
         {/* SECTION 4: HISTÓRICO & PENDÊNCIAS */}
@@ -199,13 +209,23 @@ export const Sidebar = () => {
 
       {/* Footer Support Link */}
       <div className="mt-auto pb-xl border-t border-white/10 pt-2">
-        <a
-          className="flex items-center space-x-3 px-xl py-2.5 text-surface-variant/70 hover:text-white hover:bg-white/5 transition-colors text-sm"
-          href="#"
+        {isAdmin && <div className="px-xl py-2">
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
+            <span className="material-symbols-outlined text-lg text-secondary-fixed">account_circle</span>
+            <span className="truncate">{usuario.username}</span>
+          </div>
+          <button type="button" onClick={() => void logout().then(() => navigate('/admin/login', { replace: true }))} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-surface-variant/70 transition-colors hover:bg-white/5 hover:text-white">
+            <span className="material-symbols-outlined text-lg">logout</span>
+            <span>Sair</span>
+          </button>
+        </div>}
+        <Link
+          className={clsx('flex items-center space-x-3 px-xl py-2.5 text-surface-variant/70 hover:text-white hover:bg-white/5 transition-colors text-sm', isAdmin && 'hidden')}
+          to="/admin/login"
         >
           <span className="material-symbols-outlined text-lg">help</span>
-          <span>Ajuda & Suporte</span>
-        </a>
+          <span>Área FEALQ</span>
+        </Link>
       </div>
     </nav>
   );

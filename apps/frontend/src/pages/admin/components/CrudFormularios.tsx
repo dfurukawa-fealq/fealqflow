@@ -19,6 +19,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   const [documentoPreview, setDocumentoPreview] = useState<FormularioApoio | null>(null);
 
   const [nome, setNome] = useState('');
+  const [nSeq, setNSeq] = useState(0);
   const [area, setArea] = useState<'Projetos' | 'Programa de Apoio'>('Programa de Apoio');
   const [tipo, setTipo] = useState<'Formulário' | 'Documento'>('Formulário');
   const [descricaoDocumento, setDescricaoDocumento] = useState('');
@@ -44,7 +45,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   const [editingPeriodos, setEditingPeriodos] = useState<Record<string, boolean>>({});
   const formulariosFiltrados = useMemo(() => {
     const termo = pesquisa.trim().toLowerCase();
-    return formularios.filter((form) => {
+    return [...formularios].sort((a, b) => (a.nSeq || 0) - (b.nSeq || 0) || a.nome.localeCompare(b.nome, 'pt-BR')).filter((form) => {
       const correspondeArea = filtroArea === 'Todos' || form.area === filtroArea;
       const correspondeTipo = filtroTipo === 'Todos' || form.tipo === filtroTipo;
       const linha = linhasApoio.find((item) => item.id === form.linhaApoioId)?.nome || '';
@@ -66,6 +67,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   const handleEdit = (form: FormularioApoio) => {
     setEditingId(form.id);
     setNome(form.nome);
+    setNSeq(form.nSeq || 0);
     setArea(form.area);
     setTipo(form.tipo);
     setLinhaApoioId(form.linhaApoioId);
@@ -117,6 +119,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
       const docsFormatados = documentosSolicitados.filter(d => d.nome.trim() !== '');
       const data = {
         nome,
+        nSeq,
         area,
         tipo: 'Formulário' as const,
         linhaApoioId,
@@ -142,6 +145,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   const handleNew = () => {
     setEditingId(null);
     setNome('');
+    setNSeq(0);
     setArea('Programa de Apoio');
     setTipo('Formulário');
     setLinhaApoioId('');
@@ -197,6 +201,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     setErroSalvar('');
     setEditingId(null);
     setNome('');
+    setNSeq(0);
     setArea('Programa de Apoio');
     setTipo('Formulário');
     setLinhaApoioId('');
@@ -301,6 +306,10 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
             />
+          </div>
+          <div>
+            <label className="block text-[13px] font-semibold text-on-surface mb-1">Sequência (nSeq)</label>
+            <input type="number" min="0" className="w-full p-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-primary" value={nSeq} onChange={(e) => setNSeq(Number(e.target.value) || 0)} />
           </div>
           <div>
             <label className="block text-[13px] font-semibold text-on-surface mb-1">Área</label>

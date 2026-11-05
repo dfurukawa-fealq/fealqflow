@@ -26,6 +26,7 @@ export interface DocumentoCadastro {
   descricao: string;
   template_url: string;
   active?: boolean;
+  nSeq?: number;
 }
 
 export interface FormularioApoio {
@@ -40,6 +41,7 @@ export interface FormularioApoio {
   documentosSolicitados: DocumentoSolicitadoAdmin[];
   documentoIds?: string[];
   active?: boolean;
+  nSeq?: number;
 }
 
 export interface Orcamento {

@@ -51,6 +51,8 @@ import { RequireAdmin } from './components/auth/RequireAdmin';
 import { AdminLogin } from './pages/admin/AdminLogin';
 import { GestaoFormularios } from './pages/admin/GestaoFormularios';
 import { GestaoDocumentos } from './pages/admin/GestaoDocumentos';
+import { GestaoUsuarios } from './pages/admin/GestaoUsuarios';
+import { Home } from './pages/Home';
 
 export default function App() {
   return (
@@ -65,11 +67,12 @@ export default function App() {
           <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:ml-[240px] print:ml-0">
             <Routes>
             {/* Default root routes to Programas de Apoio requests panel as specified */}
-            <Route path="/" element={<PainelSolicitacoesApoio />} />
+            <Route path="/" element={<Home />} />
             <Route path="/historico" element={<HistoricoPendencias />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/formularios" element={<RequireAdmin><GestaoFormularios /></RequireAdmin>} />
             <Route path="/admin/documentos" element={<RequireAdmin><GestaoDocumentos /></RequireAdmin>} />
+            <Route path="/admin/usuarios" element={<RequireAdmin><GestaoUsuarios /></RequireAdmin>} />
 
             {/* Projetos Routes */}
             <Route path="/projetos/painel" element={<PainelSolicitacoesProjetos />} />
