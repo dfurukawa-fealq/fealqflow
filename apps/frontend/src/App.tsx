@@ -46,6 +46,9 @@ import {
 import { HistoricoPendencias } from './pages/HistoricoPendencias';
 import { RastreabilidadeProvider } from './contexts/RastreabilidadeContext';
 import { AdminProvider } from './contexts/AdminContext';
+import { UserProvider } from './contexts/UserContext';
+import { RequireAdmin } from './components/auth/RequireAdmin';
+import { AdminLogin } from './pages/admin/AdminLogin';
 import { GestaoFormularios } from './pages/admin/GestaoFormularios';
 
 export default function App() {
@@ -53,6 +56,7 @@ export default function App() {
     <BrowserRouter>
       <RastreabilidadeProvider>
         <AdminProvider>
+        <UserProvider>
         <div className="flex min-h-screen">
           <div className="hidden lg:block print:hidden">
             <Sidebar />
@@ -62,7 +66,8 @@ export default function App() {
             {/* Default root routes to Programas de Apoio requests panel as specified */}
             <Route path="/" element={<PainelSolicitacoesApoio />} />
             <Route path="/historico" element={<HistoricoPendencias />} />
-            <Route path="/admin/formularios" element={<GestaoFormularios />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/formularios" element={<RequireAdmin><GestaoFormularios /></RequireAdmin>} />
 
             {/* Projetos Routes */}
             <Route path="/projetos/painel" element={<PainelSolicitacoesProjetos />} />
@@ -138,6 +143,7 @@ export default function App() {
           </Routes>
         </div>
       </div>
+        </UserProvider>
         </AdminProvider>
       </RastreabilidadeProvider>
     </BrowserRouter>

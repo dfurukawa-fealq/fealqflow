@@ -19,7 +19,7 @@ ENV API_PORT=3333
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY apps/backend/server ./apps/backend/server
-COPY database/migrations ./database/migrations
+COPY apps/backend/migrations ./apps/backend/migrations
 COPY data ./data
 COPY template ./template
 RUN mkdir -p /app/database

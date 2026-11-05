@@ -331,11 +331,14 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
       }
     ];
 
-    const respostas = await Promise.all(defaultForms.map((formulario) => fetch('/api/formularios', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formulario),
-    })));
+    const respostas = await Promise.all(defaultForms.map((formulario) => {
+      const existe = formularios.some((atual) => atual.id === formulario.id);
+      return fetch(existe ? `/api/formularios/${encodeURIComponent(formulario.id)}` : '/api/formularios', {
+        method: existe ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formulario),
+      });
+    }));
     const respostaComErro = respostas.find((resposta) => !resposta.ok);
     if (respostaComErro) {
       const detalhe = await respostaComErro.json().catch(() => ({})) as { error?: string };

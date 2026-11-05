@@ -1,5 +1,7 @@
-import React, { ReactNode, useState } from 'react';
+import React, { FormEvent, ReactNode, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../contexts/AdminContext';
+import { useUser } from '../../contexts/UserContext';
 
 interface GestaoLayoutProps {
   title: string;
@@ -9,9 +11,47 @@ interface GestaoLayoutProps {
 
 export const GestaoLayout = ({ title, description, children }: GestaoLayoutProps) => {
   const { resetToDefaults } = useAdmin();
+  const { usuario, logout, alterarSenha } = useUser();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sincronizando, setSincronizando] = useState(false);
   const [erroSincronizacao, setErroSincronizacao] = useState('');
+  const [erroSessao, setErroSessao] = useState('');
+  const [mostrarAlteracaoSenha, setMostrarAlteracaoSenha] = useState(false);
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [mensagemSenha, setMensagemSenha] = useState('');
+
+  const handleLogout = async () => {
+    setErroSessao('');
+    try {
+      await logout();
+      navigate('/admin/login', { replace: true });
+    } catch (erro) {
+      setErroSessao(erro instanceof Error ? erro.message : 'Não foi possível encerrar a sessão.');
+    }
+  };
+
+  const handleAlterarSenha = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErroSessao('');
+    setMensagemSenha('');
+    if (novaSenha !== confirmarSenha) {
+      setErroSessao('A confirmação não corresponde à nova senha.');
+      return;
+    }
+    try {
+      await alterarSenha(senhaAtual, novaSenha);
+      setSenhaAtual('');
+      setNovaSenha('');
+      setConfirmarSenha('');
+      setMensagemSenha('Senha alterada. As outras sessões foram encerradas.');
+      setMostrarAlteracaoSenha(false);
+    } catch (erro) {
+      setErroSessao(erro instanceof Error ? erro.message : 'Não foi possível alterar a senha.');
+    }
+  };
 
   const handleConfirmSync = async () => {
     setSincronizando(true);
@@ -35,14 +75,56 @@ export const GestaoLayout = ({ title, description, children }: GestaoLayoutProps
             {description}
           </p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-error/10 text-error rounded-lg hover:bg-error/20 transition-colors font-medium text-sm"
-        >
-          <span className="material-symbols-outlined text-[20px]">sync</span>
-          Sincronizar Base Oficial
-        </button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <span className="px-2 text-sm text-on-surface-variant">{usuario?.username}</span>
+          <button
+            type="button"
+            onClick={() => { setMensagemSenha(''); setMostrarAlteracaoSenha((aberto) => !aberto); }}
+            className="flex items-center gap-2 rounded-lg border border-outline-variant px-3 py-2 text-sm font-medium text-on-surface hover:bg-surface-variant/40"
+          >
+            <span className="material-symbols-outlined text-[20px]">key</span>
+            Alterar senha
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            className="flex items-center gap-2 rounded-lg border border-outline-variant px-3 py-2 text-sm font-medium text-on-surface hover:bg-surface-variant/40"
+          >
+            <span className="material-symbols-outlined text-[20px]">logout</span>
+            Sair
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 rounded-lg bg-error/10 px-4 py-2 text-sm font-medium text-error transition-colors hover:bg-error/20"
+          >
+            <span className="material-symbols-outlined text-[20px]">sync</span>
+            Sincronizar Base Oficial
+          </button>
+        </div>
       </div>
+      {mostrarAlteracaoSenha && (
+        <form onSubmit={(event) => void handleAlterarSenha(event)} className="mb-5 grid gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 sm:grid-cols-3">
+          <label className="text-sm font-medium text-on-surface-variant">
+            Senha atual
+            <input autoComplete="current-password" className="mt-1 w-full rounded-lg border border-outline-variant px-3 py-2 text-on-surface" onChange={(event) => setSenhaAtual(event.target.value)} required type="password" value={senhaAtual} />
+          </label>
+          <label className="text-sm font-medium text-on-surface-variant">
+            Nova senha (mínimo 12 caracteres)
+            <input autoComplete="new-password" className="mt-1 w-full rounded-lg border border-outline-variant px-3 py-2 text-on-surface" minLength={12} onChange={(event) => setNovaSenha(event.target.value)} required type="password" value={novaSenha} />
+          </label>
+          <label className="text-sm font-medium text-on-surface-variant">
+            Confirmar nova senha
+            <input autoComplete="new-password" className="mt-1 w-full rounded-lg border border-outline-variant px-3 py-2 text-on-surface" minLength={12} onChange={(event) => setConfirmarSenha(event.target.value)} required type="password" value={confirmarSenha} />
+          </label>
+          <div className="flex items-center gap-2 sm:col-span-3 sm:justify-end">
+            <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90" type="submit">Salvar nova senha</button>
+            <button className="rounded-lg border border-outline-variant px-4 py-2 text-sm font-medium text-on-surface" onClick={() => setMostrarAlteracaoSenha(false)} type="button">Cancelar</button>
+          </div>
+        </form>
+      )}
+      {mensagemSenha && <p className="mb-4 text-sm text-green-700" role="status">{mensagemSenha}</p>}
+      {erroSessao && <p className="mb-4 text-sm text-error" role="alert">{erroSessao}</p>}
       <div>
         {children}
       </div>
