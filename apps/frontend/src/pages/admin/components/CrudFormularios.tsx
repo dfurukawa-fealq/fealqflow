@@ -1,10 +1,14 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAdmin } from '../../../contexts/AdminContext';
 import { FormularioApoio, PeriodoSubmissao, DocumentoSolicitadoAdmin } from '../../../types/admin';
 import { PatternFormat } from 'react-number-format';
 import { EditorDocumento, limparHtmlDocumento, normalizarMarcadoresDocumento } from './EditorDocumento';
 
-export const CrudFormularios = () => {
+interface CrudFormulariosProps {
+  modo?: 'todos' | 'formularios' | 'documentos';
+}
+
+export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   const templateInstitucional = '/templates/Template_Timbrado.docx';
   const { linhasApoio, formularios, formulariosCarregando, erroCarregarFormularios, recarregarFormularios, documentos, addFormulario, updateFormulario, persistirFormulario, deleteFormulario, addDocumento } = useAdmin();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -12,6 +16,7 @@ export const CrudFormularios = () => {
   const [erroLista, setErroLista] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [documentoPreview, setDocumentoPreview] = useState<FormularioApoio | null>(null);
 
   const [nome, setNome] = useState('');
   const [area, setArea] = useState<'Projetos' | 'Programa de Apoio'>('Programa de Apoio');
@@ -26,9 +31,14 @@ export const CrudFormularios = () => {
   const [periodosSubmissao, setPeriodosSubmissao] = useState<PeriodoSubmissao[]>([]);
   const [pesquisa, setPesquisa] = useState('');
   const [filtroArea, setFiltroArea] = useState<'Todos' | 'Projetos' | 'Programa de Apoio'>('Todos');
-  const [filtroTipo, setFiltroTipo] = useState<'Todos' | 'Formulário' | 'Documento'>('Todos');
+  const [filtroTipo, setFiltroTipo] = useState<'Todos' | 'Formulário' | 'Documento'>(modo === 'formularios' ? 'Formulário' : modo === 'documentos' ? 'Documento' : 'Todos');
   const [pagina, setPagina] = useState(1);
   const itensPorPagina = 10;
+
+  useEffect(() => {
+    if (modo === 'documentos') setTipo('Documento');
+    if (modo === 'formularios') setTipo('Formulário');
+  }, [modo]);
 
   const [editingDocs, setEditingDocs] = useState<Record<string, boolean>>({});
   const [editingPeriodos, setEditingPeriodos] = useState<Record<string, boolean>>({});
@@ -164,6 +174,24 @@ export const CrudFormularios = () => {
     }
   };
 
+  const handleAlternarHabilitado = async (form: FormularioApoio) => {
+    setErroLista('');
+    try {
+      await updateFormulario(form.id, { active: form.active === false });
+    } catch (erro) {
+      setErroLista(erro instanceof Error ? erro.message : 'Falha ao alterar o status do formulário.');
+    }
+  };
+
+  const obterConteudoPreview = (form: FormularioApoio) => {
+    const conteudo = form.documentosSolicitados[0]?.info || '<p>Este documento ainda não possui conteúdo cadastrado.</p>';
+    const valores: Record<string, string> = {
+      NOME: 'Nome do solicitante', CPF: '000.000.000-00', EMAIL: 'exemplo@fealq.com.br',
+      DATA: '05/11/2026', CIDADE: 'Piracicaba', DIA: '05', MES: 'novembro', ANO: '2026',
+    };
+    return normalizarMarcadoresDocumento(limparHtmlDocumento(conteudo)).replace(/\{\s*([^{}]+?)\s*\}/g, (marcador, campo: string) => valores[campo.trim().toUpperCase()] || marcador);
+  };
+
   const resetForm = () => {
     setIsFormVisible(false);
     setErroSalvar('');
@@ -243,6 +271,21 @@ export const CrudFormularios = () => {
 
   return (
     <div className="bg-surface-container-low p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col gap-8">
+      {documentoPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-6" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setDocumentoPreview(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="titulo-preview-lista" className="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl">
+            <header className="flex items-center justify-between border-b border-outline-variant px-5 py-4">
+              <div><h2 id="titulo-preview-lista" className="text-lg font-bold text-on-surface">{documentoPreview.nome}</h2><p className="text-xs text-on-surface-variant">Pré-visualização do documento</p></div>
+              <button type="button" onClick={() => setDocumentoPreview(null)} aria-label="Fechar pré-visualização" className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-low"><span className="material-symbols-outlined">close</span></button>
+            </header>
+            <div className="overflow-auto bg-slate-200 p-4 sm:p-8"><article className="mx-auto min-h-[600px] max-w-3xl bg-white p-8 shadow-lg sm:p-14" dangerouslySetInnerHTML={{ __html: obterConteudoPreview(documentoPreview) }} /></div>
+            <footer className="flex justify-end gap-2 border-t border-outline-variant px-5 py-3">
+              {documentoPreview.documentosSolicitados[0]?.url_template && <a href={documentoPreview.documentosSolicitados[0].url_template} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-2 text-sm font-semibold text-primary hover:bg-surface-container-low"><span className="material-symbols-outlined text-[17px]">download</span>Modelo DOCX</a>}
+              <button type="button" onClick={() => setDocumentoPreview(null)} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary">Fechar</button>
+            </footer>
+          </section>
+        </div>
+      )}
       {isFormVisible ? (
       <div>
         <h2 className="text-xl font-bold mb-4 text-on-surface">
@@ -607,6 +650,11 @@ export const CrudFormularios = () => {
             className="w-full min-w-0 pl-10 pr-3 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface text-sm focus:outline-primary"
           />
         </label>
+        {modo !== 'documentos' && <select aria-label="Filtrar por área" value={filtroArea} onChange={(event) => { setFiltroArea(event.target.value as typeof filtroArea); setPagina(1); }} className="px-3 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface text-sm lg:w-44">
+          <option value="Todos">Todas as áreas</option>
+          <option value="Projetos">Projetos</option>
+          <option value="Programa de Apoio">Programa de Apoio</option>
+        </select>}
         <button
           onClick={handleNew}
           disabled={formulariosCarregando || Boolean(erroCarregarFormularios)}
@@ -623,24 +671,6 @@ export const CrudFormularios = () => {
       </div>}
       {erroLista && <div role="alert" className="mt-4 rounded-lg border border-error/30 bg-error/5 px-4 py-3 text-sm text-error">{erroLista}</div>}
       {formulariosCarregando && <p role="status" className="mt-4 text-sm text-on-surface-variant">Carregando formulários do banco...</p>}
-      <div className="flex justify-end mt-2 mb-4">
-        <div className="flex flex-wrap items-center gap-2 mr-auto">
-          <select aria-label="Filtrar por área" value={filtroArea} onChange={(event) => { setFiltroArea(event.target.value as typeof filtroArea); setPagina(1); }} className="px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface text-sm">
-            <option value="Todos">Todas as áreas</option>
-            <option value="Projetos">Projetos</option>
-            <option value="Programa de Apoio">Programa de Apoio</option>
-          </select>
-          <select aria-label="Filtrar por tipo" value={filtroTipo} onChange={(event) => { setFiltroTipo(event.target.value as typeof filtroTipo); setPagina(1); }} className="px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface text-sm">
-            <option value="Todos">Todos os tipos</option>
-            <option value="Formulário">Formulários</option>
-            <option value="Documento">Documentos</option>
-          </select>
-        </div>
-        <span className="text-xs text-on-surface-variant">
-          {formulariosFiltrados.length} formulário(s) encontrado(s)
-        </span>
-      </div>
-
       {/* Lista de Formulários */}
       <div className="overflow-x-auto rounded-xl border border-outline-variant">
         <table className="w-full text-left text-sm">
@@ -651,6 +681,7 @@ export const CrudFormularios = () => {
               <th className="p-4 font-semibold">Tipo</th>
               <th className="p-4 font-semibold">Linha de Apoio</th>
               <th className="p-4 font-semibold">Status</th>
+              {modo === 'formularios' && <th className="p-4 font-semibold">Habilitado</th>}
               <th className="p-4 font-semibold text-right">Ações</th>
             </tr>
           </thead>
@@ -683,8 +714,29 @@ export const CrudFormularios = () => {
                       {form.status}
                     </span>
                   </td>
+                  {modo === 'formularios' && <td className="p-4">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={form.active !== false}
+                      aria-label={`${form.active !== false ? 'Desabilitar' : 'Habilitar'} ${form.nome}`}
+                      onClick={() => void handleAlternarHabilitado(form)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 ${form.active !== false ? 'bg-secondary' : 'bg-surface-variant'}`}
+                    >
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${form.active !== false ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </td>}
                   <td className="p-4 text-right align-top">
                     <div className="flex justify-end gap-2 h-full items-center">
+                      {modo === 'documentos' && form.active !== false && <button
+                        type="button"
+                        onClick={() => setDocumentoPreview(form)}
+                        className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                        title="Pré-visualizar"
+                        aria-label={`Pré-visualizar ${form.nome}`}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">visibility</span>
+                      </button>}
                       {form.active !== false && <button
                         onClick={() => handleEdit(form)}
                         className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
@@ -716,7 +768,7 @@ export const CrudFormularios = () => {
             })}
             {formulariosPagina.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-on-surface-variant">
+                <td colSpan={modo === 'formularios' ? 7 : 6} className="p-8 text-center text-on-surface-variant">
                   Nenhum formulário cadastrado.
                 </td>
               </tr>
@@ -725,7 +777,10 @@ export const CrudFormularios = () => {
         </table>
       </div>
       <div className="flex items-center justify-between gap-3 mt-4">
-        <span className="text-xs text-on-surface-variant">Página {paginaAtual} de {totalPaginas}</span>
+        <div className="flex flex-col gap-1 text-xs text-on-surface-variant">
+          <span>{formulariosFiltrados.length} {modo === 'documentos' ? 'documento(s)' : 'formulário(s)'} encontrado(s)</span>
+          <span>Página {paginaAtual} de {totalPaginas}</span>
+        </div>
         <div className="flex gap-2">
           <button type="button" disabled={paginaAtual <= 1} onClick={() => setPagina((atual) => Math.max(1, atual - 1))} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-outline-variant text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-container-low">
             <span className="material-symbols-outlined text-[17px]">chevron_left</span>Anterior

@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { Footer } from '../../components/Footer';
+import { processosApoioFallback } from '../../data/processosFallback';
+
 
 interface ApoioRequest {
   id: string;
@@ -18,143 +20,30 @@ export const PainelSolicitacoesApoio = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todos' | 'pendente' | 'rascunho' | 'finalizada'>('todos');
 
-  const pendingRequests: ApoioRequest[] = [
-    {
-      id: 'APO-2026/118',
-      formName: 'Auxílio Viagem',
-      user: 'Ana Paula Souza',
-      kit: '4/6 Anexados',
-      status: 'pendente',
-      link: '/programas-de-apoio/apoio-viagem',
-      docs: [
-        'Formulário Principal (Validado)',
-        'Carta Aceite (Validado)',
-        'Cópia Passaporte (Validado)',
-        'Comprovante Matrícula (Validado)',
-        'FALTANDO: Plano de Atividades',
-        'FALTANDO: 2 Orçamentos de Passagem',
-      ],
-    },
-    {
-      id: 'APO-BOL-G-2026/119',
-      formName: 'Bolsa Acadêmica - Graduação',
-      user: 'Diego Furukawa',
-      kit: '5/7 Anexados',
-      status: 'pendente',
-      link: '/programas-de-apoio/apoio-bolsa-grad',
-      docs: [
-        'Formulário de Solicitação de Apoio (Validado)',
-        'Justificativa da necessidade do recurso (Validado)',
-        'Declaração de que não recebe bolsa (Validado)',
-        'Currículo Lattes do orientador (PDF) (Validado)',
-        'Histórico escolar atualizado da graduação (Validado)',
-        'FALTANDO: Carta de recomendação ao aluno',
-        'FALTANDO: Formulário de Avaliação Social',
-      ],
-    },
-    {
-      id: 'APO-BOL-2026/119',
-      formName: 'Bolsa Pós-Graduação',
-      user: 'Dr. Rodrigo Teixeira',
-      kit: '5/8 Anexados',
-      status: 'pendente',
-      link: '/programas-de-apoio/apoio-bolsa-pos',
-      docs: [
-        'Formulário de Solicitação de Apoio (Validado)',
-        'Justificativa da necessidade do recurso (Validado)',
-        'Declaração de que não recebe bolsa (Validado)',
-        'Currículo Lattes do aluno (PDF) (Validado)',
-        'Currículo Lattes do orientador (PDF) (Validado)',
-        'FALTANDO: Histórico escolar atualizado da graduação',
-        'FALTANDO: Carta de recomendação ao aluno',
-        'FALTANDO: Formulário de Avaliação Social',
-      ],
-    },
-    {
-      id: 'APO-FR-02-EVEN-2026/119',
-      formName: 'Apoio para Apresentação em Evento',
-      user: 'Dr. Marcelo Calefe',
-      kit: '5/8 Anexados',
-      status: 'pendente',
-      link: '/programas-de-apoio/apoio-evento-trabalho',
-      docs: [
-        'Formulário de Solicitação de Apoio (Validado)',
-        'Programação do evento (Validado)',
-        'Projeto que originou o trabalho submetido (Validado)',
-        'Currículo Lattes do aluno (PDF) (Validado)',
-        'Currículo Lattes do orientador (PDF) (Validado)',
-        'FALTANDO: Resumo do trabalho enviado ao evento',
-        'FALTANDO: Aceite do trabalho',
-        'FALTANDO: 2 orçamentos de fornecedores distintos',
-      ],
-    },
-    {
-      id: 'APO-FR-01-INFRA-2026/119',
-      formName: 'Apoio a Infraestrutura',
-      user: 'Dr. Lucas Tabai',
-      kit: '5/7 Anexados',
-      status: 'pendente',
-      link: '/programas-de-apoio/apoio-infra',
-      docs: [
-        'Formulário de Solicitação de Apoio (Validado)',
-        'Carta com descrição e justificativa do pedido (Validado)',
-        'Carta de anuência da chefia de departamento (Validado)',
-        'Projeto a ser executado (Validado)',
-        'Orçamento simplificado (Validado)',
-        'FALTANDO: Comprovante da condição do solicitante',
-        'FALTANDO: Outros documentos que visem instruir o pedido',
-      ],
-    },
-    {
-      id: 'APO-FR-04-PUBL-2026/119',
-      formName: 'Auxílio para Publicação de Artigo Científico',
-      user: 'Prof. Josemar Mariano',
-      kit: '9/10 Anexados',
-      status: 'pendente',
-      link: '/programas-de-apoio/apoio-publicacao',
-      docs: [
-        'Formulário de Solicitação de Apoio (Validado)',
-        'Ofício à Diretoria da Fealq (Validado)',
-        'Currículo Lattes do aluno (PDF) (Validado)',
-        'Currículo Lattes do orientador (PDF) (Validado)',
-        'Cópia do artigo aprovado para publicação (Validado)',
-        'Aceite da revista (Validado)',
-        'Invoice (Validado)',
-        'Fator de Impacto e Citescore do periódico (Validado)',
-        'Comprovante de matrícula (Validado)',
-        'FALTANDO: Comprovante de credenciamento ao programa de pós-graduação',
-      ],
-    },
-    {
-      id: 'APO-FR-05-CULT-2026/120',
-      formName: 'Cultura e Extensão Universitária',
-      user: 'Profa. Mariana Castro',
-      kit: '3/5 Anexados',
-      status: 'rascunho',
-      link: '/programas-de-apoio/apoio-cultura',
-      docs: [
-        'Formulário Principal de Extensão (Validado)',
-        'Plano de Ação com a Comunidade (Validado)',
-        'Anuência Departamental (Validado)',
-        'FALTANDO: Cronograma de Atividades Externas',
-        'FALTANDO: Planilha Orçamentária Detalhada',
-      ],
-    },
-    {
-      id: 'APO-FR-06-MAT-2026/115',
-      formName: 'Material de Consumo para Eventos',
-      user: 'Dr. Roberto Santos',
-      kit: '4/4 Anexados',
-      status: 'finalizada',
-      link: '/programas-de-apoio/apoio-material-evento',
-      docs: [
-        'Formulário de Pedido de Material (Validado)',
-        'Folder/Programação do Evento (Validado)',
-        'Orçamento dos Materiais (Validado)',
-        'Parecer Técnico FEALQ (Validado)',
-      ],
-    },
-  ];
+  const [pendingRequests, setPendingRequests] = useState(processosApoioFallback);
+
+  useEffect(() => {
+    let ativo = true;
+    fetch('/api/processos?categoria=apoio', { credentials: 'same-origin' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('API indisponível');
+        return response.json() as Promise<Array<{ protocolo: string; formulario_nome: string; solicitante_nome: string; status: string; documentos_anexados: number; documentos_total: number }>>;
+      })
+      .then((processos) => {
+        if (!ativo || processos.length === 0) return;
+        setPendingRequests(processos.map((processo) => ({
+          id: processo.protocolo,
+          formName: processo.formulario_nome,
+          user: processo.solicitante_nome,
+          kit: `${processo.documentos_anexados}/${processo.documentos_total} Anexados`,
+          status: processo.status === 'finalizada' ? 'finalizada' : processo.status === 'rascunho' ? 'rascunho' : 'pendente',
+          link: '/programas-de-apoio',
+          docs: [],
+        })));
+      })
+      .catch(() => undefined);
+    return () => { ativo = false; };
+  }, []);
 
   const filtered = pendingRequests.filter((item) => {
     const matchesStatus = statusFilter === 'todos' || item.status === statusFilter;

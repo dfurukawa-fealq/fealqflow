@@ -50,6 +50,7 @@ import { UserProvider } from './contexts/UserContext';
 import { RequireAdmin } from './components/auth/RequireAdmin';
 import { AdminLogin } from './pages/admin/AdminLogin';
 import { GestaoFormularios } from './pages/admin/GestaoFormularios';
+import { GestaoDocumentos } from './pages/admin/GestaoDocumentos';
 
 export default function App() {
   return (
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="/historico" element={<HistoricoPendencias />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/formularios" element={<RequireAdmin><GestaoFormularios /></RequireAdmin>} />
+            <Route path="/admin/documentos" element={<RequireAdmin><GestaoDocumentos /></RequireAdmin>} />
 
             {/* Projetos Routes */}
             <Route path="/projetos/painel" element={<PainelSolicitacoesProjetos />} />

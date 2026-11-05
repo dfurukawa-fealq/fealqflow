@@ -7,7 +7,7 @@ export const GestaoFormularios = () => {
       title="Gestão de Formulários (Auxílios)" 
       description="Gerencie os formulários, editais e regras de cada auxílio. Excluir desativa o item."
     >
-      <CrudFormularios />
+      <CrudFormularios modo="formularios" />
     </GestaoLayout>
   );
 };

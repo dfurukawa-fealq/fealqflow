@@ -12,6 +12,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       API_PORT: 3333
       DATABASE_URL: ${DATABASE_URL:?Configure DATABASE_URL nas variáveis da stack}
       ADMIN_USER: ${ADMIN_USER:?Configure ADMIN_USER nas variáveis da stack}

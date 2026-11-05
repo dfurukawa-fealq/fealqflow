@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { Footer } from '../components/Footer';
+import { processosHistoricoFallback } from '../data/processosFallback';
+
 
 interface HistoricoItem {
   id: string;
@@ -20,164 +22,32 @@ export const HistoricoPendencias = () => {
   const [statusFilter, setStatusFilter] = useState<'todos' | 'rascunho' | 'pendente' | 'analise' | 'aprovado'>('todos');
   const [search, setSearch] = useState('');
 
-  const allItems: HistoricoItem[] = [
-    // Projetos
-    {
-      id: 'PRJ-2026/042',
-      category: 'projeto',
-      formName: 'Protocolo de Abertura de Curso/Evento',
-      title: 'Simpósio de Tecnologia Agrícola e Sustentabilidade 2026',
-      user: 'Dr. Carlos Eduardo Silva',
-      date: '28/02/2026',
-      status: 'pendente',
-      kit: '5/7 Anexados',
-      link: '/projetos/form-curso',
-    },
-    {
-      id: 'PRJ-2026/058',
-      category: 'projeto',
-      formName: 'Protocolo de Abertura de Projeto de Pesquisa',
-      title: 'Estudo de Eficácia de Bioinsumos na Soja',
-      user: 'Dra. Helena Martins',
-      date: '25/02/2026',
-      status: 'pendente',
-      kit: '4/6 Anexados',
-      link: '/projetos/form-pesquisa',
-    },
-    {
-      id: 'PRJ-2026/071',
-      category: 'projeto',
-      formName: 'Protocolo de Central Multiusuário',
-      title: 'Laboratório Multiusuário de Espectrometria de Massas',
-      user: 'Dr. Roberto Albuquerque',
-      date: '20/02/2026',
-      status: 'pendente',
-      kit: '3/5 Anexados',
-      link: '/projetos/form-central',
-    },
-    {
-      id: 'PRJ-2026/089',
-      category: 'projeto',
-      formName: 'Protocolo de Abertura de Publicação',
-      title: 'Manual Técnico: Manejo Integrado de Nematoides',
-      user: 'Dr. Fernando Guedes',
-      date: '18/02/2026',
-      status: 'analise',
-      kit: '4/4 Anexados',
-      link: '/projetos/form-publicacao',
-    },
-    {
-      id: 'PRJ-2026/094',
-      category: 'projeto',
-      formName: 'Protocolo de Programa de EPE',
-      title: 'Programa em Cafeicultura Regenerativa',
-      user: 'Dra. Camila Nogueira',
-      date: '15/02/2026',
-      status: 'rascunho',
-      kit: '3/6 Anexados',
-      link: '/projetos/form-programa-epe',
-    },
-    {
-      id: 'PRJ-2026/031',
-      category: 'projeto',
-      formName: 'Plano de Trabalho',
-      title: 'Adequação Logística em Ensaios Agrícolas',
-      user: 'Dr. Carlos Eduardo Silva',
-      date: '10/02/2026',
-      status: 'aprovado',
-      kit: '3/3 Anexados',
-      link: '/projetos/form-trabalho',
-    },
-    // Programas de Apoio
-    {
-      id: 'APO-2026/118',
-      category: 'apoio',
-      formName: 'Auxílio Viagem',
-      title: 'Participação em Congresso Internacional de Fitopatologia',
-      user: 'Ana Paula Souza',
-      date: '01/03/2026',
-      status: 'pendente',
-      kit: '4/6 Anexados',
-      link: '/programas-de-apoio/apoio-viagem',
-    },
-    {
-      id: 'APO-BOL-G-2026/119',
-      category: 'apoio',
-      formName: 'Bolsa Acadêmica - Graduação',
-      title: 'Iniciação Científica em Solos Tropicais',
-      user: 'Diego Furukawa',
-      date: '27/02/2026',
-      status: 'pendente',
-      kit: '5/7 Anexados',
-      link: '/programas-de-apoio/apoio-bolsa-grad',
-    },
-    {
-      id: 'APO-BOL-2026/119',
-      category: 'apoio',
-      formName: 'Bolsa Pós-Graduação',
-      title: 'Doutorado Sanduíche em Genômica Funcional',
-      user: 'Dr. Rodrigo Teixeira',
-      date: '26/02/2026',
-      status: 'pendente',
-      kit: '5/8 Anexados',
-      link: '/programas-de-apoio/apoio-bolsa-pos',
-    },
-    {
-      id: 'APO-FR-02-EVEN-2026/119',
-      category: 'apoio',
-      formName: 'Apoio para Apresentação em Evento',
-      title: 'Apresentação Oral - Simpósio Latino-Americano',
-      user: 'Dr. Marcelo Calefe',
-      date: '22/02/2026',
-      status: 'pendente',
-      kit: '5/8 Anexados',
-      link: '/programas-de-apoio/apoio-evento-trabalho',
-    },
-    {
-      id: 'APO-FR-01-INFRA-2026/119',
-      category: 'apoio',
-      formName: 'Apoio a Infraestrutura',
-      title: 'Manutenção Preventiva de Câmaras de Crescimento',
-      user: 'Dr. Lucas Tabai',
-      date: '19/02/2026',
-      status: 'pendente',
-      kit: '5/7 Anexados',
-      link: '/programas-de-apoio/apoio-infra',
-    },
-    {
-      id: 'APO-FR-04-PUBL-2026/119',
-      category: 'apoio',
-      formName: 'Auxílio para Publicação de Artigo',
-      title: 'Artigo Periódico Q1 Nature Agriculture',
-      user: 'Prof. Josemar Mariano',
-      date: '14/02/2026',
-      status: 'pendente',
-      kit: '9/10 Anexados',
-      link: '/programas-de-apoio/apoio-publicacao',
-    },
-    {
-      id: 'APO-FR-05-CULT-2026/120',
-      category: 'apoio',
-      formName: 'Cultura e Extensão Universitária',
-      title: 'Feira do Produtor Rural e Difusão de Práticas',
-      user: 'Profa. Mariana Castro',
-      date: '08/02/2026',
-      status: 'rascunho',
-      kit: '3/5 Anexados',
-      link: '/programas-de-apoio/apoio-cultura',
-    },
-    {
-      id: 'APO-FR-06-MAT-2026/115',
-      category: 'apoio',
-      formName: 'Material de Consumo para Eventos',
-      title: 'Encontro de Engenharia Agronômica',
-      user: 'Dr. Roberto Santos',
-      date: '02/02/2026',
-      status: 'aprovado',
-      kit: '4/4 Anexados',
-      link: '/programas-de-apoio/apoio-material-evento',
-    },
-  ];
+  const [allItems, setAllItems] = useState<HistoricoItem[]>(processosHistoricoFallback as HistoricoItem[]);
+
+  useEffect(() => {
+    let ativo = true;
+    fetch('/api/processos', { credentials: 'same-origin' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('API indisponível');
+        return response.json() as Promise<Array<{ protocolo: string; categoria: 'projeto' | 'apoio'; formulario_nome: string; titulo: string; solicitante_nome: string; status: string; atualizado_em: string; documentos_anexados: number; documentos_total: number }>>;
+      })
+      .then((processos) => {
+        if (!ativo || processos.length === 0) return;
+        setAllItems(processos.map((processo) => ({
+          id: processo.protocolo,
+          category: processo.categoria,
+          formName: processo.formulario_nome,
+          title: processo.titulo,
+          user: processo.solicitante_nome,
+          date: new Date(processo.atualizado_em).toLocaleDateString('pt-BR'),
+          status: (processo.status === 'analise' ? 'analise' : processo.status === 'aprovado' ? 'aprovado' : processo.status === 'rascunho' ? 'rascunho' : 'pendente') as HistoricoItem['status'],
+          kit: `${processo.documentos_anexados}/${processo.documentos_total} Anexados`,
+          link: processo.categoria === 'apoio' ? '/programas-de-apoio' : '/projetos',
+        })));
+      })
+      .catch(() => undefined);
+    return () => { ativo = false; };
+  }, []);
 
   const filtered = allItems.filter((item) => {
     const matchesCat = categoryFilter === 'todos' || item.category === categoryFilter;

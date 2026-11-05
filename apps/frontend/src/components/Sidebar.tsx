@@ -1,9 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
+import { useUser } from '../contexts/UserContext';
 
 export const Sidebar = () => {
   const location = useLocation();
   const path = location.pathname;
+  const { usuario } = useUser();
+  const isAdmin = usuario?.role === 'admin';
 
   // Active checks
   const isProjetosPainelActive =
@@ -53,6 +56,7 @@ export const Sidebar = () => {
             to="/projetos/painel"
             className={clsx(
               'flex items-center space-x-3 px-xl py-2.5 transition-colors text-sm',
+              !isAdmin && 'hidden',
               isProjetosPainelActive
                 ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
                 : 'text-surface-variant/80 hover:bg-white/5 hover:text-white'
@@ -100,6 +104,7 @@ export const Sidebar = () => {
             to="/programas-de-apoio/painel"
             className={clsx(
               'flex items-center space-x-3 px-xl py-2.5 transition-colors text-sm',
+              !isAdmin && 'hidden',
               isApoioPainelActive
                 ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
                 : 'text-surface-variant/80 hover:bg-white/5 hover:text-white'
@@ -137,7 +142,7 @@ export const Sidebar = () => {
           </Link>
         </div>
 
-        <div className="mb-4">
+        <div className={clsx('mb-4', !isAdmin && 'hidden')}>
           <div className="px-xl py-1 text-[11px] font-bold uppercase tracking-wider text-white/50">
             Cadastros
           </div>
@@ -153,10 +158,19 @@ export const Sidebar = () => {
             <span className="material-symbols-outlined text-lg">app_registration</span>
             <span>Formulários</span>
           </Link>
+          <Link to="/admin/documentos" className={clsx(
+            'flex items-center space-x-3 px-xl py-2.5 transition-colors text-sm',
+            path === '/admin/documentos'
+              ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
+              : 'text-surface-variant/80 hover:bg-white/5 hover:text-white'
+          )}>
+            <span className="material-symbols-outlined text-lg">description</span>
+            <span>Documentos</span>
+          </Link>
         </div>
 
         {/* SECTION 4: HISTÓRICO & PENDÊNCIAS */}
-        <div className="mb-2">
+        <div className={clsx('mb-2', !isAdmin && 'hidden')}>
           <div className="px-xl py-1 text-[11px] font-bold uppercase tracking-wider text-white/50">
             Histórico & Pendências
           </div>

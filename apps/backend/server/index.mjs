@@ -7,6 +7,7 @@ import { Pool } from 'pg';
 import { executar as criarBasePostgreSQL } from '../migrations/00_database_create.mjs';
 import { executar as executarCatalogoPostgreSQL } from '../migrations/008_catalogo_postgresql.mjs';
 import { executar as executarAutenticacao } from '../migrations/010_autenticacao_admin.mjs';
+import { executarProcessos } from '../migrations/011_processos.mjs';
 import { hashPassword, verifyPassword } from './passwords.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,6 +30,7 @@ try {
   await pool.query('SELECT 1');
   await executarCatalogoPostgreSQL(pool, root);
   await executarAutenticacao(pool);
+  await executarProcessos(pool);
 } catch (erro) {
   await pool.end();
   console.error('Falha ao conectar ou migrar o PostgreSQL. Verifique acesso, permissões e migrations.');
@@ -50,8 +52,9 @@ app.use('/templates', express.static(path.join(root, 'template')));
 const asyncRoute = (handler) => (request, response, next) => Promise.resolve(handler(request, response, next)).catch(next);
 const nomeCookieSessao = 'fealqflow_admin';
 const duracaoSessaoMs = 12 * 60 * 60 * 1000;
-const cookieSecure = process.env.COOKIE_SECURE === 'true'
-  || (process.env.COOKIE_SECURE !== 'false' && process.env.NODE_ENV === 'production');
+// Em HTTP local/rede interna, o cookie não pode ter Secure. Em produção com HTTPS,
+// configure COOKIE_SECURE=true na stack.
+const cookieSecure = process.env.COOKIE_SECURE === 'true';
 const hashToken = (token) => createHash('sha256').update(token).digest('hex');
 const lerTokenCookie = (request) => {
   const cookies = request.headers.cookie?.split(';') || [];
@@ -314,6 +317,57 @@ const salvarDocumentoPrincipal = async (id, documento, existente) => {
 app.get('/api/health', asyncRoute(async (_request, response) => {
   await pool.query('SELECT 1');
   return response.json({ ok: true, database: 'available', engine: 'postgresql' });
+}));
+
+app.get('/api/processos', exigirAdmin, asyncRoute(async (request, response) => {
+  const filtros = [];
+  const valores = [];
+  if (request.query.categoria === 'projeto' || request.query.categoria === 'apoio') {
+    valores.push(request.query.categoria);
+    filtros.push(`p.categoria = $${valores.length}`);
+  }
+  if (typeof request.query.status === 'string' && request.query.status.trim()) {
+    valores.push(request.query.status.trim());
+    filtros.push(`p.status = $${valores.length}`);
+  }
+  const where = filtros.length ? `WHERE ${filtros.join(' AND ')}` : '';
+  const { rows } = await pool.query(`
+    SELECT p.id, p.protocolo, p.categoria, p.formulario_id, p.formulario_nome,
+      p.titulo, p.solicitante_nome, p.solicitante_email, p.status,
+      p.criado_em, p.atualizado_em,
+      COUNT(d.id)::int AS documentos_total,
+      COUNT(d.id) FILTER (WHERE d.status IN ('enviado', 'validado'))::int AS documentos_anexados
+    FROM processos p
+    LEFT JOIN processo_documentos d ON d.processo_id = p.id
+    ${where}
+    GROUP BY p.id ORDER BY p.atualizado_em DESC
+  `, valores);
+  return response.json(rows);
+}));
+
+app.get('/api/processos/resumo', exigirAdmin, asyncRoute(async (_request, response) => {
+  const { rows } = await pool.query(`
+    SELECT COUNT(*) FILTER (WHERE status IN ('rascunho', 'em_preenchimento'))::int AS iniciadas,
+      COUNT(*) FILTER (WHERE status IN ('pendente', 'pronto_para_envio'))::int AS pendentes,
+      COUNT(*) FILTER (WHERE status IN ('analise', 'enviado', 'aprovado', 'rejeitado', 'finalizada'))::int AS finalizadas
+    FROM processos
+  `);
+  return response.json(rows[0]);
+}));
+
+app.post('/api/processos', validarOrigem, asyncRoute(async (request, response) => {
+  const body = request.body || {};
+  if (!['projeto', 'apoio'].includes(body.categoria) || typeof body.formularioId !== 'string'
+    || typeof body.formularioNome !== 'string' || !body.formularioNome.trim()) {
+    return response.status(400).json({ error: 'Categoria e formulário são obrigatórios.' });
+  }
+  const processoId = randomUUID();
+  const protocolo = `${body.categoria === 'apoio' ? 'APO' : 'PRJ'}-${new Date().getFullYear()}/${processoId.slice(0, 8).toUpperCase()}`;
+  const { rows } = await pool.query(`
+    INSERT INTO processos (id, protocolo, categoria, formulario_id, formulario_nome, titulo, solicitante_nome, solicitante_email, dados_json)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb) RETURNING *
+  `, [processoId, protocolo, body.categoria, body.formularioId, body.formularioNome.trim(), body.titulo || '', body.solicitanteNome || '', body.solicitanteEmail || '', JSON.stringify(body.dados || {})]);
+  return response.status(201).json(rows[0]);
 }));
 
 app.get('/api/documentos', asyncRoute(async (_request, response) => {
