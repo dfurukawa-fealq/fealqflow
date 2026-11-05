@@ -61,7 +61,7 @@ export default function App() {
           <div className="hidden lg:block print:hidden">
             <Sidebar />
           </div>
-          <div className="flex-1 lg:ml-[240px] print:ml-0 flex flex-col min-h-screen min-w-0">
+          <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:ml-[240px] print:ml-0">
             <Routes>
             {/* Default root routes to Programas de Apoio requests panel as specified */}
             <Route path="/" element={<PainelSolicitacoesApoio />} />

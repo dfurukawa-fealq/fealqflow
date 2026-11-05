@@ -39,8 +39,8 @@ export const AdminLogin = () => {
   };
 
   return (
-    <main className="flex min-h-[calc(100vh-2rem)] items-center justify-center px-4 py-10">
-      <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
+    <main className="flex min-h-[calc(100vh-2rem)] w-full min-w-0 items-center justify-center px-4 py-10">
+      <section className="mx-auto w-full min-w-0 max-w-[28rem] rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:p-8">
         <div className="mb-7 flex items-center gap-3">
           <span className="material-symbols-outlined flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-3xl text-slate-800" aria-hidden="true">
             admin_panel_settings
