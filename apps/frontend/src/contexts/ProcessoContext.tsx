@@ -34,6 +34,7 @@ interface ContextoProcesso {
   documentos: DocumentoProcesso[];
   atualizarCampo: (campo: string, valor: unknown) => void;
   salvar: () => Promise<void>;
+  save_state: () => Promise<void>;
   enviar: () => Promise<void>;
   novaTentativa: () => Promise<void>;
   anexarDocumento: (codigo: string, arquivo: File) => Promise<void>;
@@ -345,7 +346,7 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa }: {
     setDocumentos(await resposta.json() as DocumentoProcesso[]);
   }, [processoInicial.id, token]);
 
-  const valor = useMemo<ContextoProcesso>(() => ({ processo: processoInicial, dados, erro, salvando, documentos, atualizarCampo, salvar, enviar, novaTentativa, anexarDocumento, removerDocumento, baixarDocumento, registrarDocumentos }),
+  const valor = useMemo<ContextoProcesso>(() => ({ processo: processoInicial, dados, erro, salvando, documentos, atualizarCampo, salvar, save_state: salvar, enviar, novaTentativa, anexarDocumento, removerDocumento, baixarDocumento, registrarDocumentos }),
     [processoInicial, dados, erro, salvando, documentos, atualizarCampo, salvar, enviar, novaTentativa, anexarDocumento, removerDocumento, baixarDocumento, registrarDocumentos]);
   if (enviado) return <main className="mx-auto flex w-full max-w-[600px] flex-col gap-md p-lg">
     <h1 className="text-xl font-bold text-primary">Processo enviado</h1>

@@ -8,6 +8,7 @@ import { CertificacaoSidebarCard } from '../../components/form/CertificacaoSideb
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { formatCPF, formatRG } from '../../utils/formatters';
 import { sanitizeInputText, sanitizeProtocolId, getSafeReturnUrl } from '../../utils/security';
+import { AutoPreencherButton } from '../../components/form/AutoPreencherButton';
 
 export const TermoLGPDConfidencialidade = () => {
   const [searchParams] = useSearchParams();
@@ -27,6 +28,28 @@ export const TermoLGPDConfidencialidade = () => {
     sanitizeInputText(searchParams.get('projeto')) || ''
   );
   const [email, setEmail] = useProcessoState('email', sanitizeInputText(searchParams.get('email')) || '');
+  const [mensagemAutoPreenchimento, setMensagemAutoPreenchimento] = useState('');
+
+  const preencherAutomaticamente = () => {
+    const valores = {
+      nome: sanitizeInputText(searchParams.get('coordenador') || ''),
+      cpf: formatCPF(searchParams.get('cpf') || ''),
+      rg: formatRG(searchParams.get('rg') || ''),
+      departamento: sanitizeInputText(searchParams.get('departamento') || ''),
+      titulo: sanitizeInputText(searchParams.get('projeto') || ''),
+      email: sanitizeInputText(searchParams.get('email') || ''),
+    };
+    let preenchidos = 0;
+    if (!nomeCoordenador.trim() && valores.nome) { setNomeCoordenador(valores.nome); preenchidos += 1; }
+    if (!cpf.trim() && valores.cpf) { setCpf(valores.cpf); preenchidos += 1; }
+    if (!rg.trim() && valores.rg) { setRg(valores.rg); preenchidos += 1; }
+    if (!departamento.trim() && valores.departamento) { setDepartamento(valores.departamento); preenchidos += 1; }
+    if (!tituloProjeto.trim() && valores.titulo) { setTituloProjeto(valores.titulo); preenchidos += 1; }
+    if (!email.trim() && valores.email) { setEmail(valores.email); preenchidos += 1; }
+    setMensagemAutoPreenchimento(preenchidos > 0
+      ? `${preenchidos} campo(s) preenchido(s) com dados do formulário principal.`
+      : 'Não há novos dados disponíveis ou os campos já estão preenchidos.');
+  };
 
   // Confirmação de Leitura
   const [leuTermo, setLeuTermo] = useProcessoState('leuTermo', false);
@@ -65,7 +88,10 @@ export const TermoLGPDConfidencialidade = () => {
 
   const rawProtocolo = searchParams.get('protocolo');
   const protocoloUrlParam = rawProtocolo ? sanitizeProtocolId(rawProtocolo) : protocolId;
-  const rotaRetorno = searchParams.get('retorno') === 'pesquisa' ? '/projetos/form-pesquisa' : '/projetos/form-curso';
+  const rotaSolicitada = searchParams.get('rota_retorno');
+  const rotaRetorno = rotaSolicitada === '/projetos/form-pesquisa-v2' || rotaSolicitada === '/projetos/form-pesquisa'
+    ? rotaSolicitada
+    : searchParams.get('retorno') === 'pesquisa' ? '/projetos/form-pesquisa' : '/projetos/form-curso';
   const processoPai = searchParams.get('processo_pai');
   const linkRetorno = getSafeReturnUrl(`${rotaRetorno}?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}`);
 
@@ -75,7 +101,7 @@ export const TermoLGPDConfidencialidade = () => {
       titulo="Termo de Compromisso e Confidencialidade de Dados (LGPD)"
       codigo="FR 01 – PRO - Rev. 05"
       badge="Obrigatório"
-      acaoPrincipal="Concluir e Retornar ao Protocolo"
+      acaoPrincipal={processoPai ? 'Concluir e Retornar ao Protocolo' : 'Concluir'}
       acaoIcone="verified"
       podeEnviar={confirmado}
       aoSubmeter={() => {
@@ -134,15 +160,12 @@ export const TermoLGPDConfidencialidade = () => {
           numero={1}
           icone="person"
           titulo="Identificação do Declarante e Projeto"
-          acao={
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary">
-              Autopreenchido
-            </span>
-          }
+          acao={<AutoPreencherButton onClick={preencherAutomaticamente} />}
         >
           <p className="col-span-12 -mt-xs text-[12px] text-on-surface-variant">
             Dados autopreenchidos a partir do cadastro do coordenador e do protocolo de abertura.
           </p>
+          {mensagemAutoPreenchimento && <p role="status" className="col-span-12 -mt-xs text-[11px] font-semibold text-secondary">{mensagemAutoPreenchimento}</p>}
           <Field
             label="Nome Completo do Coordenador"
             span={6}
@@ -318,13 +341,13 @@ export const TermoLGPDConfidencialidade = () => {
                     <span className="material-symbols-outlined text-[16px]">print</span>
                     Imprimir Comprovante
                   </button>
-                  <Link
+                  {processoPai && <Link
                     to={linkRetorno}
                     className="px-md py-2 text-[12px] font-semibold text-white bg-green-700 rounded hover:bg-green-800 transition-colors flex items-center gap-1 shadow-sm"
                   >
                     <span className="material-symbols-outlined text-[16px]">check</span>
                     Voltar ao Protocolo
-                  </Link>
+                  </Link>}
                 </div>
               </div>
             ) : (

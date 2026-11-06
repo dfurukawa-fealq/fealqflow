@@ -59,6 +59,21 @@ export const FormPageLayout = ({
   const [executando, setExecutando] = useState(false);
   const [erroAcao, setErroAcao] = useState('');
   const [sidebarMobileAberta, setSidebarMobileAberta] = useState(false);
+  const [toast, setToast] = useState<{ tipo: 'sucesso' | 'erro'; mensagem: string } | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
+
+  const mostrarToast = useCallback((tipo: 'sucesso' | 'erro', mensagem: string) => {
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+    setToast({ tipo, mensagem });
+    toastTimerRef.current = window.setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, 4000);
+  }, []);
+
+  useEffect(() => () => {
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+  }, []);
 
   // null = a página não tem Kit Documental; o envio segue bloqueado se podeEnviar não for informado.
   const [pendencias, setPendencias] = useState<number | null>(null);
@@ -111,6 +126,19 @@ export const FormPageLayout = ({
     try { await acao(); }
     catch (falha) { setErroAcao(falha instanceof Error ? falha.message : 'Não foi possível concluir a operação.'); }
     finally { ocupadoRef.current = false; setExecutando(false); }
+  };
+
+  const salvarRascunho = () => {
+    if (!processo) return;
+    void executar(async () => {
+      try {
+        await processo.salvar();
+        mostrarToast('sucesso', 'Rascunho salvo com sucesso!');
+      } catch (falha) {
+        mostrarToast('erro', falha instanceof Error ? falha.message : 'Não foi possível salvar o rascunho.');
+        throw falha;
+      }
+    });
   };
 
   const validarCampos = () => {
@@ -249,6 +277,17 @@ export const FormPageLayout = ({
           </div>
         </main>
 
+        {toast && (
+          <div
+            role="status"
+            aria-live="polite"
+            className={`fixed bottom-28 right-4 z-50 flex max-w-[calc(100vw-2rem)] items-center gap-sm rounded-lg border px-md py-sm text-sm font-semibold shadow-lg sm:bottom-20 ${toast.tipo === 'sucesso' ? 'border-secondary/40 bg-secondary text-white' : 'border-error/40 bg-error text-white'}`}
+          >
+            <span className="material-symbols-outlined text-[19px]" aria-hidden="true">{toast.tipo === 'sucesso' ? 'check_circle' : 'error'}</span>
+            <span>{toast.mensagem}</span>
+          </div>
+        )}
+
         <footer className="fixed inset-x-0 bottom-0 z-30 flex min-w-0 flex-col gap-xs border-t border-outline-variant bg-surface-container-lowest px-sm py-xs sm:px-md lg:left-sidebar-width lg:px-xl print:hidden">
           {sidebar && (
             <button
@@ -265,15 +304,17 @@ export const FormPageLayout = ({
           )}
 
           {footerCenter && <div className="flex min-w-0 justify-center lg:hidden">{footerCenter}</div>}
-          <div className="flex min-w-0 w-full flex-wrap items-center justify-between gap-xs">
-            <FormActionButton texto="Cancelar" icone="close" type="button" disabled={executando} onClick={() => void executar(async () => { if (processo) await processo.salvar(); navigate(-1); })} className="border-transparent text-on-surface" />
-            {footerCenter && <div className="hidden min-w-0 lg:flex lg:flex-1 lg:justify-center">{footerCenter}</div>}
+          <div className="flex min-w-0 w-full flex-wrap items-center justify-between gap-xs lg:flex-nowrap">
+            <div className="flex min-w-0 shrink-0 items-center gap-xs">
+              <FormActionButton texto="Cancelar" icone="close" type="button" disabled={executando} onClick={() => void executar(async () => { if (processo) await processo.salvar(); navigate(-1); })} className="border-outline-variant text-on-surface shadow-sm" />
+              {footerCenter && <div className="hidden min-w-0 lg:flex">{footerCenter}</div>}
+            </div>
             <div className="flex min-w-0 flex-wrap items-center justify-end gap-xs lg:flex-1">
               {botoesAcoes}
               {processo && <FormActionButton texto="Reiniciar" icone="restart_alt" type="button" disabled={executando} onClick={() => {
                 if (window.confirm('Iniciar uma nova tentativa? O processo atual será preservado.')) void executar(async () => { await processo.salvar(); await processo.novaTentativa(); });
               }} />}
-              {mostrarRascunho && <FormActionButton texto="Salvar Rascunho" icone="save" type="button" disabled={!processo || executando} onClick={() => { if (processo) void executar(processo.salvar); }} />}
+              {mostrarRascunho && <FormActionButton texto="Salvar Rascunho" icone="save" type="button" disabled={!processo || executando} onClick={salvarRascunho} />}
               <FormActionButton
                 texto={acaoPrincipal}
                 icone={acaoIcone}

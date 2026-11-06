@@ -19,6 +19,20 @@ interface KitDocumentalProps {
   acaoNoCard?: boolean;
 }
 
+const resumirDescricao = (valor: string) => {
+  const texto = valor
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return texto.length > 320 ? `${texto.slice(0, 317).trimEnd()}...` : texto;
+};
+
 /**
  * Kit de Documentos no padrão do Cadastro de Financiadora: uma linha por
  * documento, ícone de estado à esquerda e ação à direita.
@@ -161,6 +175,7 @@ interface ItemDocumentoProps {
 
 const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelecionar, acaoNoCard }: ItemDocumentoProps) => {
   const navigate = useNavigate();
+  const processo = useProcesso();
   const isCustomStatus = doc.status !== undefined;
   const isConcluidoStatus = doc.status === 'concluido';
   const isEmAndamento = doc.status === 'em_andamento';
@@ -171,20 +186,21 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
   const concluido = isCustomStatus
     ? isConcluidoStatus
     : ((gerado && !doc.url_template) || Boolean(arquivoSalvo));
-  const detalhe = [doc.descricao, doc.condicao].filter(Boolean).join(' ');
+  const detalhe = [doc.descricao ? resumirDescricao(doc.descricao) : '', doc.condicao].filter(Boolean).join(' ');
   const cardAcionavel = acaoNoCard && Boolean(doc.url_template) && !arquivoPdfCatalogo;
   // Todo documento obrigatório pendente sinaliza ação necessária. Quando há
   // URL, o card também é navegável; uploads continuam usando o anexo interno.
   const cardComMotion = acaoNoCard && !concluido && (doc.obrigatorio || Boolean(doc.url_template));
-  const abrirDocumento = () => {
+  const abrirDocumento = async () => {
     if (!doc.url_template) return;
-    doc.onAbrirLink?.();
+    // Persiste o rascunho antes de sair da tela para manter os dados
+    // disponíveis nos subformulários vinculados ao processo.
+    await processo?.save_state();
+    await doc.onAbrirLink?.();
     if (arquivoPdfCatalogo) {
       const link = document.createElement('a');
       link.href = doc.url_template;
       link.download = '';
-      link.target = '_blank';
-      link.rel = 'noreferrer';
       link.click();
       return;
     }
@@ -197,7 +213,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
       onKeyDown={(event) => {
         if (cardAcionavel && (event.key === 'Enter' || event.key === ' ')) {
           event.preventDefault();
-          abrirDocumento();
+          void abrirDocumento();
         }
       }}
       role={cardAcionavel ? 'link' : undefined}
@@ -252,7 +268,10 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
                 </span>
                 {!acaoNoCard && <Link
                   to={doc.url_template}
-                  onClick={doc.onAbrirLink}
+                  onClick={(evento) => {
+                    evento.preventDefault();
+                    void abrirDocumento();
+                  }}
                   className="inline-flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-semibold text-primary hover:text-primary-dark hover:bg-primary/5 rounded border border-primary/20 transition-colors"
                   title="Visualizar ou editar formulário vinculado"
                 >
@@ -273,7 +292,10 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
                 </span>
                 {!acaoNoCard && <Link
                   to={doc.url_template}
-                  onClick={doc.onAbrirLink}
+                  onClick={(evento) => {
+                    evento.preventDefault();
+                    void abrirDocumento();
+                  }}
                   className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-[11px] font-semibold rounded hover:bg-primary-dark transition-colors shadow-xs"
                   title="Abrir formulário vinculado para preenchimento"
                 >
@@ -296,8 +318,6 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
             {doc.url_template && (
               <a
                 href={doc.url_template}
-                target="_blank"
-                rel="noreferrer"
                 download
                 className="inline-flex items-center gap-1 text-primary-container text-[11px] font-bold uppercase hover:underline shrink-0"
                 title="Baixar modelo do documento"

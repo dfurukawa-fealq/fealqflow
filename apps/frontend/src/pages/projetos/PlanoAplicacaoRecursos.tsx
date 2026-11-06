@@ -97,7 +97,12 @@ export const PlanoAplicacaoRecursos = () => {
 
   const protocoloUrlParam = searchParams.get('protocolo') || protocolId;
   const processoPai = searchParams.get('processo_pai');
-  const linkRetorno = protocoloUrlParam ? `/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}` : '/projetos/form-curso';
+  const rotaSolicitada = searchParams.get('rota_retorno');
+  const rotaRetorno = rotaSolicitada === '/projetos/form-pesquisa-v2' || rotaSolicitada === '/projetos/form-pesquisa'
+    ? rotaSolicitada
+    : '/projetos/form-curso';
+  const linkRetorno = protocoloUrlParam ? `${rotaRetorno}?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}` : rotaRetorno;
+  const veioDeFormularioPai = Boolean(processoPai);
 
   return (
     <FormPageLayout
@@ -108,16 +113,16 @@ export const PlanoAplicacaoRecursos = () => {
       aoSubmeter={handleSubmeterPlano}
       footerCenter={footerCenter}
       botoesAcoes={
-        <div className="flex flex-wrap items-center gap-xs">
-          <Link
+        <div className="flex shrink-0 flex-wrap items-center gap-xs">
+          {veioDeFormularioPai && <Link
             to={linkRetorno}
-            aria-label="Voltar ao Protocolo do Evento"
-            title="Voltar ao Protocolo do Evento"
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center gap-xs rounded border border-outline text-on-surface text-[13px] hover:bg-surface-container-low transition-colors lg:h-[36px] xl:w-auto xl:max-w-[260px] xl:px-md"
+            aria-label="Voltar ao Protocolo"
+            title="Voltar ao Protocolo"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center gap-xs rounded border border-outline text-on-surface text-[13px] hover:bg-surface-container-low transition-colors lg:h-[36px] xl:w-auto xl:max-w-[220px] xl:px-md"
           >
             <span className="material-symbols-outlined text-[20px] lg:text-[18px]" aria-hidden="true">arrow_back</span>
-            <span className="hidden truncate xl:inline">Voltar ao Protocolo do Evento</span>
-          </Link>
+            <span className="hidden truncate xl:inline">Voltar ao Protocolo</span>
+          </Link>}
           <FormActionButton texto="Gerar PDF" icone="print" type="button" onClick={() => window.print()} />
         </div>
       }

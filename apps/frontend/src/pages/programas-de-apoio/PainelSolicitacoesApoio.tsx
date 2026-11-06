@@ -97,16 +97,16 @@ export const PainelSolicitacoesApoio = () => {
               onClick={() => setStatusFilter(statusFilter === 'rascunho' ? 'todos' : 'rascunho')}
               className={clsx(
                 'bg-surface-container-lowest border rounded p-md flex items-center justify-between cursor-pointer transition-all hover:shadow-sm',
-                statusFilter === 'rascunho' ? 'border-[#20B293] ring-1 ring-[#20B293]' : 'border-outline-variant'
+                statusFilter === 'rascunho' ? 'border-primary ring-1 ring-primary' : 'border-outline-variant'
               )}
             >
               <div>
                 <p className="text-[10px] text-on-surface-variant font-bold uppercase">
                   Iniciadas / Rascunho
                 </p>
-                <p className="text-2xl font-bold text-[#20B293]">{pendingRequests.filter((item) => item.status === 'rascunho').length}</p>
+                <p className="text-2xl font-bold text-primary">{pendingRequests.filter((item) => item.status === 'rascunho').length}</p>
               </div>
-              <div className="w-10 h-10 rounded bg-[#20B293]/10 flex items-center justify-center text-[#20B293]">
+              <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary">
                 <span className="material-symbols-outlined">edit_document</span>
               </div>
             </div>
@@ -133,16 +133,16 @@ export const PainelSolicitacoesApoio = () => {
               onClick={() => setStatusFilter(statusFilter === 'finalizada' ? 'todos' : 'finalizada')}
               className={clsx(
                 'bg-surface-container-lowest border rounded p-md flex items-center justify-between cursor-pointer transition-all hover:shadow-sm',
-                statusFilter === 'finalizada' ? 'border-primary ring-1 ring-primary' : 'border-outline-variant'
+                statusFilter === 'finalizada' ? 'border-[#20B293] ring-1 ring-[#20B293]' : 'border-outline-variant'
               )}
             >
               <div>
                 <p className="text-[10px] text-on-surface-variant font-bold uppercase">
                   Enviadas / Finalizadas
                 </p>
-                <p className="text-2xl font-bold text-primary">{pendingRequests.filter((item) => item.status === 'finalizada').length}</p>
+                <p className="text-2xl font-bold text-[#20B293]">{pendingRequests.filter((item) => item.status === 'finalizada').length}</p>
               </div>
-              <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary">
+              <div className="w-10 h-10 rounded bg-[#20B293]/10 flex items-center justify-center text-[#20B293]">
                 <span className="material-symbols-outlined">check_circle</span>
               </div>
             </div>

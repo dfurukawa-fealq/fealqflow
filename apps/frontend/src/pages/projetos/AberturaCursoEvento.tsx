@@ -959,6 +959,7 @@ export const AberturaCursoEvento: React.FC = () => {
             <Field
               label="CPF"
               span={3}
+              mascara="cpf"
               placeholder="000.000.000-00"
               obrigatorio
               valor={coordCpf}
@@ -967,6 +968,7 @@ export const AberturaCursoEvento: React.FC = () => {
             <Field
               label="RG / Órgão Emissor"
               span={3}
+              mascara="rg"
               placeholder="00.000.000-0 SSP/SP"
               valor={coordRg}
               onChange={setCoordRg}
@@ -975,6 +977,7 @@ export const AberturaCursoEvento: React.FC = () => {
               label="Telefone p/ Contato"
               span={3}
               tipo="tel"
+              mascara="telefone"
               placeholder="(19) 3429-0000"
               valor={coordTelefone}
               onChange={setCoordTelefone}

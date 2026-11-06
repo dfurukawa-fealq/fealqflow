@@ -1,9 +1,12 @@
+import { FormSection } from '../FormSection';
+
 interface OrientacoesCoordenadorCardProps {
   aceito: boolean;
   aoAlterarAceite: (valor: boolean) => void;
 }
 
 export const OrientacoesCoordenadorCard = ({ aceito, aoAlterarAceite }: OrientacoesCoordenadorCardProps) => (
+  <FormSection numero={8} icone="menu_book" titulo="Orientações ao Coordenador FEALQ">
   <div className="col-span-12 rounded-lg border border-outline-variant bg-surface-container-low p-sm">
     <div className="flex items-center gap-xs border-b border-outline-variant pb-xs">
       <span className="material-symbols-outlined text-base text-primary">menu_book</span>
@@ -17,4 +20,5 @@ export const OrientacoesCoordenadorCard = ({ aceito, aoAlterarAceite }: Orientac
       Declaro estar ciente e de acordo com as Orientações ao Coordenador da FEALQ *
     </label>
   </div>
+  </FormSection>
 );

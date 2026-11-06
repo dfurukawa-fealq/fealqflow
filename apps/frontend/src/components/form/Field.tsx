@@ -1,5 +1,6 @@
 import { ReactNode, useId } from 'react';
 import { useProcessoState } from '../../contexts/ProcessoContext';
+import { MaskedInput, MascaraInput } from './MaskedInput';
 
 export type TipoCampo =
   | 'text'
@@ -30,6 +31,7 @@ interface FieldProps {
   prefixo?: string;
   /** Texto auxiliar abaixo do campo. */
   hint?: string;
+  mascara?: MascaraInput;
   disabled?: boolean;
   obrigatorio?: boolean;
   onChange?: (valor: any) => void;
@@ -77,12 +79,18 @@ export const Field = ({
   valor,
   prefixo,
   hint,
+  mascara,
   disabled,
   obrigatorio,
   onChange,
   children,
 }: FieldProps) => {
   const id = useId();
+  const mascaraAutomatica = mascara ?? (
+    label.trim().toLocaleLowerCase('pt-BR') === 'cpf' ? 'cpf' :
+      label.trim().toLocaleLowerCase('pt-BR').startsWith('rg /') ? 'rg' :
+        label.trim().toLocaleLowerCase('pt-BR').includes('telefone') ? 'telefone' : undefined
+  );
   const [valorLocal, setValorLocal] = useProcessoState<string | boolean>(`campo:${label}:${id}`,
     valor ?? padrao ?? (tipo === 'checkbox' ? false : tipo === 'select' && !placeholder ? opcoes[0] ?? '' : ''));
 
@@ -178,8 +186,18 @@ export const Field = ({
               className={`${CONTROLE} rounded-l-none`}
             />
           </div>
-        ) : (
-          <input
+        ) : mascaraAutomatica ? (
+            <MaskedInput
+              id={id}
+              mascara={mascaraAutomatica}
+              disabled={disabled}
+              required={obrigatorio}
+              placeholder={placeholder}
+              value={onChange ? valor ?? '' : String(valorLocal)}
+              onChange={onChange ? onChange : setValorLocal}
+              className={CONTROLE}
+            />
+          ) : <input
             id={id}
             type={tipo}
             disabled={disabled}
@@ -189,7 +207,7 @@ export const Field = ({
             onChange={handleInputChange}
             className={CONTROLE}
           />
-        ))}
+        )}
 
       {hint && (
         <span className="block mt-xs text-[10px] text-on-surface-variant">

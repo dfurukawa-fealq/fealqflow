@@ -105,17 +105,17 @@ export const PainelSolicitacoesProjetos = () => {
               onClick={() => setStatusFilter(statusFilter === 'rascunho' ? 'todos' : 'rascunho')}
               className={clsx(
                 'bg-surface-container-lowest border rounded p-md flex items-center justify-between cursor-pointer transition-all hover:shadow-sm',
-                statusFilter === 'rascunho' ? 'border-[#20B293] ring-1 ring-[#20B293]' : 'border-outline-variant'
+                statusFilter === 'rascunho' ? 'border-primary ring-1 ring-primary' : 'border-outline-variant'
               )}
             >
               <div>
                 <p className="text-[10px] text-on-surface-variant font-bold uppercase">
                   Iniciadas / Rascunho
                 </p>
-                <p className="text-2xl font-bold text-[#20B293]">{countRascunho}</p>
+                <p className="text-2xl font-bold text-primary">{countRascunho}</p>
                 <p className="text-[11px] text-on-surface-variant mt-0.5">Em preenchimento ou rascunho</p>
               </div>
-              <div className="w-10 h-10 rounded bg-[#20B293]/10 flex items-center justify-center text-[#20B293]">
+              <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary">
                 <span className="material-symbols-outlined">edit_document</span>
               </div>
             </div>
@@ -143,17 +143,17 @@ export const PainelSolicitacoesProjetos = () => {
               onClick={() => setStatusFilter(statusFilter === 'finalizada' ? 'todos' : 'finalizada')}
               className={clsx(
                 'bg-surface-container-lowest border rounded p-md flex items-center justify-between cursor-pointer transition-all hover:shadow-sm',
-                statusFilter === 'finalizada' ? 'border-primary ring-1 ring-primary' : 'border-outline-variant'
+                statusFilter === 'finalizada' ? 'border-[#20B293] ring-1 ring-[#20B293]' : 'border-outline-variant'
               )}
             >
               <div>
                 <p className="text-[10px] text-on-surface-variant font-bold uppercase">
                   Finalizadas / Submetidas
                 </p>
-                <p className="text-2xl font-bold text-primary">{countFinalizada}</p>
+                <p className="text-2xl font-bold text-[#20B293]">{countFinalizada}</p>
                 <p className="text-[11px] text-on-surface-variant mt-0.5">Enviadas ou aprovadas pela FEALQ</p>
               </div>
-              <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary">
+              <div className="w-10 h-10 rounded bg-[#20B293]/10 flex items-center justify-center text-[#20B293]">
                 <span className="material-symbols-outlined">check_circle</span>
               </div>
             </div>

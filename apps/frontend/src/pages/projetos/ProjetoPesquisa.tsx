@@ -1,5 +1,6 @@
-import { useProcessoState } from '../../contexts/ProcessoContext';
+import { useProcesso, useProcessoState } from '../../contexts/ProcessoContext';
 import { useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
@@ -13,10 +14,34 @@ import { CertRegimeTrabalhoSection } from '../../components/form/projetos/CertRe
 import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSection';
 import { OrientacoesCoordenadorCard } from '../../components/form/projetos/OrientacoesCoordenadorCard';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
+import { useAdmin } from '../../contexts/AdminContext';
 
 export const ProjetoPesquisa = () => {
+  const location = useLocation();
+  const processo = useProcesso();
   const { gerarUrlVinculada, registrarAberturaFormulario, statusFormulario } = useRastreabilidade();
-  const urlTermoLGPD = gerarUrlVinculada('/projetos/termo-lgpd?retorno=pesquisa', 'CERT-LGPD-01', 'Termo de LGPD e Confidencialidade');
+  const { formularios } = useAdmin();
+  const rotaRetorno = encodeURIComponent(location.pathname);
+  const lerCampo = (...nomes: string[]) => {
+    const campos = processo?.dados.campos || {};
+    const chave = Object.keys(campos).find((item) => nomes.some((nome) => item === nome || item.startsWith(`campo:${nome}:`)));
+    const valor = chave ? campos[chave] : '';
+    return typeof valor === 'string' ? valor.trim() : '';
+  };
+  const dadosParaSubformularios = new URLSearchParams({
+    coordenador: lerCampo('Nome Completo do Coordenador'),
+    cpf: lerCampo('CPF'),
+    rg: lerCampo('RG / Órgão Emissor'),
+    departamento: lerCampo('Departamento / Instituição', 'Departamento / Unidade USP'),
+    email: lerCampo('E-mail Institucional'),
+    projeto: lerCampo('Título do Projeto', 'Título do Projeto / Curso / Evento'),
+  }).toString();
+  const urlTermoLGPD = gerarUrlVinculada(`/projetos/termo-lgpd?retorno=pesquisa&rota_retorno=${rotaRetorno}&${dadosParaSubformularios}`, 'CERT-LGPD-01', 'Termo de LGPD e Confidencialidade');
+  const urlOrientacoes = gerarUrlVinculada(`/projetos/orientacoes-coordenador?retorno=pesquisa&rota_retorno=${rotaRetorno}&${dadosParaSubformularios}`, 'CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ');
+  const urlPlanoRecursos = gerarUrlVinculada(`/projetos/form-plano-recursos?retorno=pesquisa&rota_retorno=${rotaRetorno}`, 'CONV-PL-01', 'Plano de AplicaÃ§Ã£o de Recursos');
+  const statusLGPD = statusFormulario('CERT-LGPD-01');
+  const statusOrientacoes = statusFormulario('CERT-ORIENT-01');
+  const statusPlanoRecursos = statusFormulario('CONV-PL-01');
   const [possuiConvenio, setPossuiConvenio] = useProcessoState('possuiConvenio', false);
   const [numeroConvenio, setNumeroConvenio] = useProcessoState('numeroConvenio', '');
   const [numeroProcesso, setNumeroProcesso] = useProcessoState('numeroProcesso', '');
@@ -30,16 +55,87 @@ export const ProjetoPesquisa = () => {
   const [aceiteOrientacoes, setAceiteOrientacoes] = useProcessoState('aceiteOrientacoes', false);
   const documentos = useMemo<DocumentoExigido[]>(() => [
     { id: 'processo-pesquisa', label: 'Processo de Abertura de Projeto de Pesquisa', descricao: 'Gerado pelo sistema.', tipo: 'gerado', obrigatorio: true },
-    { id: 'termo-sigilo', label: 'Termo de Sigilo e Confidencialidade', descricao: 'Autopreenchido e aceite obrigatório.', tipo: 'aceite', obrigatorio: true },
-    { id: 'termo-anuencia', label: 'Termo de Anuência para Execução do Projeto', descricao: 'Autopreenchido e aceite obrigatório.', tipo: 'aceite', obrigatorio: true },
-    { id: 'cadastro-coordenador', label: 'Cadastro do Coordenador', descricao: 'Necessário caso não exista cadastro na FEALQ.', tipo: 'externo', obrigatorio: false },
-    { id: 'equipe-envolvida', label: 'Cadastro de Equipe Envolvida', descricao: 'Pesquisadores, alunos e apoio administrativo.', tipo: 'externo', obrigatorio: false },
-    { id: 'cadastro-parceiro', label: 'Cadastro de Parceiro / Financiador', descricao: 'Pode ser preenchido por link externo.', tipo: 'externo', obrigatorio: false },
+    // { id: 'termo-sigilo', label: 'Termo de Sigilo e Confidencialidade', descricao: 'Autopreenchido e aceite obrigatório.', tipo: 'aceite', obrigatorio: true },
+    // { id: 'termo-anuencia', label: 'Termo de Anuência para Execução do Projeto', descricao: 'Autopreenchido e aceite obrigatório.', tipo: 'aceite', obrigatorio: true },
+    // { id: 'cadastro-coordenador', label: 'Cadastro do Coordenador', descricao: 'Necessário caso não exista cadastro na FEALQ.', tipo: 'externo', obrigatorio: false },
+    // { id: 'equipe-envolvida', label: 'Cadastro de Equipe Envolvida', descricao: 'Pesquisadores, alunos e apoio administrativo.', tipo: 'externo', obrigatorio: false },
+    // { id: 'cadastro-parceiro', label: 'Cadastro de Parceiro / Financiador', descricao: 'Pode ser preenchido por link externo.', tipo: 'externo', obrigatorio: false },
       ...(possuiConvenio
       ? [{ id: 'planilha-recursos-usp', label: 'Planilha de Aplicação de Recursos USP', descricao: 'Anexo obrigatório para projeto com convênio USP.', tipo: 'upload' as const, obrigatorio: true }]
       : [{ id: 'plano-aplicacao-recursos', label: 'Plano de Aplicação de Recursos', descricao: 'Preenchimento obrigatório para projeto sem convênio USP.', tipo: 'gerado' as const, obrigatorio: true }]),
-    { id: 'informacoes-complementares', label: 'Informações Complementares', descricao: 'Anexo opcional.', tipo: 'upload', obrigatorio: false },
+    // { id: 'informacoes-complementares', label: 'Informações Complementares', descricao: 'Anexo opcional.', tipo: 'upload', obrigatorio: false },
   ], [possuiConvenio]);
+
+  const documentosKit = useMemo<DocumentoExigido[]>(() => {
+    const buscarDocumento = (nome: string) => formularios.find((formulario) => formulario.tipo === 'Documento'
+      && formulario.area === 'Projetos'
+      && formulario.active !== false
+      && formulario.habilitado !== false
+      && formulario.nome.trim().toLocaleLowerCase('pt-BR') === nome.toLocaleLowerCase('pt-BR'));
+    const cadastroLGPD = buscarDocumento('Termo de LGPD e Confidencialidade (FR 01 - PRO)');
+    const cadastroSigilo = buscarDocumento('Termo de Sigilo e Confidencialidade');
+    const cadastroOrientacoes = buscarDocumento('Orientações ao Coordenador FEALQ (15 Regras)');
+    // `info` guarda o conteúdo principal do documento, não o resumo exibido no Kit.
+    const detalhes = (_cadastro: typeof cadastroLGPD, fallback: string) => fallback;
+
+    const documentosBase = documentos.map((documento) => {
+      if (documento.id === 'termo-sigilo') {
+        return {
+          ...documento,
+          label: cadastroSigilo?.nome || documento.label,
+          descricao: detalhes(cadastroSigilo, documento.descricao || ''),
+          url_template: cadastroSigilo?.documentosSolicitados[0]?.url_template,
+        };
+      }
+      if (documento.id === 'plano-aplicacao-recursos') {
+        return {
+          ...documento,
+          url_template: urlPlanoRecursos,
+          status: statusPlanoRecursos,
+          onAbrirLink: async () => {
+            await processo?.save_state();
+            registrarAberturaFormulario('CONV-PL-01', 'Plano de AplicaÃ§Ã£o de Recursos', urlPlanoRecursos);
+          },
+          linkTexto: statusPlanoRecursos === 'concluido' ? 'Revisar' : 'Preencher',
+        };
+      }
+      return documento;
+    });
+
+    return [
+      ...documentosBase,
+      {
+        id: 'termo-lgpd',
+        label: cadastroLGPD?.nome || 'Termo de LGPD e Confidencialidade',
+        // descricao: detalhes(cadastroLGPD, 'Autopreenchido e aceite obrigatório.'),
+        descricao: ('Autopreenchido e aceite obrigatório.'),
+        tipo: 'gerado',
+        obrigatorio: true,
+        url_template: urlTermoLGPD,
+        status: statusLGPD,
+        onAbrirLink: async () => {
+          await processo?.save_state();
+          registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD);
+        },
+        linkTexto: statusLGPD === 'concluido' ? 'Revisar' : 'Ler e Assinar',
+      },
+      {
+        id: 'orientacoes-coordenador',
+        label: cadastroOrientacoes?.nome || 'Orientações ao Coordenador FEALQ (15 Regras)',
+        // descricao: detalhes(cadastroOrientacoes, 'Leitura e ciência obrigatórias.'),
+        descricao: ('Leitura e ciência obrigatórias.'),
+        tipo: 'gerado',
+        obrigatorio: true,
+        url_template: urlOrientacoes,
+        status: statusOrientacoes,
+        onAbrirLink: async () => {
+          await processo?.save_state();
+          registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes);
+        },
+        linkTexto: statusOrientacoes === 'concluido' ? 'Revisar' : 'Ler',
+      },
+    ];
+  }, [documentos, formularios, processo, registrarAberturaFormulario, statusLGPD, statusOrientacoes, statusPlanoRecursos, urlOrientacoes, urlPlanoRecursos, urlTermoLGPD]);
 
   return (
     <FormPageLayout
@@ -47,7 +143,7 @@ export const ProjetoPesquisa = () => {
       titulo="Processo de Abertura de Projeto de Pesquisa"
       codigo="CONV-FR-03-PRO"
       acaoPrincipal="Submeter Projeto para FEALQ"
-      sidebar={<KitDocumental acaoNoCard documentos={documentos} />}
+      sidebar={<KitDocumental acaoNoCard documentos={documentosKit} />}
     >
       <ConvenioUSPSection possuiConvenio={possuiConvenio} aoAlterar={setPossuiConvenio} numeroConvenio={numeroConvenio} numeroProtocolo={numeroProcesso} aoAlterarNumeroConvenio={setNumeroConvenio} aoAlterarNumeroProtocolo={setNumeroProcesso} />
       <CertRegimeTrabalhoSection regime={regimeTrabalho} numeroCert={numeroCert} validadeCert={validadeCert} aoAlterarRegime={setRegimeTrabalho} aoAlterarNumeroCert={setNumeroCert} aoAlterarValidadeCert={setValidadeCert} />

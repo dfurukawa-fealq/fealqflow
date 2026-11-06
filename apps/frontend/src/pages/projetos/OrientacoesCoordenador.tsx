@@ -208,7 +208,11 @@ export const OrientacoesCoordenador = () => {
   const rawProtocolo = searchParams.get('protocolo');
   const protocoloUrlParam = rawProtocolo ? sanitizeProtocolId(rawProtocolo) : protocolId;
   const processoPai = searchParams.get('processo_pai');
-  const linkRetorno = getSafeReturnUrl(`/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}`);
+  const rotaSolicitada = searchParams.get('rota_retorno');
+  const rotaRetorno = rotaSolicitada === '/projetos/form-pesquisa-v2' || rotaSolicitada === '/projetos/form-pesquisa'
+    ? rotaSolicitada
+    : searchParams.get('retorno') === 'pesquisa' ? '/projetos/form-pesquisa' : '/projetos/form-curso';
+  const linkRetorno = getSafeReturnUrl(`${rotaRetorno}?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}`);
 
   return (
     <FormPageLayout
@@ -216,7 +220,7 @@ export const OrientacoesCoordenador = () => {
       titulo="Orientações ao Coordenador de Projetos e Eventos"
       codigo="ORI-COORD-01 / REV-03"
       badge="Leitura Obrigatória"
-      acaoPrincipal="Concluir e Retornar ao Protocolo"
+      acaoPrincipal={processoPai ? 'Concluir e Retornar ao Protocolo' : 'Concluir'}
       acaoIcone="verified"
       podeEnviar={confirmado}
       aoSubmeter={() => {
@@ -429,13 +433,13 @@ export const OrientacoesCoordenador = () => {
                     <span className="material-symbols-outlined text-[16px]">print</span>
                     Imprimir Termo
                   </button>
-                  <Link
+                  {processoPai && <Link
                     to={linkRetorno}
                     className="px-md py-2 text-[12px] font-semibold text-white bg-green-700 rounded hover:bg-green-800 transition-colors flex items-center gap-1 shadow-sm"
                   >
                     <span className="material-symbols-outlined text-[16px]">check</span>
                     Voltar ao Protocolo
-                  </Link>
+                  </Link>}
                 </div>
               </div>
             ) : (

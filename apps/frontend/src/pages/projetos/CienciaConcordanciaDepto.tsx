@@ -82,7 +82,7 @@ export const CienciaConcordanciaDepto = () => {
       titulo="Ciência e Concordância do Departamento (USP)"
       codigo="CONV-DP-01-USP"
       badge="USP Obrigatório"
-      acaoPrincipal="Concluir e Retornar ao Protocolo"
+      acaoPrincipal={processoPai ? 'Concluir e Retornar ao Protocolo' : 'Concluir'}
       acaoIcone="verified"
       podeEnviar={confirmado}
       aoSubmeter={() => {
@@ -401,13 +401,13 @@ export const CienciaConcordanciaDepto = () => {
                     <span className="material-symbols-outlined text-[16px]">print</span>
                     Imprimir Comprovante
                   </button>
-                  <Link
+                  {processoPai && <Link
                     to={linkRetorno}
                     className="px-md py-2 text-[12px] font-semibold text-white bg-green-700 rounded hover:bg-green-800 transition-colors flex items-center gap-1 shadow-sm"
                   >
                     <span className="material-symbols-outlined text-[16px]">check</span>
                     Voltar ao Protocolo
-                  </Link>
+                  </Link>}
                 </div>
               </div>
             ) : (

@@ -469,7 +469,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
             {caminhoSalvoPreview && !modeloPreviewDisponivel && <p role="alert" className="border-b border-outline-variant bg-amber-50 px-5 py-2 text-xs text-amber-900">O modelo salvo ({caminhoSalvoPreview}) não foi encontrado na pasta de templates. Selecione um arquivo disponível na edição.</p>}
             <div className="min-h-0 flex-1 overflow-auto bg-slate-200 p-2 sm:p-4"><ModeloDocxPreview modeloUrl={caminhoModeloPreview} html={obterConteudoPreview(documentoPreview)} /></div>
             <footer className="flex justify-end gap-2 border-t border-outline-variant px-5 py-3">
-              {modeloPreviewDisponivel && <a href={caminhoModeloPreview} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-2 text-sm font-semibold text-primary hover:bg-surface-container-low"><span className="material-symbols-outlined text-[17px]">download</span>Modelo DOCX</a>}
+              {modeloPreviewDisponivel && <a href={caminhoModeloPreview} download className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-2 text-sm font-semibold text-primary hover:bg-surface-container-low"><span className="material-symbols-outlined text-[17px]">download</span>Modelo DOCX</a>}
               <button type="button" onClick={() => setDocumentoPreview(null)} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary">Fechar</button>
             </footer>
           </section>

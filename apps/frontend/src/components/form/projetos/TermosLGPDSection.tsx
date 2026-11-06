@@ -8,7 +8,7 @@ interface TermosLGPDSectionProps {
 }
 
 export const TermosLGPDSection = ({ aceito, urlTermo, aoAbrirTermo }: TermosLGPDSectionProps) => (
-  <FormSection numero={7} icone="verified_user" titulo="Termos de LGPD, Confidencialidade & Orientações">
+  <FormSection numero={7} icone="verified_user" titulo="Termos de LGPD e Confidencialidade">
     <div className="col-span-12 rounded-lg border border-outline-variant bg-surface-container-low p-sm">
       <div className="flex items-start gap-sm border-b border-outline-variant pb-sm">
         <span className="material-symbols-outlined text-primary">security</span>
