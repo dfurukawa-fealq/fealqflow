@@ -455,7 +455,7 @@ app.get('/api/processos', exigirSessao, asyncRoute(async (request, response) => 
       p.titulo, p.solicitante_nome, p.solicitante_email, p.status,
       p.criado_em, p.atualizado_em,
       COUNT(d.id) FILTER (WHERE d.obrigatorio)::int AS documentos_total,
-      COUNT(d.id) FILTER (WHERE d.obrigatorio AND d.status IN ('enviado', 'validado'))::int AS documentos_anexados,
+      COUNT(d.id) FILTER (WHERE d.obrigatorio AND d.status IN ('enviado', 'validado', 'concluido'))::int AS documentos_anexados,
       COALESCE(
         json_agg(
           json_build_object(

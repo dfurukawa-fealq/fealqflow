@@ -11,8 +11,10 @@ export function formatarDocumentosDoProcesso(documentos: DocumentoDoProcesso[] |
     const concluido = ['enviado', 'validado', 'concluido'].includes(documento.status)
       || Boolean(documento.arquivo_nome);
 
-    if (concluido) return `${documento.nome} (Validado)`;
+    // Itens opcionais nunca entram na fração do Kit; o rótulo permanece explícito
+    // mesmo quando já possuem arquivo ou foram concluídos.
     if (!documento.obrigatorio) return `${documento.nome} (Opcional)`;
+    if (concluido) return `${documento.nome} (Validado)`;
     return `FALTANDO: ${documento.nome}`;
   });
 }
