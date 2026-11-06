@@ -118,6 +118,34 @@ export const FormPageLayout = ({
     */
   }, []);
 
+  useEffect(() => {
+    const raiz = mainRef.current;
+    if (!raiz || !processo) return;
+
+    const capturar = (evento: Event) => {
+      const elemento = evento.target;
+      if (!(elemento instanceof HTMLInputElement || elemento instanceof HTMLSelectElement || elemento instanceof HTMLTextAreaElement)) return;
+      if (['file', 'hidden', 'button', 'submit'].includes(elemento.type) || elemento.disabled) return;
+
+      const campo = elemento.closest<HTMLElement>('[data-fealq-field]')?.dataset.fealqField
+        || elemento.name
+        || elemento.id;
+      if (!campo) return;
+
+      const valor = elemento instanceof HTMLInputElement && ['checkbox', 'radio'].includes(elemento.type)
+        ? elemento.checked
+        : elemento.value;
+      processo.atualizarCampo(campo, valor);
+    };
+
+    raiz.addEventListener('input', capturar, true);
+    raiz.addEventListener('change', capturar, true);
+    return () => {
+      raiz.removeEventListener('input', capturar, true);
+      raiz.removeEventListener('change', capturar, true);
+    };
+  }, [processo?.processo.id, processo?.atualizarCampo]);
+
   const executar = async (acao: () => Promise<void>) => {
     if (ocupadoRef.current) return;
     ocupadoRef.current = true;

@@ -91,8 +91,10 @@ export const Field = ({
       label.trim().toLocaleLowerCase('pt-BR').startsWith('rg /') ? 'rg' :
         label.trim().toLocaleLowerCase('pt-BR').includes('telefone') ? 'telefone' : undefined
   );
-  const [valorLocal, setValorLocal] = useProcessoState<string | boolean>(`campo:${label}:${id}`,
-    valor ?? padrao ?? (tipo === 'checkbox' ? false : tipo === 'select' && !placeholder ? opcoes[0] ?? '' : ''));
+  const chaveEstavel = `campo:${label}`;
+  const chaveLegada = `campo:${label}:${id}`;
+  const [valorLocal, setValorLocal] = useProcessoState<string | boolean>(chaveEstavel,
+    valor ?? padrao ?? (tipo === 'checkbox' ? false : tipo === 'select' && !placeholder ? opcoes[0] ?? '' : ''), [chaveLegada]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     if (onChange) {
@@ -103,7 +105,7 @@ export const Field = ({
   };
 
   return (
-    <div className={`col-span-12 min-w-0 ${SPAN[span] ?? SPAN[12]}`}>
+    <div data-fealq-field={chaveEstavel} className={`col-span-12 min-w-0 ${SPAN[span] ?? SPAN[12]}`}>
       <label className={LABEL} htmlFor={id}>
         {label}
         {obrigatorio && <span className="text-red-500 ml-0.5">*</span>}

@@ -20,13 +20,15 @@ export const MeusRascunhos = ({ categoria }: { categoria: 'projeto' | 'apoio' })
     let ativo = true;
     const locais = safeJsonParse<ProcessoLocal[]>(safeGetItem(CHAVE_PROCESSOS_LOCAIS), [])
       .filter((item) => item.categoria === categoria && /^[0-9a-f-]{36}$/i.test(item.id)
+        && !item.processoPaiId
         && item.rota.startsWith(categoria === 'projeto' ? '/projetos/form-' : '/programas-de-apoio/apoio-'));
     void Promise.allSettled(locais.map(async (item): Promise<Rascunho | null> => {
       const token = safeGetItem(`@Fealq:processo:${item.id}`);
       if (!token) throw new Error('Token local indisponível.');
       const resposta = await fetch(`/api/processos/${item.id}`, { credentials: 'same-origin', headers: { 'x-processo-token': token } });
       if (!resposta.ok) throw new Error('Rascunho indisponível.');
-      const processo = await resposta.json() as { status: string; ativo: boolean; protocolo: string; formulario_nome: string; atualizado_em: string; formulario_rota: string };
+      const processo = await resposta.json() as { status: string; ativo: boolean; protocolo: string; formulario_nome: string; atualizado_em: string; formulario_rota: string; processo_pai_id?: string | null };
+      if (processo.processo_pai_id) return null;
       if (!processo.ativo || !['rascunho', 'em_preenchimento'].includes(processo.status) || processo.formulario_rota !== item.rota) return null;
       return { id: item.id, rota: item.rota, protocolo: processo.protocolo, nome: processo.formulario_nome, atualizado: new Date(processo.atualizado_em).toLocaleDateString('pt-BR') };
     })).then((resultados) => {

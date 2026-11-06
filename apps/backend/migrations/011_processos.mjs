@@ -8,6 +8,7 @@ export async function executarProcessos(pool) {
       formulario_id VARCHAR(120) NOT NULL,
       formulario_nome VARCHAR(255) NOT NULL,
       formulario_rota TEXT NOT NULL DEFAULT '',
+      processo_pai_id UUID REFERENCES processos(id) ON DELETE SET NULL,
       chave_criacao UUID,
       titulo TEXT NOT NULL DEFAULT '',
       solicitante_nome VARCHAR(255) NOT NULL DEFAULT '',
@@ -43,6 +44,7 @@ export async function executarProcessos(pool) {
     ALTER TABLE processos ADD COLUMN IF NOT EXISTS acesso_hash VARCHAR(64);
     ALTER TABLE processos ADD COLUMN IF NOT EXISTS versao INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE processos ADD COLUMN IF NOT EXISTS formulario_rota TEXT NOT NULL DEFAULT '';
+    ALTER TABLE processos ADD COLUMN IF NOT EXISTS processo_pai_id UUID REFERENCES processos(id) ON DELETE SET NULL;
     ALTER TABLE processos ADD COLUMN IF NOT EXISTS chave_criacao UUID;
     ALTER TABLE processos ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE;
     ALTER TABLE processos ADD COLUMN IF NOT EXISTS inativado_em TIMESTAMPTZ;

@@ -71,11 +71,11 @@ const nomesFormularios: Record<string, string> = {
   'apoio-cultura': 'Cultura e Extensão',
 };
 export const CHAVE_PROCESSOS_LOCAIS = '@Fealq:processos_locais';
-export interface ProcessoLocal { id: string; rota: string; categoria: 'projeto' | 'apoio'; }
-const registrarProcessoLocal = (processo: Processo & { token: string }) => {
+export interface ProcessoLocal { id: string; rota: string; categoria: 'projeto' | 'apoio'; processoPaiId?: string; }
+const registrarProcessoLocal = (processo: Processo & { token: string }, processoPaiId?: string | null) => {
   safeSetItem(`@Fealq:processo:${processo.id}`, processo.token);
   const atuais = safeJsonParse<ProcessoLocal[]>(safeGetItem(CHAVE_PROCESSOS_LOCAIS), []);
-  const proximos = [{ id: processo.id, rota: processo.formulario_rota, categoria: processo.categoria }, ...atuais.filter((item) => item.id !== processo.id)];
+  const proximos = [{ id: processo.id, rota: processo.formulario_rota, categoria: processo.categoria, ...(processoPaiId ? { processoPaiId } : {}) }, ...atuais.filter((item) => item.id !== processo.id)];
   safeSetItem(CHAVE_PROCESSOS_LOCAIS, JSON.stringify(proximos));
 };
 
@@ -85,7 +85,7 @@ const mensagemErro = async (resposta: Response) => {
     ? corpo.error : `Falha na comunicação com o servidor (${resposta.status}).`;
 };
 
-const criarProcesso = async (rota: string, chaveCriacao: string, token: string): Promise<Processo & { token: string }> => {
+const criarProcesso = async (rota: string, chaveCriacao: string, token: string, processoPaiId?: string | null): Promise<Processo & { token: string }> => {
   const categoria = rota.startsWith('/projetos/') ? 'projeto' : 'apoio';
   const resposta = await fetch('/api/processos', {
     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
@@ -94,7 +94,7 @@ const criarProcesso = async (rota: string, chaveCriacao: string, token: string):
       formularioId: rota.split('/').pop(),
       formularioNome: nomesFormularios[rota.split('/').pop() || ''] || 'Formulário',
       formularioRota: rota,
-      chaveCriacao, token,
+      chaveCriacao, token, processoPaiId: processoPaiId || null,
     }),
   });
   if (!resposta.ok) throw new Error(await mensagemErro(resposta));
@@ -137,13 +137,13 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
       }
       let requisicao = requisicoesCriacao.get(inicio);
       if (!requisicao) {
-        requisicao = criarProcesso(location.pathname, inicio, tokenCriacao);
+        requisicao = criarProcesso(location.pathname, inicio, tokenCriacao, parametros.get('processo_pai'));
         requisicoesCriacao.set(inicio, requisicao);
         void requisicao.finally(() => requisicoesCriacao.delete(inicio)).catch(() => undefined);
       }
       requisicao.then((novo) => {
         if (!ativo) return;
-        registrarProcessoLocal(novo);
+        registrarProcessoLocal(novo, parametros.get('processo_pai'));
         safeRemoveItem(`@Fealq:inicio:${inicio}`);
         const busca = new URLSearchParams(location.search);
         busca.delete('inicio');
@@ -358,10 +358,10 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa }: {
 
 export const useProcesso = () => useContext(ProcessoContext);
 
-export function useProcessoState<T>(campo: string, inicial: T | (() => T)): [T, Dispatch<SetStateAction<T>>] {
+export function useProcessoState<T>(campo: string, inicial: T | (() => T), aliases: string[] = []): [T, Dispatch<SetStateAction<T>>] {
   const processo = useProcesso();
   const [valor, setValor] = useState<T>(() => {
-    const salvo = processo?.dados.campos[campo];
+    const salvo = processo?.dados.campos[campo] ?? aliases.map((alias) => processo?.dados.campos[alias]).find((item) => item !== undefined);
     return salvo !== undefined ? salvo as T : typeof inicial === 'function' ? (inicial as () => T)() : inicial;
   });
   useEffect(() => { processo?.atualizarCampo(campo, valor); }, [campo, valor, processo?.atualizarCampo]);

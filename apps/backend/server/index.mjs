@@ -451,7 +451,7 @@ app.get('/api/processos', exigirSessao, asyncRoute(async (request, response) => 
   filtros.push('p.ativo = TRUE');
   const where = filtros.length ? `WHERE ${filtros.join(' AND ')}` : '';
   const { rows } = await pool.query(`
-    SELECT p.id, p.protocolo, p.categoria, p.formulario_id, p.formulario_nome, p.formulario_rota,
+    SELECT p.id, p.protocolo, p.categoria, p.formulario_id, p.formulario_nome, p.formulario_rota, p.processo_pai_id,
       p.titulo, p.solicitante_nome, p.solicitante_email, p.status,
       p.criado_em, p.atualizado_em,
       COUNT(d.id) FILTER (WHERE d.obrigatorio)::int AS documentos_total,
@@ -495,6 +495,7 @@ app.post('/api/processos', validarOrigem, asyncRoute(async (request, response) =
     || !/^[a-z0-9-]{1,120}$/.test(body.formularioId)
     || typeof body.formularioNome !== 'string' || !body.formularioNome.trim() || body.formularioNome.length > 255
     || typeof body.formularioRota !== 'string'
+    || (body.processoPaiId !== undefined && body.processoPaiId !== null && !uuidValido(body.processoPaiId))
     || body.formularioRota.length > 255
     || !body.formularioRota.startsWith(body.categoria === 'projeto' ? '/projetos/form-' : '/programas-de-apoio/apoio-')
     || !/^\/[a-z0-9/-]+$/.test(body.formularioRota)
@@ -508,17 +509,18 @@ app.post('/api/processos', validarOrigem, asyncRoute(async (request, response) =
     return response.status(403).json({ error: 'Seu perfil não pode iniciar processos nesta área.' });
   }
   const processoId = randomUUID();
+  const processoPaiId = body.processoPaiId || null;
   const token = body.token;
   const protocolo = `${body.categoria === 'apoio' ? 'APO' : 'PRJ'}-${new Date().getFullYear()}/${processoId.slice(0, 8).toUpperCase()}`;
   const { rows } = await pool.query(`
-    INSERT INTO processos (id, protocolo, categoria, formulario_id, formulario_nome, formulario_rota, acesso_hash, chave_criacao)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    INSERT INTO processos (id, protocolo, categoria, formulario_id, formulario_nome, formulario_rota, processo_pai_id, acesso_hash, chave_criacao)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     ON CONFLICT (chave_criacao) DO NOTHING
     RETURNING id, protocolo, categoria, formulario_id, formulario_nome, formulario_rota, status, dados_json, versao, criado_em, atualizado_em
-  `, [processoId, protocolo, body.categoria, body.formularioId, body.formularioNome.trim(), body.formularioRota, hashToken(token), body.chaveCriacao]);
+  `, [processoId, protocolo, body.categoria, body.formularioId, body.formularioNome.trim(), body.formularioRota, processoPaiId, hashToken(token), body.chaveCriacao]);
   if (rows[0]) return response.status(201).json({ ...rows[0], token });
   const { rows: repetidos } = await pool.query(`
-    SELECT id, protocolo, categoria, formulario_id, formulario_nome, formulario_rota, status,
+    SELECT id, protocolo, categoria, formulario_id, formulario_nome, formulario_rota, processo_pai_id, status,
       dados_json, versao, criado_em, atualizado_em, acesso_hash FROM processos WHERE chave_criacao = $1
   `, [body.chaveCriacao]);
   const existente = repetidos[0];
@@ -551,7 +553,7 @@ const autorizarProcesso = async (request, response, next) => {
 
 app.get('/api/processos/:id', asyncRoute(autorizarProcesso), asyncRoute(async (request, response) => {
   const { rows } = await pool.query(`
-    SELECT id, protocolo, categoria, formulario_id, formulario_nome, formulario_rota,
+    SELECT id, protocolo, categoria, formulario_id, formulario_nome, formulario_rota, processo_pai_id,
       titulo, solicitante_nome, solicitante_email, status, ativo, dados_json, versao, criado_em, atualizado_em, enviado_em
     FROM processos WHERE id = $1
   `, [request.params.id]);
