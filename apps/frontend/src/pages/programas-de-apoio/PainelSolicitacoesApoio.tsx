@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { Footer } from '../../components/Footer';
-import { processosApoioFallback } from '../../data/processosFallback';
+import { DocumentoDoProcesso, formatarDocumentosDoProcesso } from '../../utils/processoDocumentos';
 
 
 interface ApoioRequest {
@@ -20,28 +20,29 @@ export const PainelSolicitacoesApoio = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todos' | 'pendente' | 'rascunho' | 'finalizada'>('todos');
 
-  const [pendingRequests, setPendingRequests] = useState(processosApoioFallback);
+  const [pendingRequests, setPendingRequests] = useState<ApoioRequest[]>([]);
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
     let ativo = true;
     fetch('/api/processos?categoria=apoio', { credentials: 'same-origin' })
       .then(async (response) => {
         if (!response.ok) throw new Error('API indisponível');
-        return response.json() as Promise<Array<{ protocolo: string; formulario_nome: string; solicitante_nome: string; status: string; documentos_anexados: number; documentos_total: number }>>;
+        return response.json() as Promise<Array<{ id: string; protocolo: string; formulario_nome: string; formulario_rota: string; solicitante_nome: string; status: string; documentos_anexados: number; documentos_total: number; documentos: DocumentoDoProcesso[] }>>;
       })
       .then((processos) => {
-        if (!ativo || processos.length === 0) return;
+        if (!ativo) return;
         setPendingRequests(processos.map((processo) => ({
           id: processo.protocolo,
           formName: processo.formulario_nome,
           user: processo.solicitante_nome,
-          kit: `${processo.documentos_anexados}/${processo.documentos_total} Anexados`,
-          status: processo.status === 'finalizada' ? 'finalizada' : processo.status === 'rascunho' ? 'rascunho' : 'pendente',
-          link: '/programas-de-apoio',
-          docs: [],
+          kit: `${processo.documentos_anexados}/${processo.documentos_total} Concluídos`,
+          status: ['finalizada', 'enviado', 'aprovado'].includes(processo.status) ? 'finalizada' : processo.status === 'rascunho' ? 'rascunho' : 'pendente',
+          link: processo.formulario_rota ? `${processo.formulario_rota}?processo=${processo.id}` : '/programas-de-apoio',
+          docs: formatarDocumentosDoProcesso(processo.documentos),
         })));
       })
-      .catch(() => undefined);
+      .catch((falha: unknown) => { if (ativo) setErro(falha instanceof Error ? falha.message : 'Não foi possível carregar as solicitações.'); });
     return () => { ativo = false; };
   }, []);
 
@@ -57,6 +58,7 @@ export const PainelSolicitacoesApoio = () => {
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       <main className="flex-1 p-xl overflow-auto flex flex-col gap-xl">
+        {erro && <p role="alert" className="rounded border border-error bg-red-50 p-sm text-sm text-error">{erro}</p>}
         {/* Header with Title and Action */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -88,7 +90,7 @@ export const PainelSolicitacoesApoio = () => {
         {/* Counter Cards */}
         <section>
           <h3 className="font-bold text-primary mb-md text-sm">
-            Status das Minhas Solicitações (No Último Mês)
+            Status das Solicitações
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
             <div
@@ -102,7 +104,7 @@ export const PainelSolicitacoesApoio = () => {
                 <p className="text-[10px] text-on-surface-variant font-bold uppercase">
                   Iniciadas / Rascunho
                 </p>
-                <p className="text-2xl font-bold text-[#20B293]">8</p>
+                <p className="text-2xl font-bold text-[#20B293]">{pendingRequests.filter((item) => item.status === 'rascunho').length}</p>
               </div>
               <div className="w-10 h-10 rounded bg-[#20B293]/10 flex items-center justify-center text-[#20B293]">
                 <span className="material-symbols-outlined">edit_document</span>
@@ -120,7 +122,7 @@ export const PainelSolicitacoesApoio = () => {
                 <p className="text-[10px] text-on-surface-variant font-bold uppercase">
                   Pendentes
                 </p>
-                <p className="text-2xl font-bold text-[#F17C58]">7</p>
+                <p className="text-2xl font-bold text-[#F17C58]">{pendingRequests.filter((item) => item.status === 'pendente').length}</p>
               </div>
               <div className="w-10 h-10 rounded bg-[#F17C58]/10 flex items-center justify-center text-[#F17C58]">
                 <span className="material-symbols-outlined">pending_actions</span>
@@ -136,9 +138,9 @@ export const PainelSolicitacoesApoio = () => {
             >
               <div>
                 <p className="text-[10px] text-on-surface-variant font-bold uppercase">
-                  Finalizadas
+                  Enviadas / Finalizadas
                 </p>
-                <p className="text-2xl font-bold text-primary">12</p>
+                <p className="text-2xl font-bold text-primary">{pendingRequests.filter((item) => item.status === 'finalizada').length}</p>
               </div>
               <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary">
                 <span className="material-symbols-outlined">check_circle</span>

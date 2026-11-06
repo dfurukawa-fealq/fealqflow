@@ -5,9 +5,10 @@ import { useUser } from '../contexts/UserContext';
 export const Sidebar = () => {
   const location = useLocation();
   const path = location.pathname;
-  const { usuario, logout } = useUser();
+  const { usuario, logout, isAdmin, podeAcessar } = useUser();
   const navigate = useNavigate();
-  const isAdmin = usuario?.role === 'admin';
+  const podeProjetos = podeAcessar('projeto');
+  const podeApoio = podeAcessar('apoio');
 
   // Active checks
   const isProjetosPainelActive =
@@ -48,7 +49,7 @@ export const Sidebar = () => {
       {/* Nav Sections */}
       <div className="flex-1 flex flex-col overflow-y-auto py-2">
         {/* SECTION 1: PROJETOS */}
-        <div className="mb-4">
+        <div className={clsx('mb-4', !podeProjetos && 'hidden')}>
           <div className="px-xl py-1 text-[11px] font-bold uppercase tracking-wider text-white/50">
             Projetos
           </div>
@@ -57,7 +58,7 @@ export const Sidebar = () => {
             to="/projetos/painel"
             className={clsx(
               'flex items-center space-x-3 px-xl py-2.5 transition-colors text-sm',
-              !isAdmin && 'hidden',
+              (!usuario || !podeProjetos) && 'hidden',
               isProjetosPainelActive
                 ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
                 : 'text-surface-variant/80 hover:bg-white/5 hover:text-white'
@@ -96,7 +97,7 @@ export const Sidebar = () => {
         </div>
 
         {/* SECTION 2: PROGRAMAS DE APOIO */}
-        <div className="mb-4">
+        <div className={clsx('mb-4', !podeApoio && 'hidden')}>
           <div className="px-xl py-1 text-[11px] font-bold uppercase tracking-wider text-white/50">
             Programas de Apoio
           </div>
@@ -105,7 +106,7 @@ export const Sidebar = () => {
             to="/programas-de-apoio/painel"
             className={clsx(
               'flex items-center space-x-3 px-xl py-2.5 transition-colors text-sm',
-              !isAdmin && 'hidden',
+              (!usuario || !podeApoio) && 'hidden',
               isApoioPainelActive
                 ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
                 : 'text-surface-variant/80 hover:bg-white/5 hover:text-white'
@@ -180,7 +181,7 @@ export const Sidebar = () => {
         </div>
 
         {/* SECTION 4: HISTÓRICO & PENDÊNCIAS */}
-        <div className={clsx('mb-2', !isAdmin && 'hidden')}>
+        <div className={clsx('mb-2', !usuario && 'hidden')}>
           <div className="px-xl py-1 text-[11px] font-bold uppercase tracking-wider text-white/50">
             Histórico & Pendências
           </div>
@@ -209,7 +210,7 @@ export const Sidebar = () => {
 
       {/* Footer Support Link */}
       <div className="mt-auto pb-xl border-t border-white/10 pt-2">
-        {isAdmin && <div className="px-xl py-2">
+        {usuario && <div className="px-xl py-2">
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
             <span className="material-symbols-outlined text-lg text-secondary-fixed">account_circle</span>
             <span className="truncate">{usuario.username}</span>
@@ -220,7 +221,7 @@ export const Sidebar = () => {
           </button>
         </div>}
         <Link
-          className={clsx('flex items-center space-x-3 px-xl py-2.5 text-surface-variant/70 hover:text-white hover:bg-white/5 transition-colors text-sm', isAdmin && 'hidden')}
+          className={clsx('flex items-center space-x-3 px-xl py-2.5 text-surface-variant/70 hover:text-white hover:bg-white/5 transition-colors text-sm', usuario && 'hidden')}
           to="/admin/login"
         >
           <span className="material-symbols-outlined text-lg">help</span>

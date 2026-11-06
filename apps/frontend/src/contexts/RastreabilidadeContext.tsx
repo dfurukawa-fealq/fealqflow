@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { safeGetItem, safeSetItem, safeJsonParse } from '../utils/safeStorage';
 import { sanitizeProtocolId } from '../utils/security';
 
@@ -42,15 +42,28 @@ interface RastreabilidadeContextData {
 const RastreabilidadeContext = createContext<RastreabilidadeContextData>({} as RastreabilidadeContextData);
 
 const STORAGE_PREFIX = '@Fealq:rastreabilidade:';
+const criarSessaoPadrao = (protocolo: string, sessao: string, origem: string): SessaoRastreabilidade => ({
+  sessionId: sessao,
+  protocolId: protocolo,
+  formOrigem: origem,
+  status: 'em_preenchimento',
+  formulariosVinculados: {
+    'CONV-PL-01': {
+      formCodigo: 'CONV-PL-01', formNome: 'Plano de Aplicação de Recursos',
+      urlDestino: `/projetos/form-plano-recursos?protocolo=${protocolo}`, status: 'pendente',
+    },
+  },
+});
 
 export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) => {
   const [searchParams] = useSearchParams();
-  const location = useLocation();
 
   // Lê parâmetros vindos da URL caso um formulário filho tenha sido aberto a partir de um pai
-  const rawParamProtocolo = searchParams.get('protocolo');
+  const processoUrl = searchParams.get('processo');
+  const rawParamProtocolo = searchParams.get('protocolo')
+    || (processoUrl && /^[0-9a-f-]{36}$/i.test(processoUrl) ? `FEALQ-${processoUrl.replaceAll('-', '').slice(0, 20)}` : null);
   const paramProtocolo = rawParamProtocolo ? sanitizeProtocolId(rawParamProtocolo) : null;
-  const paramSessao = searchParams.get('sessao');
+  const paramSessao = searchParams.get('sessao') || (processoUrl ? `sess_${processoUrl.replaceAll('-', '')}` : null);
   const paramOrigem = searchParams.get('origem');
 
   const [protocolId, setProtocolId] = useState<string>(() => {
@@ -76,20 +89,7 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
   const [sessao, setSessao] = useState<SessaoRastreabilidade>(() => {
     const key = `${STORAGE_PREFIX}sessao_${protocolId}`;
     const salvo = safeGetItem(key);
-    const padrao: SessaoRastreabilidade = {
-      sessionId,
-      protocolId,
-      formOrigem: paramOrigem || 'AberturaCursoEvento',
-      status: 'em_preenchimento',
-      formulariosVinculados: {
-        'CONV-PL-01': {
-          formCodigo: 'CONV-PL-01',
-          formNome: 'Plano de Aplicação de Recursos',
-          urlDestino: `/projetos/form-plano-recursos?protocolo=${protocolId}`,
-          status: 'pendente',
-        },
-      },
-    };
+    const padrao = criarSessaoPadrao(protocolId, sessionId, paramOrigem || 'AberturaCursoEvento');
     return safeJsonParse<SessaoRastreabilidade>(salvo, padrao);
   });
 
@@ -98,36 +98,35 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
     if (paramProtocolo && paramProtocolo !== protocolId) {
       setProtocolId(paramProtocolo);
       safeSetItem(`${STORAGE_PREFIX}active_protocol`, paramProtocolo);
+      const sessaoVinculada = paramSessao || sessionId;
+      setSessao(safeJsonParse<SessaoRastreabilidade>(
+        safeGetItem(`${STORAGE_PREFIX}sessao_${paramProtocolo}`),
+        criarSessaoPadrao(paramProtocolo, sessaoVinculada, paramOrigem || 'AberturaCursoEvento'),
+      ));
     }
     if (paramSessao && paramSessao !== sessionId) {
       setSessionId(paramSessao);
       safeSetItem(`${STORAGE_PREFIX}active_session`, paramSessao);
     }
-  }, [paramProtocolo, paramSessao, protocolId, sessionId]);
+  }, [paramProtocolo, paramSessao, paramOrigem, protocolId, sessionId]);
 
-  // Persiste sessão no safeStorage e tenta sincronizar com a API se disponível
+  // Mantém a rastreabilidade local dos formulários vinculados.
   useEffect(() => {
     const key = `${STORAGE_PREFIX}sessao_${protocolId}`;
     safeSetItem(key, JSON.stringify(sessao));
+  }, [sessao, protocolId]);
 
-    // Tentativa não-bloqueante de envio para backend Flask/SQLite
-    if (typeof fetch !== 'undefined') {
-      fetch('/api/sessions/init', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          protocol_id: protocolId,
-          form_origem: sessao.formOrigem,
-          titulo: sessao.tituloProjeto,
-          responsavel_nome: sessao.responsavelNome,
-          responsavel_email: sessao.responsavelEmail,
-        }),
-      }).catch(() => {
-        // Backend offline ou dev mode sem API ativa: opera em modo client-side local resiliente
-      });
-    }
-  }, [sessao, protocolId, sessionId]);
+  useEffect(() => {
+    const chaveSessao = `${STORAGE_PREFIX}sessao_${protocolId}`;
+    const sincronizarOutraAba = (evento: StorageEvent) => {
+      if (evento.key !== chaveSessao || !evento.newValue) return;
+      const sessaoRecebida = safeJsonParse<SessaoRastreabilidade | null>(evento.newValue, null);
+      if (!sessaoRecebida || sessaoRecebida.protocolId !== protocolId || sessaoRecebida.sessionId !== sessionId) return;
+      setSessao((atual) => JSON.stringify(atual) === evento.newValue ? atual : sessaoRecebida);
+    };
+    window.addEventListener('storage', sincronizarOutraAba);
+    return () => window.removeEventListener('storage', sincronizarOutraAba);
+  }, [protocolId, sessionId]);
 
   const gerarNovoProtocolo = (origem: string = 'AberturaCursoEvento') => {
     const ano = new Date().getFullYear();
@@ -159,7 +158,8 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
 
   const gerarUrlVinculada = (path: string, formCodigo: string, formNome: string) => {
     const separator = path.includes('?') ? '&' : '?';
-    const url = `${path}${separator}protocolo=${encodeURIComponent(protocolId)}&sessao=${encodeURIComponent(sessionId)}&origem=${encodeURIComponent(sessao.formOrigem)}&form_codigo=${encodeURIComponent(formCodigo)}`;
+    const processoPai = searchParams.get('processo');
+    const url = `${path}${separator}protocolo=${encodeURIComponent(protocolId)}&sessao=${encodeURIComponent(sessionId)}&origem=${encodeURIComponent(sessao.formOrigem)}&form_codigo=${encodeURIComponent(formCodigo)}${processoPai ? `&processo_pai=${encodeURIComponent(processoPai)}` : ''}`;
     return url;
   };
 
@@ -183,22 +183,6 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
       };
     });
 
-    // Envia evento de rastreabilidade para backend se disponível
-    if (typeof fetch !== 'undefined') {
-      fetch('/api/sessions/track-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          protocol_id: protocolId,
-          form_codigo: formCodigo,
-          form_nome: formNome,
-          url_origem: location.pathname,
-          url_destino: urlDestino,
-          status: 'em_andamento',
-        }),
-      }).catch(() => {});
-    }
   };
 
   const marcarFormularioConcluido = (formCodigo: string, dados?: Record<string, any>) => {
@@ -225,19 +209,6 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
       };
     });
 
-    if (typeof fetch !== 'undefined') {
-      fetch('/api/sessions/track-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          protocol_id: protocolId,
-          form_codigo: formCodigo,
-          status: 'concluido',
-          dados_vinculados: dados || {},
-        }),
-      }).catch(() => {});
-    }
   };
 
   const statusFormulario = (formCodigo: string): 'pendente' | 'em_andamento' | 'concluido' => {

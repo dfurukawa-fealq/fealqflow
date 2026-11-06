@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import React, { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -14,26 +15,26 @@ export const TermoLGPDConfidencialidade = () => {
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
   // Dados do coordenador e projeto (recebidos via query ou autopreenchidos)
-  const [nomeCoordenador, setNomeCoordenador] = useState(
+  const [nomeCoordenador, setNomeCoordenador] = useProcessoState('nomeCoordenador',
     sanitizeInputText(searchParams.get('coordenador')) || ''
   );
-  const [cpf, setCpf] = useState(formatCPF(searchParams.get('cpf') || ''));
-  const [rg, setRg] = useState(formatRG(searchParams.get('rg') || ''));
-  const [departamento, setDepartamento] = useState(
+  const [cpf, setCpf] = useProcessoState('cpf', formatCPF(searchParams.get('cpf') || ''));
+  const [rg, setRg] = useProcessoState('rg', formatRG(searchParams.get('rg') || ''));
+  const [departamento, setDepartamento] = useProcessoState('departamento',
     sanitizeInputText(searchParams.get('departamento')) || ''
   );
-  const [tituloProjeto, setTituloProjeto] = useState(
+  const [tituloProjeto, setTituloProjeto] = useProcessoState('tituloProjeto',
     sanitizeInputText(searchParams.get('projeto')) || ''
   );
-  const [email, setEmail] = useState(sanitizeInputText(searchParams.get('email')) || '');
+  const [email, setEmail] = useProcessoState('email', sanitizeInputText(searchParams.get('email')) || '');
 
   // Confirmação de Leitura
-  const [leuTermo, setLeuTermo] = useState(false);
-  const [confirmado, setConfirmado] = useState(statusFormulario('CERT-LGPD-01') === 'concluido');
-  const [dataCertificacao, setDataCertificacao] = useState<string | null>(
+  const [leuTermo, setLeuTermo] = useProcessoState('leuTermo', false);
+  const [confirmado, setConfirmado] = useProcessoState('confirmado', statusFormulario('CERT-LGPD-01') === 'concluido');
+  const [dataCertificacao, setDataCertificacao] = useProcessoState<string | null>('dataCertificacao',
     statusFormulario('CERT-LGPD-01') === 'concluido' ? new Date().toLocaleDateString('pt-BR') : null
   );
-  const [horaCertificacao, setHoraCertificacao] = useState<string | null>(
+  const [horaCertificacao, setHoraCertificacao] = useProcessoState<string | null>('horaCertificacao',
     statusFormulario('CERT-LGPD-01') === 'concluido' ? new Date().toLocaleTimeString('pt-BR') : null
   );
 
@@ -64,7 +65,9 @@ export const TermoLGPDConfidencialidade = () => {
 
   const rawProtocolo = searchParams.get('protocolo');
   const protocoloUrlParam = rawProtocolo ? sanitizeProtocolId(rawProtocolo) : protocolId;
-  const linkRetorno = getSafeReturnUrl(`/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}`);
+  const rotaRetorno = searchParams.get('retorno') === 'pesquisa' ? '/projetos/form-pesquisa' : '/projetos/form-curso';
+  const processoPai = searchParams.get('processo_pai');
+  const linkRetorno = getSafeReturnUrl(`${rotaRetorno}?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}`);
 
   return (
     <FormPageLayout

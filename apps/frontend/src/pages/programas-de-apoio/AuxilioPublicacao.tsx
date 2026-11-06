@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useState } from 'react';
 import { getPrograma } from '../../data/programasApoio';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -11,29 +12,29 @@ const programa = getPrograma('auxilio-publicacao');
 
 export function AuxilioPublicacao() {
   // Solicitante
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [instituicao, setInstituicao] = useState('ESALQ/USP');
-  const [departamento, setDepartamento] = useState('');
-  const [vinculo, setVinculo] = useState('Docente');
-  const [orientador, setOrientador] = useState('');
-  const [participacao, setParticipacao] = useState('1º Autor');
+  const [nome, setNome] = useProcessoState('nome', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [email, setEmail] = useProcessoState('email', '');
+  const [instituicao, setInstituicao] = useProcessoState('instituicao', 'ESALQ/USP');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
+  const [vinculo, setVinculo] = useProcessoState('vinculo', 'Docente');
+  const [orientador, setOrientador] = useProcessoState('orientador', '');
+  const [participacao, setParticipacao] = useProcessoState('participacao', '1º Autor');
 
   // Artigo e Revista
-  const [tituloArtigo, setTituloArtigo] = useState('');
-  const [resumoArtigo, setResumoArtigo] = useState('');
-  const [revista, setRevista] = useState('');
-  const [issn, setIssn] = useState('');
-  const [impactFactor, setImpactFactor] = useState('');
-  const [citeScore, setCiteScore] = useState('');
-  const [qualis, setQualis] = useState('A1');
+  const [tituloArtigo, setTituloArtigo] = useProcessoState('tituloArtigo', '');
+  const [resumoArtigo, setResumoArtigo] = useProcessoState('resumoArtigo', '');
+  const [revista, setRevista] = useProcessoState('revista', '');
+  const [issn, setIssn] = useProcessoState('issn', '');
+  const [impactFactor, setImpactFactor] = useProcessoState('impactFactor', '');
+  const [citeScore, setCiteScore] = useProcessoState('citeScore', '');
+  const [qualis, setQualis] = useProcessoState('qualis', 'A1');
 
   // Valores e APC
-  const [moeda, setMoeda] = useState('USD ($)');
-  const [valorApc, setValorApc] = useState('');
-  const [valorSolicitado, setValorSolicitado] = useState('');
-  const [outrasFontes, setOutrasFontes] = useState('Não');
+  const [moeda, setMoeda] = useProcessoState('moeda', 'USD ($)');
+  const [valorApc, setValorApc] = useProcessoState('valorApc', '');
+  const [valorSolicitado, setValorSolicitado] = useProcessoState('valorSolicitado', '');
+  const [outrasFontes, setOutrasFontes] = useProcessoState('outrasFontes', 'Não');
 
   const [submetido, setSubmetido] = useState(false);
 

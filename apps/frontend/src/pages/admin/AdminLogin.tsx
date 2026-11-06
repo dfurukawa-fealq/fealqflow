@@ -17,10 +17,10 @@ export const AdminLogin = () => {
   const estado = location.state as EstadoLogin | null;
   const destino = estado?.from?.pathname?.startsWith('/admin/') && estado.from.pathname !== '/admin/login'
     ? estado.from.pathname
-    : '/admin/formularios';
+    : usuario?.perfil === 'prog_apoio' ? '/programas-de-apoio' : usuario?.perfil === 'projeto' ? '/projetos' : '/admin/formularios';
 
   useEffect(() => {
-    if (!carregando && usuario?.role === 'admin') navigate(destino, { replace: true });
+    if (!carregando && usuario) navigate(destino, { replace: true });
   }, [carregando, destino, navigate, usuario]);
 
   const enviar = async (event: FormEvent<HTMLFormElement>) => {
@@ -28,8 +28,9 @@ export const AdminLogin = () => {
     setErro('');
     setEnviando(true);
     try {
-      await login(username, password);
-      navigate(destino, { replace: true });
+      const autenticado = await login(username, password);
+      const destinoPerfil = autenticado.perfil === 'prog_apoio' ? '/programas-de-apoio' : autenticado.perfil === 'projeto' ? '/projetos' : destino;
+      navigate(destinoPerfil, { replace: true });
     } catch (falha) {
       setErro(falha instanceof Error ? falha.message : 'Não foi possível entrar.');
     } finally {
@@ -46,8 +47,8 @@ export const AdminLogin = () => {
             admin_panel_settings
           </span>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Acesso administrativo</h1>
-            <p className="mt-1 text-sm text-slate-600">Entre para gerenciar os cadastros.</p>
+            <h1 className="text-2xl font-bold text-slate-900">Acesso à área FEALQ</h1>
+            <p className="mt-1 text-sm text-slate-600">Entre para acessar os processos do seu perfil.</p>
           </div>
         </div>
 

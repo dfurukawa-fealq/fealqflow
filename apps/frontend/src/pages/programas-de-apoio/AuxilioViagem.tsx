@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useState } from 'react';
 import { getPrograma } from '../../data/programasApoio';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -11,31 +12,31 @@ const programa = getPrograma('auxilio-viagem');
 
 export function AuxilioViagem() {
   // Viajante
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [instituicao, setInstituicao] = useState('ESALQ/USP');
-  const [departamento, setDepartamento] = useState('');
-  const [vinculo, setVinculo] = useState('Mestrado');
-  const [orientador, setOrientador] = useState('');
+  const [nome, setNome] = useProcessoState('nome', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [email, setEmail] = useProcessoState('email', '');
+  const [telefone, setTelefone] = useProcessoState('telefone', '');
+  const [instituicao, setInstituicao] = useProcessoState('instituicao', 'ESALQ/USP');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
+  const [vinculo, setVinculo] = useProcessoState('vinculo', 'Mestrado');
+  const [orientador, setOrientador] = useProcessoState('orientador', '');
 
   // Itinerário
-  const [categoriaViagem, setCategoriaViagem] = useState('Nacional');
-  const [paisDestino, setPaisDestino] = useState('Brasil');
-  const [cidadeDestino, setCidadeDestino] = useState('');
-  const [localInstituicao, setLocalInstituicao] = useState('');
-  const [dataIda, setDataIda] = useState('');
-  const [dataRetorno, setDataRetorno] = useState('');
+  const [categoriaViagem, setCategoriaViagem] = useProcessoState('categoriaViagem', 'Nacional');
+  const [paisDestino, setPaisDestino] = useProcessoState('paisDestino', 'Brasil');
+  const [cidadeDestino, setCidadeDestino] = useProcessoState('cidadeDestino', '');
+  const [localInstituicao, setLocalInstituicao] = useProcessoState('localInstituicao', '');
+  const [dataIda, setDataIda] = useProcessoState('dataIda', '');
+  const [dataRetorno, setDataRetorno] = useProcessoState('dataRetorno', '');
 
   // Finalidade
-  const [finalidade, setFinalidade] = useState('Pesquisa de Campo');
-  const [justificativa, setJustificativa] = useState('');
+  const [finalidade, setFinalidade] = useProcessoState('finalidade', 'Pesquisa de Campo');
+  const [justificativa, setJustificativa] = useProcessoState('justificativa', '');
 
   // Custos
-  const [tipoAuxilio, setTipoAuxilio] = useState('Misto (Passagem + Hospedagem)');
-  const [valorSolicitado, setValorSolicitado] = useState('');
-  const [outrasFontes, setOutrasFontes] = useState('Não');
+  const [tipoAuxilio, setTipoAuxilio] = useProcessoState('tipoAuxilio', 'Misto (Passagem + Hospedagem)');
+  const [valorSolicitado, setValorSolicitado] = useProcessoState('valorSolicitado', '');
+  const [outrasFontes, setOutrasFontes] = useProcessoState('outrasFontes', 'Não');
 
   const [submetido, setSubmetido] = useState(false);
 

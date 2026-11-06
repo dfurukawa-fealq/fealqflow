@@ -1,7 +1,10 @@
-import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { TopBar } from '../TopBar';
 import { EnvioContext } from './EnvioContext';
+import { FormActionButton } from './FormActionButton';
+import { useProcesso } from '../../contexts/ProcessoContext';
+import { armazenamentoPersistenteDisponivel } from '../../utils/safeStorage';
 
 export interface FormPageLayoutProps {
   /** Trilha completa, incluindo a página atual: ['Área do Coordenador', 'Auxílio Viagem'] */
@@ -50,6 +53,11 @@ export const FormPageLayout = ({
   children,
 }: FormPageLayoutProps) => {
   const navigate = useNavigate();
+  const processo = useProcesso();
+  const mainRef = useRef<HTMLElement>(null);
+  const ocupadoRef = useRef(false);
+  const [executando, setExecutando] = useState(false);
+  const [erroAcao, setErroAcao] = useState('');
   const [sidebarMobileAberta, setSidebarMobileAberta] = useState(false);
 
   // null = a página não tem Kit Documental; o envio segue bloqueado se podeEnviar não for informado.
@@ -59,7 +67,59 @@ export const FormPageLayout = ({
     [],
   );
   const envio = useMemo(() => ({ registrarPendencias }), [registrarPendencias]);
-  const liberado = podeEnviar !== undefined ? podeEnviar : pendencias === 0;
+  const liberado = (podeEnviar ?? true) && (pendencias === null || pendencias === 0)
+    && Boolean(processo || aoSubmeter) && !executando;
+
+  useEffect(() => {
+    // Os campos do formulário são controlados pelo React/ProcessoContext.
+    // Não sincronizar novamente pelo DOM evita duas fontes de verdade, perda de foco e cursor instável.
+    return;
+    /*
+    const raiz = mainRef.current;
+    if (!raiz || !processo) return;
+    const controles = () => [...raiz.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea')]
+      .filter((elemento) => !['file', 'hidden', 'button', 'submit'].includes(elemento.type));
+    const chave = (elemento: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) => {
+      const indice = controles().indexOf(elemento);
+      return indice < 0 ? '' : `dom:${indice}:${elemento.name || elemento.id || elemento.tagName}`;
+    };
+    for (const elemento of controles()) {
+      const salvo = processo.dados.campos[chave(elemento)];
+      if (typeof salvo === 'string') elemento.value = salvo;
+      else if (typeof salvo === 'boolean' && elemento instanceof HTMLInputElement) elemento.checked = salvo;
+    }
+    const capturar = (evento: Event) => {
+      const elemento = evento.target;
+      if (!(elemento instanceof HTMLInputElement || elemento instanceof HTMLSelectElement || elemento instanceof HTMLTextAreaElement)) return;
+      if (['file', 'hidden', 'button', 'submit'].includes(elemento.type)) return;
+      const nome = chave(elemento);
+      if (nome) processo.atualizarCampo(nome, elemento instanceof HTMLInputElement && ['checkbox', 'radio'].includes(elemento.type) ? elemento.checked : elemento.value);
+    };
+    raiz.addEventListener('input', capturar, true);
+    raiz.addEventListener('change', capturar, true);
+    return () => { raiz.removeEventListener('input', capturar, true); raiz.removeEventListener('change', capturar, true); };
+  // O provider monta o formulário após carregar o processo; a hidratação ocorre uma vez por UUID.
+  }, [processo?.processo.id]);
+    */
+  }, []);
+
+  const executar = async (acao: () => Promise<void>) => {
+    if (ocupadoRef.current) return;
+    ocupadoRef.current = true;
+    setExecutando(true);
+    setErroAcao('');
+    try { await acao(); }
+    catch (falha) { setErroAcao(falha instanceof Error ? falha.message : 'Não foi possível concluir a operação.'); }
+    finally { ocupadoRef.current = false; setExecutando(false); }
+  };
+
+  const validarCampos = () => {
+    const campos = mainRef.current?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input:required, select:required, textarea:required');
+    for (const campo of campos || []) {
+      if (!campo.reportValidity()) { campo.focus(); return false; }
+    }
+    return true;
+  };
 
   useEffect(() => {
     if (!sidebarMobileAberta) return;
@@ -72,19 +132,21 @@ export const FormPageLayout = ({
 
   return (
     <EnvioContext.Provider value={envio}>
-      <div className="flex-1 flex flex-col min-h-screen bg-background print:bg-white print:text-black">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-background print:bg-white print:text-black">
         <div className="print:hidden">
           <TopBar />
         </div>
 
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-sm sm:px-md lg:px-xl py-md lg:py-lg pb-[190px] lg:pb-[80px] print:pb-0 print:px-0">
+        <main ref={mainRef} className="mx-auto w-full min-w-0 max-w-[1200px] flex-1 px-sm py-md pb-[190px] sm:px-md lg:px-xl lg:py-lg lg:pb-[80px] print:px-0 print:pb-0">
           <div className="print:hidden">
             {alerta}
           </div>
+          {(erroAcao || processo?.erro) && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAcao || processo?.erro}</p>}
+          {processo && <p className="mb-md text-xs text-on-surface-variant">Processo {processo.processo.protocolo} · {processo.salvando ? 'Salvando rascunho...' : armazenamentoPersistenteDisponivel ? 'Rascunho disponível para retomada neste navegador' : 'O navegador bloqueia o armazenamento local; a retomada após fechá-lo pode não funcionar.'}</p>}
 
           <div className="mb-lg border-b border-outline-variant pb-sm">
             <div>
-              <div className="flex items-center gap-xs text-on-surface-variant text-[12px] mb-xs print:hidden">
+              <div className="mb-xs flex min-w-0 items-center gap-xs overflow-x-auto whitespace-nowrap text-[12px] text-on-surface-variant print:hidden">
                 <Link to="/" className="flex items-center text-on-surface-variant hover:text-primary transition-colors">
                   <span className="material-symbols-outlined text-[14px]">
                     home
@@ -143,8 +205,7 @@ export const FormPageLayout = ({
               className={`lg:hidden w-full mb-md min-h-[44px] px-md py-sm rounded-lg border flex items-center justify-between font-semibold text-[13px] ${pendencias === 0 ? 'border-secondary/50 bg-secondary-fixed/30 text-secondary' : 'border-amber-300 bg-amber-50 text-amber-900'}`}
               aria-expanded={sidebarMobileAberta}
             >
-              <span className="flex items-center gap-xs">
-                <span className="material-symbols-outlined text-[20px]">attach_file</span>
+              <span className="flex min-w-0 items-center gap-xs">
                 <span className="flex items-center gap-xs">
                   <span className="material-symbols-outlined text-[20px]">attach_file</span>
                   Kit Documental e pendências
@@ -159,9 +220,9 @@ export const FormPageLayout = ({
             </button>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start lg:min-h-0 print:block">
+          <div className="grid min-w-0 grid-cols-1 items-start gap-lg lg:min-h-0 lg:grid-cols-12 print:block">
             <div
-              className={`flex flex-col gap-lg lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 print:col-span-12 print:block ${
+              className={`flex min-w-0 flex-col gap-lg lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 print:col-span-12 print:block ${
                 sidebar ? 'lg:col-span-8' : 'lg:col-span-12'
               }`}
             >
@@ -188,12 +249,12 @@ export const FormPageLayout = ({
           </div>
         </main>
 
-        <footer className="fixed bottom-0 left-0 lg:left-sidebar-width right-0 bg-surface-container-lowest border-t border-outline-variant p-sm sm:p-md px-sm sm:px-xl flex flex-col gap-sm z-30 overflow-x-hidden print:hidden">
+        <footer className="fixed inset-x-0 bottom-0 z-30 flex min-w-0 flex-col gap-xs border-t border-outline-variant bg-surface-container-lowest px-sm py-xs sm:px-md lg:left-sidebar-width lg:px-xl print:hidden">
           {sidebar && (
             <button
               type="button"
               onClick={() => setSidebarMobileAberta((aberta) => !aberta)}
-              className={`lg:hidden w-full min-h-[36px] px-sm rounded border flex items-center justify-center gap-xs text-[11px] font-bold ${pendencias === 0 ? 'border-secondary/50 bg-secondary-fixed/30 text-secondary' : 'border-amber-300 bg-amber-50 text-amber-900'}`}
+              className={`lg:hidden w-full min-h-11 px-sm rounded border flex items-center justify-center gap-xs text-[11px] font-bold ${pendencias === 0 ? 'border-secondary/50 bg-secondary-fixed/30 text-secondary' : 'border-amber-300 bg-amber-50 text-amber-900'}`}
               aria-expanded={sidebarMobileAberta}
               title={pendencias === 0 ? 'Kit completo' : 'Abrir Kit Documental'}
             >
@@ -203,53 +264,27 @@ export const FormPageLayout = ({
             </button>
           )}
 
-          <div className="grid grid-cols-4 gap-xs items-center min-w-0 w-full">
-          <div className="flex items-center gap-md min-w-0 overflow-hidden">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-full px-0 h-[36px] rounded border border-transparent text-on-surface text-[10px] sm:text-[13px] hover:bg-surface-container-low transition-colors whitespace-nowrap"
-              title="Cancelar"
-            >
-              <span className="material-symbols-outlined text-[17px] sm:hidden">close</span>
-              <span className="hidden sm:inline">Cancelar</span>
-            </button>
-            {footerCenter && (
-              <div className="flex-1 px-md flex justify-end">
-                {footerCenter}
-              </div>
-            )}
-          </div>
-          <div className="col-span-3 min-w-0 overflow-hidden grid grid-cols-3 items-stretch gap-xs [&>button]:min-w-0 [&>button]:w-full [&>div]:min-w-0 [&>div]:max-w-full [&>div]:overflow-hidden [&>div]:w-full [&_button]:min-w-0 [&_button]:max-w-full [&_button]:w-full [&_button]:overflow-hidden">
-            {botoesAcoes}
-            {mostrarRascunho && (
-              <button className="px-0 sm:px-lg h-[36px] rounded border border-outline-variant text-on-surface-variant text-[13px] hover:bg-surface-container-low transition-colors" title="Salvar Rascunho">
-                <span className="material-symbols-outlined text-[17px] sm:hidden">save</span>
-                <span className="hidden sm:inline">Salvar Rascunho</span>
-              </button>
-            )}
-            <button
-              type="button"
-              disabled={!liberado}
-              onClick={aoSubmeter}
-              title={
-                liberado
-                  ? undefined
-                  : pendencias === null
-                    ? 'Preencha os campos obrigatórios para liberar o envio.'
-                    : `Faltam ${pendencias} documento(s) obrigatório(s) no Kit de Documentos.`
-              }
-              className={`px-lg h-[36px] rounded text-[13px] font-medium flex items-center gap-xs transition-colors ${
-                liberado
-                  ? 'bg-secondary text-on-secondary hover:opacity-90'
-                  : 'bg-surface-variant text-on-surface-variant cursor-not-allowed'
-              }`}
-            >
-              <span className="hidden sm:inline">{acaoPrincipal}</span>
-              <span className="material-symbols-outlined text-[18px]">
-                {acaoIcone}
-              </span>
-            </button>
-          </div>
+          {footerCenter && <div className="flex min-w-0 justify-center lg:hidden">{footerCenter}</div>}
+          <div className="flex min-w-0 w-full flex-wrap items-center justify-between gap-xs">
+            <FormActionButton texto="Cancelar" icone="close" type="button" disabled={executando} onClick={() => void executar(async () => { if (processo) await processo.salvar(); navigate(-1); })} className="border-transparent text-on-surface" />
+            {footerCenter && <div className="hidden min-w-0 lg:flex lg:flex-1 lg:justify-center">{footerCenter}</div>}
+            <div className="flex min-w-0 flex-wrap items-center justify-end gap-xs lg:flex-1">
+              {botoesAcoes}
+              {processo && <FormActionButton texto="Reiniciar" icone="restart_alt" type="button" disabled={executando} onClick={() => {
+                if (window.confirm('Iniciar uma nova tentativa? O processo atual será preservado.')) void executar(async () => { await processo.salvar(); await processo.novaTentativa(); });
+              }} />}
+              {mostrarRascunho && <FormActionButton texto="Salvar Rascunho" icone="save" type="button" disabled={!processo || executando} onClick={() => { if (processo) void executar(processo.salvar); }} />}
+              <FormActionButton
+                texto={acaoPrincipal}
+                icone={acaoIcone}
+                destaque={liberado}
+                type="button"
+                disabled={!liberado}
+                onClick={() => { if (validarCampos()) void executar(async () => { if (processo) await processo.enviar(); aoSubmeter?.(); }); }}
+                title={liberado ? acaoPrincipal : pendencias === null ? 'Preencha os campos obrigatórios para liberar o envio.' : `Faltam ${pendencias} documento(s) obrigatório(s) no Kit de Documentos.`}
+                className={!liberado ? 'border-transparent bg-surface-variant text-on-surface-variant cursor-not-allowed' : ''}
+              />
+            </div>
           </div>
         </footer>
       </div>

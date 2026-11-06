@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { Footer } from '../components/Footer';
-import { processosHistoricoFallback } from '../data/processosFallback';
 
 
 interface HistoricoItem {
@@ -12,27 +11,28 @@ interface HistoricoItem {
   title: string;
   user: string;
   date: string;
-  status: 'rascunho' | 'pendente' | 'analise' | 'aprovado';
+  status: 'rascunho' | 'pendente' | 'analise' | 'aprovado' | 'enviado';
   kit: string;
   link: string;
 }
 
 export const HistoricoPendencias = () => {
   const [categoryFilter, setCategoryFilter] = useState<'todos' | 'projeto' | 'apoio'>('todos');
-  const [statusFilter, setStatusFilter] = useState<'todos' | 'rascunho' | 'pendente' | 'analise' | 'aprovado'>('todos');
+  const [statusFilter, setStatusFilter] = useState<'todos' | 'rascunho' | 'pendente' | 'analise' | 'aprovado' | 'enviado'>('todos');
   const [search, setSearch] = useState('');
 
-  const [allItems, setAllItems] = useState<HistoricoItem[]>(processosHistoricoFallback as HistoricoItem[]);
+  const [allItems, setAllItems] = useState<HistoricoItem[]>([]);
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
     let ativo = true;
     fetch('/api/processos', { credentials: 'same-origin' })
       .then(async (response) => {
         if (!response.ok) throw new Error('API indisponível');
-        return response.json() as Promise<Array<{ protocolo: string; categoria: 'projeto' | 'apoio'; formulario_nome: string; titulo: string; solicitante_nome: string; status: string; atualizado_em: string; documentos_anexados: number; documentos_total: number }>>;
+        return response.json() as Promise<Array<{ id: string; protocolo: string; categoria: 'projeto' | 'apoio'; formulario_nome: string; formulario_rota: string; titulo: string; solicitante_nome: string; status: string; atualizado_em: string; documentos_anexados: number; documentos_total: number }>>;
       })
       .then((processos) => {
-        if (!ativo || processos.length === 0) return;
+        if (!ativo) return;
         setAllItems(processos.map((processo) => ({
           id: processo.protocolo,
           category: processo.categoria,
@@ -40,12 +40,12 @@ export const HistoricoPendencias = () => {
           title: processo.titulo,
           user: processo.solicitante_nome,
           date: new Date(processo.atualizado_em).toLocaleDateString('pt-BR'),
-          status: (processo.status === 'analise' ? 'analise' : processo.status === 'aprovado' ? 'aprovado' : processo.status === 'rascunho' ? 'rascunho' : 'pendente') as HistoricoItem['status'],
-          kit: `${processo.documentos_anexados}/${processo.documentos_total} Anexados`,
-          link: processo.categoria === 'apoio' ? '/programas-de-apoio' : '/projetos',
+          status: processo.status === 'analise' ? 'analise' : processo.status === 'aprovado' ? 'aprovado' : processo.status === 'enviado' ? 'enviado' : processo.status === 'rascunho' ? 'rascunho' : 'pendente',
+          kit: `${processo.documentos_anexados}/${processo.documentos_total} Concluídos`,
+          link: processo.formulario_rota ? `${processo.formulario_rota}?processo=${processo.id}` : processo.categoria === 'apoio' ? '/programas-de-apoio' : '/projetos',
         })));
       })
-      .catch(() => undefined);
+      .catch((falha: unknown) => { if (ativo) setErro(falha instanceof Error ? falha.message : 'Não foi possível carregar os processos.'); });
     return () => { ativo = false; };
   }, []);
 
@@ -86,12 +86,15 @@ export const HistoricoPendencias = () => {
             Aprovado
           </span>
         );
+      case 'enviado':
+        return <span className="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-800">Enviado</span>;
     }
   };
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       <main className="flex-1 p-xl overflow-auto flex flex-col gap-xl">
+        {erro && <p role="alert" className="rounded border border-error bg-red-50 p-sm text-sm text-error">{erro}</p>}
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -213,6 +216,10 @@ export const HistoricoPendencias = () => {
               )}
             >
               Aprovados
+            </button>
+            <button type="button" onClick={() => setStatusFilter('enviado')}
+              className={clsx('rounded border px-2.5 py-1 font-semibold whitespace-nowrap', statusFilter === 'enviado' ? 'border-blue-500 bg-blue-100 text-blue-800' : 'border-outline-variant text-on-surface-variant')}>
+              Enviados
             </button>
           </div>
 

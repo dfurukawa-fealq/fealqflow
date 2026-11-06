@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { NumericFormat } from 'react-number-format';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
+import { FormActionButton } from '../../components/form/FormActionButton';
 import { FormSection } from '../../components/form/FormSection';
 import { Field, CELULA_TABELA } from '../../components/form/Field';
 import { usePlanoAplicacaoCalculos, formatMoney, ESTRUTURA_DESPESAS } from './PlanoAplicacaoRecursos_Calculos';
@@ -95,7 +96,8 @@ export const PlanoAplicacaoRecursos = () => {
   };
 
   const protocoloUrlParam = searchParams.get('protocolo') || protocolId;
-  const linkRetorno = protocoloUrlParam ? `/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}` : '/projetos/form-curso';
+  const processoPai = searchParams.get('processo_pai');
+  const linkRetorno = protocoloUrlParam ? `/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}` : '/projetos/form-curso';
 
   return (
     <FormPageLayout
@@ -106,21 +108,17 @@ export const PlanoAplicacaoRecursos = () => {
       aoSubmeter={handleSubmeterPlano}
       footerCenter={footerCenter}
       botoesAcoes={
-        <div className="flex items-center gap-xs">
+        <div className="flex flex-wrap items-center gap-xs">
           <Link
             to={linkRetorno}
-            className="px-md h-[36px] rounded border border-outline text-on-surface text-[13px] hover:bg-surface-container-low transition-colors flex items-center gap-xs"
+            aria-label="Voltar ao Protocolo do Evento"
+            title="Voltar ao Protocolo do Evento"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center gap-xs rounded border border-outline text-on-surface text-[13px] hover:bg-surface-container-low transition-colors lg:h-[36px] xl:w-auto xl:max-w-[260px] xl:px-md"
           >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Voltar ao Protocolo do Evento
+            <span className="material-symbols-outlined text-[20px] lg:text-[18px]" aria-hidden="true">arrow_back</span>
+            <span className="hidden truncate xl:inline">Voltar ao Protocolo do Evento</span>
           </Link>
-          <button
-            onClick={() => window.print()}
-            className="px-lg h-[36px] rounded border border-outline text-on-surface text-[13px] hover:bg-surface-container-low transition-colors flex items-center gap-xs"
-          >
-            <span className="material-symbols-outlined text-[18px]">print</span>
-            Gerar PDF
-          </button>
+          <FormActionButton texto="Gerar PDF" icone="print" type="button" onClick={() => window.print()} />
         </div>
       }
     >

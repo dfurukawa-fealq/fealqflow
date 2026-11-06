@@ -1,4 +1,5 @@
-import { ReactNode } from 'react';
+import { ReactNode, useId } from 'react';
+import { useProcessoState } from '../../contexts/ProcessoContext';
 
 export type TipoCampo =
   | 'text'
@@ -81,16 +82,20 @@ export const Field = ({
   onChange,
   children,
 }: FieldProps) => {
-  const id = `${label}-${tipo}`.replace(/\s+/g, '-').toLowerCase();
+  const id = useId();
+  const [valorLocal, setValorLocal] = useProcessoState<string | boolean>(`campo:${label}:${id}`,
+    valor ?? padrao ?? (tipo === 'checkbox' ? false : tipo === 'select' && !placeholder ? opcoes[0] ?? '' : ''));
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     if (onChange) {
       onChange(e.target.value);
+    } else {
+      setValorLocal(e.target.value);
     }
   };
 
   return (
-    <div className={`col-span-12 ${SPAN[span] ?? SPAN[12]}`}>
+    <div className={`col-span-12 min-w-0 ${SPAN[span] ?? SPAN[12]}`}>
       <label className={LABEL} htmlFor={id}>
         {label}
         {obrigatorio && <span className="text-red-500 ml-0.5">*</span>}
@@ -101,9 +106,9 @@ export const Field = ({
           <textarea
             id={id}
             disabled={disabled}
+            required={obrigatorio}
             placeholder={placeholder}
-            value={onChange ? valor ?? '' : undefined}
-            defaultValue={!onChange ? valor : undefined}
+            value={onChange ? valor ?? '' : String(valorLocal)}
             onChange={handleInputChange}
             className={`${CONTROLE} h-auto min-h-[80px] p-sm resize-y`}
           />
@@ -111,8 +116,8 @@ export const Field = ({
           <select
             id={id}
             disabled={disabled}
-            value={onChange ? valor ?? padrao : undefined}
-            defaultValue={!onChange ? padrao : undefined}
+            required={obrigatorio}
+            value={onChange ? valor ?? padrao : String(valorLocal)}
             onChange={handleInputChange}
             className={CONTROLE}
           >
@@ -132,9 +137,9 @@ export const Field = ({
                   type="radio"
                   name={id}
                   value={o}
-                  checked={onChange ? valor === o : undefined}
-                  defaultChecked={!onChange ? o === padrao : undefined}
+                  checked={onChange ? valor === o : valorLocal === o}
                   disabled={disabled}
+                  required={obrigatorio}
                   onChange={handleInputChange}
                   className="text-primary-container focus:ring-primary-container border-outline-variant"
                 />
@@ -148,8 +153,9 @@ export const Field = ({
               id={id}
               type="checkbox"
               disabled={disabled}
-              checked={onChange ? Boolean(valor) : undefined}
-              onChange={(e) => onChange && onChange(e.target.checked)}
+              required={obrigatorio}
+              checked={onChange ? Boolean(valor) : Boolean(valorLocal)}
+              onChange={(e) => onChange ? onChange(e.target.checked) : setValorLocal(e.target.checked)}
               className="rounded border-outline-variant text-secondary focus:ring-secondary w-4 h-4 cursor-pointer"
             />
             <span className="text-[13px] text-on-surface-variant">
@@ -165,9 +171,9 @@ export const Field = ({
               id={id}
               type={tipo}
               disabled={disabled}
+              required={obrigatorio}
               placeholder={placeholder}
-              value={onChange ? valor ?? '' : undefined}
-              defaultValue={!onChange ? valor : undefined}
+              value={onChange ? valor ?? '' : String(valorLocal)}
               onChange={handleInputChange}
               className={`${CONTROLE} rounded-l-none`}
             />
@@ -177,9 +183,9 @@ export const Field = ({
             id={id}
             type={tipo}
             disabled={disabled}
+              required={obrigatorio}
             placeholder={placeholder}
-            value={onChange ? valor ?? '' : undefined}
-            defaultValue={!onChange ? valor : undefined}
+              value={onChange ? valor ?? '' : String(valorLocal)}
             onChange={handleInputChange}
             className={CONTROLE}
           />

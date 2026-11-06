@@ -19,6 +19,7 @@ const isLocalStorageAvailable = (): boolean => {
 };
 
 const hasLocalStorage = isLocalStorageAvailable();
+export const armazenamentoPersistenteDisponivel = hasLocalStorage;
 
 export const safeGetItem = (key: string): string | null => {
   try {

@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useState } from 'react';
 import { getPrograma } from '../../data/programasApoio';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -11,35 +12,35 @@ const programa = getPrograma('apresentacao-evento');
 
 export function ApresentacaoEvento() {
   // Dados do Solicitante
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [instituicao, setInstituicao] = useState('ESALQ/USP');
-  const [departamento, setDepartamento] = useState('');
-  const [vinculo, setVinculo] = useState('Pós-Graduando');
-  const [orientador, setOrientador] = useState('');
+  const [nome, setNome] = useProcessoState('nome', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [email, setEmail] = useProcessoState('email', '');
+  const [telefone, setTelefone] = useProcessoState('telefone', '');
+  const [instituicao, setInstituicao] = useProcessoState('instituicao', 'ESALQ/USP');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
+  const [vinculo, setVinculo] = useProcessoState('vinculo', 'Pós-Graduando');
+  const [orientador, setOrientador] = useProcessoState('orientador', '');
 
   // Dados do Evento
-  const [nomeEvento, setNomeEvento] = useState('');
-  const [abrangencia, setAbrangencia] = useState('Nacional');
-  const [websiteEvento, setWebsiteEvento] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [pais, setPais] = useState('Brasil');
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
-  const [modalidade, setModalidade] = useState('Presencial');
+  const [nomeEvento, setNomeEvento] = useProcessoState('nomeEvento', '');
+  const [abrangencia, setAbrangencia] = useProcessoState('abrangencia', 'Nacional');
+  const [websiteEvento, setWebsiteEvento] = useProcessoState('websiteEvento', '');
+  const [cidade, setCidade] = useProcessoState('cidade', '');
+  const [pais, setPais] = useProcessoState('pais', 'Brasil');
+  const [dataInicio, setDataInicio] = useProcessoState('dataInicio', '');
+  const [dataFim, setDataFim] = useProcessoState('dataFim', '');
+  const [modalidade, setModalidade] = useProcessoState('modalidade', 'Presencial');
 
   // Trabalho
-  const [tituloTrabalho, setTituloTrabalho] = useState('');
-  const [formatoApresentacao, setFormatoApresentacao] = useState('Comunicação Oral');
-  const [coautores, setCoautores] = useState('');
-  const [resumoTrabalho, setResumoTrabalho] = useState('');
+  const [tituloTrabalho, setTituloTrabalho] = useProcessoState('tituloTrabalho', '');
+  const [formatoApresentacao, setFormatoApresentacao] = useProcessoState('formatoApresentacao', 'Comunicação Oral');
+  const [coautores, setCoautores] = useProcessoState('coautores', '');
+  const [resumoTrabalho, setResumoTrabalho] = useProcessoState('resumoTrabalho', '');
 
   // Custos
-  const [tipoAuxilio, setTipoAuxilio] = useState('Inscrição + Viagem');
-  const [valorSolicitado, setValorSolicitado] = useState('');
-  const [outrasFontes, setOutrasFontes] = useState('Não possui');
+  const [tipoAuxilio, setTipoAuxilio] = useProcessoState('tipoAuxilio', 'Inscrição + Viagem');
+  const [valorSolicitado, setValorSolicitado] = useProcessoState('valorSolicitado', '');
+  const [outrasFontes, setOutrasFontes] = useProcessoState('outrasFontes', 'Não possui');
 
   const [submetido, setSubmetido] = useState(false);
 

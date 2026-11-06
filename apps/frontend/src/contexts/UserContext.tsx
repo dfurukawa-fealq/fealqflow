@@ -4,14 +4,18 @@ export interface UsuarioAutenticado {
   id: string;
   username: string;
   role: 'admin' | 'user';
+  perfil: 'admin' | 'projeto' | 'prog_apoio';
+  tenant: 'global' | 'projeto' | 'prog_apoio';
 }
 
 interface UserContextData {
   usuario: UsuarioAutenticado | null;
   carregando: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<UsuarioAutenticado>;
   logout: () => Promise<void>;
   alterarSenha: (senhaAtual: string, novaSenha: string) => Promise<void>;
+  isAdmin: boolean;
+  podeAcessar: (area: 'projeto' | 'apoio') => boolean;
 }
 
 const UserContext = createContext<UserContextData | null>(null);
@@ -47,6 +51,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const resultado = await response.json().catch(() => ({})) as { user?: UsuarioAutenticado; error?: string };
     if (!response.ok || !resultado.user) throw new Error(resultado.error || 'Não foi possível entrar.');
     setUsuario(resultado.user);
+    return resultado.user;
   }, []);
 
   const logout = useCallback(async () => {
@@ -69,7 +74,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     if (!response.ok) throw new Error(resultado.error || 'Não foi possível alterar a senha.');
   }, []);
 
-  const value = useMemo(() => ({ usuario, carregando, login, logout, alterarSenha }), [usuario, carregando, login, logout, alterarSenha]);
+  const isAdmin = usuario?.perfil === 'admin' || usuario?.role === 'admin' || usuario?.tenant === 'global';
+  const podeAcessar = useCallback((area: 'projeto' | 'apoio') => {
+    if (!usuario) return true;
+    if (isAdmin) return true;
+    return usuario.tenant === area || usuario.perfil === (area === 'projeto' ? 'projeto' : 'prog_apoio');
+  }, [isAdmin, usuario]);
+  const value = useMemo(() => ({ usuario, carregando, login, logout, alterarSenha, isAdmin, podeAcessar }), [usuario, carregando, login, logout, alterarSenha, isAdmin, podeAcessar]);
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 

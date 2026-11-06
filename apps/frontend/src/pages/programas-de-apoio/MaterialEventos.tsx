@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useState } from 'react';
 import { getPrograma } from '../../data/programasApoio';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -22,28 +23,28 @@ const ITENS_DISPONIVEIS = [
 
 export function MaterialEventos() {
   // Solicitante
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [departamento, setDepartamento] = useState('');
-  const [entidade, setEntidade] = useState('Centro Acadêmico / Comissão Organizadora');
+  const [nome, setNome] = useProcessoState('nome', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [email, setEmail] = useProcessoState('email', '');
+  const [telefone, setTelefone] = useProcessoState('telefone', '');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
+  const [entidade, setEntidade] = useProcessoState('entidade', 'Centro Acadêmico / Comissão Organizadora');
 
   // Evento
-  const [nomeEvento, setNomeEvento] = useState('');
-  const [tipoEvento, setTipoEvento] = useState('Semana Acadêmica');
-  const [dataEvento, setDataEvento] = useState('');
-  const [localEvento, setLocalEvento] = useState('');
-  const [publicoEstimado, setPublicoEstimado] = useState('');
+  const [nomeEvento, setNomeEvento] = useProcessoState('nomeEvento', '');
+  const [tipoEvento, setTipoEvento] = useProcessoState('tipoEvento', 'Semana Acadêmica');
+  const [dataEvento, setDataEvento] = useProcessoState('dataEvento', '');
+  const [localEvento, setLocalEvento] = useProcessoState('localEvento', '');
+  const [publicoEstimado, setPublicoEstimado] = useProcessoState('publicoEstimado', '');
 
   // Materiais Selecionados
-  const [materiaisSelecionados, setMateriaisSelecionados] = useState<string[]>([
+  const [materiaisSelecionados, setMateriaisSelecionados] = useProcessoState<string[]>('materiaisSelecionados', [
     'pastas',
     'blocos',
     'canetas',
   ]);
-  const [detalhesQuantidades, setDetalhesQuantidades] = useState('');
-  const [dataRetirada, setDataRetirada] = useState('');
+  const [detalhesQuantidades, setDetalhesQuantidades] = useProcessoState('detalhesQuantidades', '');
+  const [dataRetirada, setDataRetirada] = useProcessoState('dataRetirada', '');
 
   const [submetido, setSubmetido] = useState(false);
 

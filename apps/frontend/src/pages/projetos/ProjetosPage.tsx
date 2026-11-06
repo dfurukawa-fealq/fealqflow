@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Footer } from '../../components/Footer';
 import { useAdmin } from '../../contexts/AdminContext';
+import { MeusRascunhos } from '../../components/form/MeusRascunhos';
+import { PROJETOS } from '../../data/projetos';
 
 export const ProjetosPage = () => {
   const rotas = [
@@ -119,10 +121,17 @@ export const ProjetosPage = () => {
   ];
 
   const { formularios } = useAdmin();
+  const rotasDoCatalogo = PROJETOS.map((formulario) => ({
+    id: formulario.id,
+    label: formulario.titulo,
+    icon: formulario.icone,
+    req: formulario.requisito,
+    path: `/projetos/${formulario.slug}`,
+  }));
   const forms = formularios
-    .filter((formulario) => formulario.area === 'Projetos' && formulario.tipo === 'Formulário' && formulario.active !== false)
+    .filter((formulario) => formulario.area === 'Projetos' && formulario.tipo === 'Formulário' && formulario.active !== false && formulario.habilitado !== false)
     .map((formulario) => {
-      const rota = rotas.find((item) => item.id === formulario.id) ||
+      const rota = rotasDoCatalogo.find((item) => item.id === formulario.id) || rotas.find((item) => item.id === formulario.id) ||
         (formulario.nome.includes('Coordenador') ? rotas.find((item) => item.id === 'COORD') : undefined) ||
         (formulario.nome.includes('Curso/Evento') ? rotas.find((item) => item.id === 'CURSO') : undefined) ||
         (formulario.nome.includes('Publica') ? rotas.find((item) => item.id === 'PUB') : undefined) ||
@@ -148,6 +157,7 @@ export const ProjetosPage = () => {
             Selecione o formulário desejado para iniciar um novo processo.
           </p>
         </div>
+        <MeusRascunhos categoria="projeto" />
         <div className="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden shadow-sm">
           {/* Header */}
           <div className="grid grid-cols-[56px_1fr_200px_200px] items-center px-md py-sm bg-surface-container border-b border-outline-variant text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">

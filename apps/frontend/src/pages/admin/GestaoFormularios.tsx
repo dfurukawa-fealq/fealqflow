@@ -4,8 +4,8 @@ import { CrudFormularios } from './components/CrudFormularios';
 export const GestaoFormularios = () => {
   return (
     <GestaoLayout 
-      title="Gestão de Formulários (Auxílios)" 
-      description="Gerencie os formulários, editais e regras de cada auxílio. Excluir desativa o item."
+      title="Gestão de Formulários" 
+      description="Gerencie os formulários. Excluir desativa o item."
     >
       <CrudFormularios modo="formularios" />
     </GestaoLayout>

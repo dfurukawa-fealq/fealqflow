@@ -6,6 +6,7 @@ import {
   ArquivoSelecionado,
 } from './form/AnexarArquivo';
 import { useEnvio } from './form/EnvioContext';
+import { useProcesso } from '../contexts/ProcessoContext';
 
 interface KitDocumentalProps {
   documentos: DocumentoExigido[];
@@ -22,9 +23,7 @@ interface KitDocumentalProps {
  * Kit de Documentos no padrão do Cadastro de Financiadora: uma linha por
  * documento, ícone de estado à esquerda e ação à direita.
  *
- * O anexo é simulado — o `File` escolhido fica só na memória da aba, nada
- * é enviado nem gravado. Contador, barra de progresso e liberação do botão
- * de envio derivam do que foi anexado, nunca de valores fixos.
+ * Anexos são vinculados ao processo e retomados após atualizar a página.
  */
 export const KitDocumental = ({
   documentos,
@@ -34,13 +33,29 @@ export const KitDocumental = ({
   acaoNoCard = false,
 }: KitDocumentalProps) => {
   const [anexos, setAnexos] = useState<Record<string, File>>({});
+  const [erroAnexo, setErroAnexo] = useState('');
+  const [enviando, setEnviando] = useState<string | null>(null);
+  const processo = useProcesso();
+  const registrarDocumentos = processo?.registrarDocumentos;
+  const assinaturaDocumentos = documentos.map((item) => `${item.id}:${item.documentoId || ''}:${item.obrigatorio}:${item.status}:${item.tipo}:${Boolean(item.url_template)}`).join('|');
+  useEffect(() => {
+    if (!registrarDocumentos) return;
+    void registrarDocumentos(documentos.map((item) => ({
+      id: item.id, obrigatorio: item.obrigatorio,
+      concluido: item.status === 'concluido' || (item.status === undefined && (item.tipo === 'externo' || (item.tipo === 'gerado' && !item.url_template))),
+    })))
+      .catch((falha: unknown) => setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível registrar o Kit Documental.'));
+  // A assinatura muda apenas quando os requisitos do Kit mudam.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registrarDocumentos, assinaturaDocumentos]);
+  const documentoSalvo = (id: string) => processo?.documentos.some((item) => item.id === id && ['enviado', 'validado'].includes(item.status)) ?? false;
   const { registrarPendencias } = useEnvio();
 
   const estaConcluido = (doc: DocumentoExigido) => {
     if (doc.status !== undefined) {
       return doc.status === 'concluido';
     }
-    return (doc.tipo === 'gerado' && !doc.url_template) || Boolean(anexos[doc.id]);
+    return (doc.tipo === 'gerado' && !doc.url_template) || documentoSalvo(doc.id);
   };
 
   const concluidos = documentos.filter(estaConcluido).length;
@@ -56,23 +71,31 @@ export const KitDocumental = ({
           return d.status !== 'concluido';
         }
         if ((d.tipo === 'gerado' && !d.url_template) || d.tipo === 'externo') return false;
-        return !anexos[d.id];
+        return !documentoSalvo(d.id);
       }).length,
-    [documentos, anexos],
+    [documentos, processo?.documentos],
   );
 
   useEffect(() => {
     registrarPendencias(pendencias);
   }, [pendencias, registrarPendencias]);
 
-  const selecionar = (id: string, arquivo: File | null) =>
-    setAnexos((prev) => {
-      if (!arquivo) {
-        const { [id]: _removido, ...resto } = prev;
-        return resto;
+  const selecionar = async (id: string, arquivo: File | null) => {
+    setErroAnexo('');
+    setEnviando(id);
+    try {
+      if (!processo) throw new Error('Abra um processo para anexar documentos.');
+      if (arquivo) {
+        await processo.anexarDocumento(id, arquivo);
+        setAnexos((atuais) => ({ ...atuais, [id]: arquivo }));
+      } else {
+        await processo.removerDocumento(id);
+        setAnexos((atuais) => { const proximo = { ...atuais }; delete proximo[id]; return proximo; });
       }
-      return { ...prev, [id]: arquivo };
-    });
+    } catch (falha) {
+      setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível salvar o anexo.');
+    } finally { setEnviando(null); }
+  };
 
   return (
     <section className="bg-surface-container-low border border-outline-variant rounded shadow-sm p-lg">
@@ -102,6 +125,7 @@ export const KitDocumental = ({
           {destaque}
         </div>
       )}
+      {erroAnexo && <p role="alert" className="mb-sm rounded border border-error bg-red-50 p-sm text-xs text-error">{erroAnexo}</p>}
 
       <div className="flex flex-col gap-sm">
         {documentos.map((doc) => (
@@ -109,7 +133,10 @@ export const KitDocumental = ({
             key={doc.id}
             doc={doc}
             arquivo={anexos[doc.id] ?? null}
-            onSelecionar={(a) => selecionar(doc.id, a)}
+            arquivoSalvo={processo?.documentos.find((item) => item.id === doc.id)?.arquivo_nome || undefined}
+            enviando={enviando === doc.id}
+            onBaixar={arquivoSalvo => { if (processo) void processo.baixarDocumento(doc.id, arquivoSalvo).catch((falha: unknown) => setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível baixar o anexo.')); }}
+            onSelecionar={(a) => { void selecionar(doc.id, a); }}
             acaoNoCard={acaoNoCard}
           />
         ))}
@@ -125,28 +152,42 @@ export const KitDocumental = ({
 interface ItemDocumentoProps {
   doc: DocumentoExigido;
   arquivo: File | null;
+  arquivoSalvo?: string;
+  enviando: boolean;
+  onBaixar: (nome: string) => void;
   onSelecionar: (arquivo: File | null) => void;
   acaoNoCard: boolean;
 }
 
-const ItemDocumento = ({ doc, arquivo, onSelecionar, acaoNoCard }: ItemDocumentoProps) => {
+const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelecionar, acaoNoCard }: ItemDocumentoProps) => {
   const navigate = useNavigate();
   const isCustomStatus = doc.status !== undefined;
   const isConcluidoStatus = doc.status === 'concluido';
   const isEmAndamento = doc.status === 'em_andamento';
 
   const gerado = doc.tipo === 'gerado';
+  const documentoCatalogo = Boolean(doc.documentoId);
+  const arquivoPdfCatalogo = documentoCatalogo && /\.pdf(?:$|[?#])/i.test(doc.url_template || '');
   const concluido = isCustomStatus
     ? isConcluidoStatus
-    : ((gerado && !doc.url_template) || Boolean(arquivo));
+    : ((gerado && !doc.url_template) || Boolean(arquivoSalvo));
   const detalhe = [doc.descricao, doc.condicao].filter(Boolean).join(' ');
-  const cardAcionavel = acaoNoCard && Boolean(doc.url_template);
+  const cardAcionavel = acaoNoCard && Boolean(doc.url_template) && !arquivoPdfCatalogo;
   // Todo documento obrigatório pendente sinaliza ação necessária. Quando há
   // URL, o card também é navegável; uploads continuam usando o anexo interno.
   const cardComMotion = acaoNoCard && !concluido && (doc.obrigatorio || Boolean(doc.url_template));
   const abrirDocumento = () => {
     if (!doc.url_template) return;
     doc.onAbrirLink?.();
+    if (arquivoPdfCatalogo) {
+      const link = document.createElement('a');
+      link.href = doc.url_template;
+      link.download = '';
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.click();
+      return;
+    }
     navigate(doc.url_template);
   };
 
@@ -202,7 +243,7 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar, acaoNoCard }: ItemDocumento
         </div>
 
         {/* Formulário com URL/Template vinculado interativo */}
-        {doc.url_template && doc.tipo !== 'upload' ? (
+        {doc.url_template && doc.tipo !== 'upload' && !documentoCatalogo ? (
           <div className="flex items-center gap-xs shrink-0">
             {concluido ? (
               <>
@@ -268,6 +309,7 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar, acaoNoCard }: ItemDocumento
             <AnexarArquivo
               id={`anexo-${doc.id}`}
               arquivo={arquivo}
+              arquivoSalvo={arquivoSalvo}
               onSelecionar={onSelecionar}
             />
           </div>
@@ -275,6 +317,9 @@ const ItemDocumento = ({ doc, arquivo, onSelecionar, acaoNoCard }: ItemDocumento
       </div>
 
       {arquivo && <ArquivoSelecionado arquivo={arquivo} />}
+      {!arquivo && arquivoSalvo && <p className="mt-xs pl-[26px] text-[11px] text-secondary">Anexado: {arquivoSalvo}</p>}
+      {arquivoSalvo && <button type="button" className="mt-xs pl-[26px] text-[11px] font-semibold text-primary underline" onClick={(evento) => { evento.stopPropagation(); onBaixar(arquivoSalvo); }}>Baixar anexo</button>}
+      {enviando && <p role="status" className="mt-xs pl-[26px] text-[11px] text-primary">Enviando anexo...</p>}
 
       {detalhe && (
         <p className="text-[10px] text-on-surface-variant mt-xs leading-tight pl-[26px]">

@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useMemo, useEffect } from 'react';
+import { useProcessoState } from '../../contexts/ProcessoContext';
 
 // Estrutura de itens extraída da planilha original de orçamento FZEA
 export const ESTRUTURA_DESPESAS = [
@@ -183,13 +184,13 @@ export const formatMoney = (value: number) => {
 // Hook principal de cálculos e validações do Plano de Aplicação de Recursos
 export function usePlanoAplicacaoCalculos(): PlanoAplicacaoCalculosResult {
   // --- STATE ---
-  const [tipoProjetoFPA, setTipoProjetoFPA] = useState<TipoProjetoFPA>('cursos');
+  const [tipoProjetoFPA, setTipoProjetoFPA] = useProcessoState<TipoProjetoFPA>('tipoProjetoFPA', 'cursos');
   // 1. Receitas
-  const [receitaInscricao, setReceitaInscricao] = useState<number>(0);
-  const [receitaPatrocinio, setReceitaPatrocinio] = useState<number>(0);
+  const [receitaInscricao, setReceitaInscricao] = useProcessoState<number>('receitaInscricao', 0);
+  const [receitaPatrocinio, setReceitaPatrocinio] = useProcessoState<number>('receitaPatrocinio', 0);
 
   // 2. Despesas (Linhas Detalhadas)
-  const [despesasDetalhes, setDespesasDetalhes] = useState<Record<string, number>>({});
+  const [despesasDetalhes, setDespesasDetalhes] = useProcessoState<Record<string, number>>('despesasDetalhes', {});
   const setDespesaDetalhe = (id: string, valor: number) => {
     setDespesasDetalhes(prev => ({ ...prev, [id]: valor }));
   };
@@ -210,7 +211,7 @@ export function usePlanoAplicacaoCalculos(): PlanoAplicacaoCalculosResult {
   const cat7 = getCatTotal('7.');
 
   // Taxa variável prefeitura (ex: 2.0 = 2%)
-  const [fpaPrefPercent, setFpaPrefPercent] = useState<number>(2.0);
+  const [fpaPrefPercent, setFpaPrefPercent] = useProcessoState<number>('fpaPrefPercent', 2.0);
 
   // Efeito para ajustar a prefeitura caso o perfil mude
   useEffect(() => {

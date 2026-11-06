@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useState } from 'react';
 import { getPrograma } from '../../data/programasApoio';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -11,26 +12,26 @@ const programa = getPrograma('infraestrutura');
 
 export function ApoioInfraestrutura() {
   // Responsável
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [instituicao, setInstituicao] = useState('ESALQ/USP');
-  const [departamento, setDepartamento] = useState('');
+  const [nome, setNome] = useProcessoState('nome', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [email, setEmail] = useProcessoState('email', '');
+  const [telefone, setTelefone] = useProcessoState('telefone', '');
+  const [instituicao, setInstituicao] = useProcessoState('instituicao', 'ESALQ/USP');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
 
   // Local
-  const [laboratorio, setLaboratorio] = useState('');
-  const [predioBloco, setPredioBloco] = useState('');
-  const [salaLocal, setSalaLocal] = useState('');
-  const [usuariosBeneficiados, setUsuariosBeneficiados] = useState('');
+  const [laboratorio, setLaboratorio] = useProcessoState('laboratorio', '');
+  const [predioBloco, setPredioBloco] = useProcessoState('predioBloco', '');
+  const [salaLocal, setSalaLocal] = useProcessoState('salaLocal', '');
+  const [usuariosBeneficiados, setUsuariosBeneficiados] = useProcessoState('usuariosBeneficiados', '');
 
   // Detalhes da Demanda
-  const [tipoApoio, setTipoApoio] = useState('Compra de Equipamento de Grande Porte');
-  const [justificativa, setJustificativa] = useState('');
+  const [tipoApoio, setTipoApoio] = useProcessoState('tipoApoio', 'Compra de Equipamento de Grande Porte');
+  const [justificativa, setJustificativa] = useProcessoState('justificativa', '');
 
   // Orçamento
-  const [valorEstimado, setValorEstimado] = useState('');
-  const [fornecedorPrincipal, setFornecedorPrincipal] = useState('');
+  const [valorEstimado, setValorEstimado] = useProcessoState('valorEstimado', '');
+  const [fornecedorPrincipal, setFornecedorPrincipal] = useProcessoState('fornecedorPrincipal', '');
 
   const [submetido, setSubmetido] = useState(false);
 

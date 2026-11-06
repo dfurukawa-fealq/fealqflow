@@ -59,6 +59,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
       descricao: formulario.documentosSolicitados[0]?.info || '',
       template_url: formulario.documentosSolicitados[0]?.url_template || '',
       active: formulario.active !== false,
+      area: formulario.area,
     }));
 
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoOrcamentaria[]>(() => {
@@ -158,10 +159,11 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const persistirFormulario = async (id: string, updates: Partial<FormularioApoio>) => {
     const atual = formularios.find((formulario) => formulario.id === id);
     if (!atual) throw new Error('Cadastro n?o encontrado no banco. Recarregue a lista e tente novamente.');
+    const atualizacaoParcial = Object.keys(updates).every((chave) => ['active', 'habilitado', 'nSeq'].includes(chave));
     const response = await fetch(`/api/formularios/${encodeURIComponent(id)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...atual, ...updates }),
+      body: JSON.stringify(atualizacaoParcial ? updates : { ...atual, ...updates }),
     });
     if (!response.ok) {
       const resposta = await response.json().catch(() => ({})) as { error?: string };

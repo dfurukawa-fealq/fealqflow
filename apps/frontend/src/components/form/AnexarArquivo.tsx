@@ -7,6 +7,7 @@ interface AnexarArquivoProps {
   /** Usado no htmlFor/id — precisa ser único na página. */
   id: string;
   arquivo: File | null;
+  arquivoSalvo?: string;
   onSelecionar: (arquivo: File | null) => void;
 }
 
@@ -20,13 +21,12 @@ const ACAO =
   'text-primary-container text-[11px] font-bold uppercase hover:underline cursor-pointer shrink-0';
 
 /**
- * Seleção de arquivo simulada: abre o seletor real do sistema, mas o
- * `File` fica apenas na memória da aba — nada é enviado nem gravado.
- * Componente controlado: quem chama guarda o arquivo escolhido.
+ * O componente pai envia o arquivo e mantém o estado persistido.
  */
 export const AnexarArquivo = ({
   id,
   arquivo,
+  arquivoSalvo,
   onSelecionar,
 }: AnexarArquivoProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -52,7 +52,7 @@ export const AnexarArquivo = ({
         className="sr-only"
       />
 
-      {arquivo ? (
+      {arquivo || arquivoSalvo ? (
         <div className="flex items-center gap-sm shrink-0">
           <label htmlFor={id} className={ACAO}>
             Substituir

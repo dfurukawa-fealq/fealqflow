@@ -22,6 +22,7 @@ export async function executar(pool, root) {
       periodos_submissao JSONB NOT NULL DEFAULT '[]'::jsonb,
       documentos_solicitados JSONB NOT NULL DEFAULT '[]'::jsonb,
       active BOOLEAN NOT NULL DEFAULT TRUE,
+      habilitado BOOLEAN NOT NULL DEFAULT TRUE,
       nseq INTEGER NOT NULL DEFAULT 0,
       criado_em TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
       atualizado_em TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -40,6 +41,7 @@ export async function executar(pool, root) {
   `);
 
   await pool.query('ALTER TABLE cadastros_formularios ADD COLUMN IF NOT EXISTS nseq INTEGER NOT NULL DEFAULT 0');
+  await pool.query('ALTER TABLE cadastros_formularios ADD COLUMN IF NOT EXISTS habilitado BOOLEAN NOT NULL DEFAULT TRUE');
 
   await pool.query(`ALTER TABLE cadastros_formularios
     ADD COLUMN IF NOT EXISTS tipo_cadastro TEXT NOT NULL DEFAULT 'Formulário'`);

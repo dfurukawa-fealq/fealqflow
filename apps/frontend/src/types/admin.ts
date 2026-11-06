@@ -16,6 +16,10 @@ export interface PeriodoSubmissao {
 export interface DocumentoSolicitadoAdmin {
   id: string;
   nome: string;
+  tipo?: 'Documento' | 'FormulÃ¡rio' | 'Formulário';
+  documentoId?: string;
+  referenciaTipo?: 'url' | 'documento';
+  obrigatorio?: boolean;
   info?: string;
   url_template?: string;
 }
@@ -27,13 +31,14 @@ export interface DocumentoCadastro {
   template_url: string;
   active?: boolean;
   nSeq?: number;
+  area?: 'Projetos' | 'Programa de Apoio';
 }
 
 export interface FormularioApoio {
   id: string;
   nome: string;
   area: 'Projetos' | 'Programa de Apoio';
-  tipo: 'Formulário' | 'Documento';
+  tipo: 'Formulário' | 'FormulÃ¡rio' | 'Documento';
   linhaApoioId: string;
   status: 'Aberto' | 'Fechado';
   periodosSubmissao: PeriodoSubmissao[];
@@ -41,6 +46,7 @@ export interface FormularioApoio {
   documentosSolicitados: DocumentoSolicitadoAdmin[];
   documentoIds?: string[];
   active?: boolean;
+  habilitado?: boolean;
   nSeq?: number;
 }
 

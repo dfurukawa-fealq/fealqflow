@@ -41,7 +41,7 @@ export const FormSection = ({
         <span className="material-symbols-outlined text-primary-container">
           {icone}
         </span>
-        <h2 className="text-[14px] sm:text-[16px] font-semibold text-primary-container leading-tight">
+        <h2 className="min-w-0 break-words text-[14px] sm:text-[16px] font-semibold text-primary-container leading-tight">
           {numero !== undefined ? `${numero}. ` : ''}
           {titulo}
         </h2>
@@ -62,7 +62,7 @@ export const FormSection = ({
   );
 
   return (
-    <section className="bg-surface-container-lowest border border-outline-variant rounded shadow-sm p-sm sm:p-lg">
+    <section className="min-w-0 bg-surface-container-lowest border border-outline-variant rounded shadow-sm p-sm sm:p-lg">
       {colapsavel ? (
         <button
           type="button"
@@ -81,7 +81,7 @@ export const FormSection = ({
       )}
 
       {visivel && (
-        <div className={livre ? '' : 'grid grid-cols-12 gap-md'}>{children}</div>
+        <div className={livre ? 'min-w-0' : 'grid min-w-0 grid-cols-12 gap-md'}>{children}</div>
       )}
     </section>
   );

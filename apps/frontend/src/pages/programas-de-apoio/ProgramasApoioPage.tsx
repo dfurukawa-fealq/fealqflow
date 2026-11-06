@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Footer } from '../../components/Footer';
 import { PROGRAMAS_APOIO } from '../../data/programasApoio';
+import { MeusRascunhos } from '../../components/form/MeusRascunhos';
 
 export const ProgramasApoioPage = () => {
   return (
@@ -19,6 +20,7 @@ export const ProgramasApoioPage = () => {
             </span>
           </div>
         </div>
+        <MeusRascunhos categoria="apoio" />
         <div className="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden shadow-sm">
           {/* Header */}
           <div className="grid grid-cols-[56px_1fr_200px_110px_200px_160px] items-center px-md py-sm bg-surface-container border-b border-outline-variant text-[10px] font-bold text-on-surface-variant uppercase">

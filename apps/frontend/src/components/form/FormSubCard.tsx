@@ -46,10 +46,10 @@ export const FormSubCard = ({
 
   return (
     <div
-      className={`${spanClass} bg-surface-container-low/60 border border-outline-variant p-md rounded-lg grid grid-cols-12 gap-sm overflow-hidden ${className}`}
+      className={`${spanClass} min-w-0 overflow-x-auto bg-surface-container-low/60 border border-outline-variant p-md rounded-lg grid grid-cols-12 gap-sm ${className}`}
     >
       <div className="col-span-12 flex flex-wrap items-center justify-between gap-xs pb-xs border-b border-outline-variant/60">
-        <span className="text-[13px] font-bold text-on-surface flex items-center gap-xs">
+        <span className="flex min-w-0 items-center gap-xs text-[13px] font-bold text-on-surface">
           {icone && (
             <span className="material-symbols-outlined text-[18px] text-primary">
               {icone}
@@ -57,7 +57,7 @@ export const FormSubCard = ({
           )}
           {titulo}
         </span>
-        <div className="flex items-center gap-xs">
+        <div className="flex min-w-0 flex-wrap items-center gap-xs">
           {badge}
           {subtitulo && (
             <span className="text-[11px] text-on-surface-variant">{subtitulo}</span>

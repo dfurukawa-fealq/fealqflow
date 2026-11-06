@@ -1,12 +1,33 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useMemo, useState } from 'react';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
 import { KitDocumental } from '../../components/KitDocumental';
 import { DocumentoExigido } from '../../data/programasApoio';
+import { ConvenioUSPSection } from '../../components/form/projetos/ConvenioUSPSection';
+import { EquipeTecnicaEditor, MembroEquipeProjeto } from '../../components/form/projetos/EquipeTecnicaEditor';
+import { EquipeProjetoSection } from '../../components/form/projetos/EquipeProjetoSection';
+import { PropriedadeIntelectualSection } from '../../components/form/projetos/PropriedadeIntelectualSection';
+import { CertRegimeTrabalhoSection } from '../../components/form/projetos/CertRegimeTrabalhoSection';
+import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSection';
+import { OrientacoesCoordenadorCard } from '../../components/form/projetos/OrientacoesCoordenadorCard';
+import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 
 export const ProjetoPesquisa = () => {
-  const [possuiConvenio, setPossuiConvenio] = useState<'sim' | 'nao'>('nao');
+  const { gerarUrlVinculada, registrarAberturaFormulario, statusFormulario } = useRastreabilidade();
+  const urlTermoLGPD = gerarUrlVinculada('/projetos/termo-lgpd?retorno=pesquisa', 'CERT-LGPD-01', 'Termo de LGPD e Confidencialidade');
+  const [possuiConvenio, setPossuiConvenio] = useProcessoState('possuiConvenio', false);
+  const [numeroConvenio, setNumeroConvenio] = useProcessoState('numeroConvenio', '');
+  const [numeroProcesso, setNumeroProcesso] = useProcessoState('numeroProcesso', '');
+  const [equipe, setEquipe] = useProcessoState<MembroEquipeProjeto[]>('equipe', []);
+  const [envolvePropriedade, setEnvolvePropriedade] = useProcessoState('envolvePropriedade', true);
+  const [percentualUSP, setPercentualUSP] = useProcessoState('percentualUSP', '50');
+  const [percentualParceiro, setPercentualParceiro] = useProcessoState('percentualParceiro', '50');
+  const [regimeTrabalho, setRegimeTrabalho] = useProcessoState<'RTP' | 'RTC' | 'RDIDP'>('regimeTrabalho', 'RTP');
+  const [numeroCert, setNumeroCert] = useProcessoState('numeroCert', '');
+  const [validadeCert, setValidadeCert] = useProcessoState('validadeCert', '');
+  const [aceiteOrientacoes, setAceiteOrientacoes] = useProcessoState('aceiteOrientacoes', false);
   const documentos = useMemo<DocumentoExigido[]>(() => [
     { id: 'processo-pesquisa', label: 'Processo de Abertura de Projeto de Pesquisa', descricao: 'Gerado pelo sistema.', tipo: 'gerado', obrigatorio: true },
     { id: 'termo-sigilo', label: 'Termo de Sigilo e Confidencialidade', descricao: 'Autopreenchido e aceite obrigatório.', tipo: 'aceite', obrigatorio: true },
@@ -14,7 +35,7 @@ export const ProjetoPesquisa = () => {
     { id: 'cadastro-coordenador', label: 'Cadastro do Coordenador', descricao: 'Necessário caso não exista cadastro na FEALQ.', tipo: 'externo', obrigatorio: false },
     { id: 'equipe-envolvida', label: 'Cadastro de Equipe Envolvida', descricao: 'Pesquisadores, alunos e apoio administrativo.', tipo: 'externo', obrigatorio: false },
     { id: 'cadastro-parceiro', label: 'Cadastro de Parceiro / Financiador', descricao: 'Pode ser preenchido por link externo.', tipo: 'externo', obrigatorio: false },
-    ...(possuiConvenio === 'sim'
+      ...(possuiConvenio
       ? [{ id: 'planilha-recursos-usp', label: 'Planilha de Aplicação de Recursos USP', descricao: 'Anexo obrigatório para projeto com convênio USP.', tipo: 'upload' as const, obrigatorio: true }]
       : [{ id: 'plano-aplicacao-recursos', label: 'Plano de Aplicação de Recursos', descricao: 'Preenchimento obrigatório para projeto sem convênio USP.', tipo: 'gerado' as const, obrigatorio: true }]),
     { id: 'informacoes-complementares', label: 'Informações Complementares', descricao: 'Anexo opcional.', tipo: 'upload', obrigatorio: false },
@@ -23,20 +44,13 @@ export const ProjetoPesquisa = () => {
   return (
     <FormPageLayout
       breadcrumb={['Área do Coordenador', 'Projetos', 'Processo de Pesquisa']}
-      titulo="Protocolo de Abertura de Projeto de Pesquisa"
+      titulo="Processo de Abertura de Projeto de Pesquisa"
       codigo="CONV-FR-03-PRO"
       acaoPrincipal="Submeter Projeto para FEALQ"
       sidebar={<KitDocumental acaoNoCard documentos={documentos} />}
     >
-      <FormSection numero={1} icone="description" titulo="Informações sobre o Projeto & Convênio USP">
-        <Field label="Possui Convênio Cadastrado na USP?" tipo="select" opcoes={['Sim', 'Não']} padrao="Não" onChange={(valor: string) => setPossuiConvenio(valor === 'Sim' ? 'sim' : 'nao')} hint="Essa definição adapta automaticamente os anexos exigidos no Kit Documental." />
-        {possuiConvenio === 'sim' && <>
-          <Field label="Nº do Convênio USP" span={6} placeholder="Informe o número do convênio" />
-          <Field label="Nº do Processo USP" span={6} placeholder="Informe o processo relacionado" />
-        </>}
-        <Field label="Nº da CERT" span={6} placeholder="Informe quando aplicável" />
-        <Field label="Propriedade Intelectual" span={6} placeholder="Informe quando aplicável" />
-      </FormSection>
+      <ConvenioUSPSection possuiConvenio={possuiConvenio} aoAlterar={setPossuiConvenio} numeroConvenio={numeroConvenio} numeroProtocolo={numeroProcesso} aoAlterarNumeroConvenio={setNumeroConvenio} aoAlterarNumeroProtocolo={setNumeroProcesso} />
+      <CertRegimeTrabalhoSection regime={regimeTrabalho} numeroCert={numeroCert} validadeCert={validadeCert} aoAlterarRegime={setRegimeTrabalho} aoAlterarNumeroCert={setNumeroCert} aoAlterarValidadeCert={setValidadeCert} />
 
       <FormSection numero={2} icone="science" titulo="Dados do Projeto & Detalhamento Técnico">
         <Field label="Título do Projeto" span={8} placeholder="Informe o título completo do projeto" obrigatorio />
@@ -47,17 +61,8 @@ export const ProjetoPesquisa = () => {
         <Field label="Cronograma de Execução" tipo="textarea" placeholder="Informe as principais etapas e respectivos períodos" />
       </FormSection>
 
-      <FormSection numero={3} icone="supervisor_account" titulo="Equipe do Projeto & Delegados de Gestão">
-        <Field label="Nome Completo do Coordenador" span={8} placeholder="Nome completo" obrigatorio />
-        <Field label="CPF" span={4} placeholder="000.000.000-00" />
-        <Field label="RG / Órgão Emissor" span={4} placeholder="RG e órgão" />
-        <Field label="Telefone para Contato" span={4} tipo="tel" placeholder="(00) 00000-0000" />
-        <Field label="E-mail Institucional" span={4} tipo="email" placeholder="coordenador@usp.br" obrigatorio />
-        <Field label="Departamento / Instituição" span={8} placeholder="Departamento e unidade USP" />
-        <Field label="Nível de Acesso no Conveniar" span={4} tipo="select" opcoes={['Nível 1 - Ordenador de despesa', 'Nível 2 - Criador de pedidos']} padrao="Nível 1 - Ordenador de despesa" />
-        <Field label="Equipe Técnica / Pesquisadores / Alunos" tipo="textarea" placeholder="Informe nome, função, instituição, e-mail e telefone dos participantes" />
-        <Field label="Delegados de Gestão" tipo="textarea" placeholder="Informe os responsáveis autorizados e o nível de acesso de cada um" />
-      </FormSection>
+      <EquipeProjetoSection />
+      <EquipeTecnicaEditor membros={equipe} aoAlterar={setEquipe} />
 
       <FormSection numero={4} icone="account_balance" titulo="Instituições Envolvidas (Parcerias & Financiamento)">
         <Field label="Nome da Instituição / Empresa Parceira" span={6} placeholder="Nome da instituição" />
@@ -71,12 +76,14 @@ export const ProjetoPesquisa = () => {
       </FormSection>
 
       <FormSection numero={5} icone="payments" titulo="Execução do Projeto (Recursos & Desembolso)">
-        <Field label="Plano de Aplicação / Desembolso" tipo="textarea" placeholder={possuiConvenio === 'sim' ? 'Consulte a Planilha de Aplicação de Recursos USP anexada.' : 'Descreva a aplicação dos recursos e o desembolso previsto.'} obrigatorio />
+        <Field label="Plano de Aplicação / Desembolso" tipo="textarea" placeholder={possuiConvenio ? 'Consulte a Planilha de Aplicação de Recursos USP anexada.' : 'Descreva a aplicação dos recursos e o desembolso previsto.'} obrigatorio />
         <Field label="Informações Adicionais" tipo="textarea" placeholder="Inclua informações complementares sobre a execução" />
         <div className="col-span-12 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-on-surface-variant">
-          {possuiConvenio === 'sim' ? 'Com convênio USP: a Planilha de Aplicação de Recursos USP é obrigatória.' : 'Sem convênio USP: o Plano de Aplicação de Recursos é obrigatório.'}
+          {possuiConvenio ? 'Com convênio USP: a Planilha de Aplicação de Recursos USP é obrigatória.' : 'Sem convênio USP: o Plano de Aplicação de Recursos é obrigatório.'}
         </div>
       </FormSection>
+
+      <PropriedadeIntelectualSection envolvePropriedade={envolvePropriedade} aoAlterarEnvolvimento={setEnvolvePropriedade} percentualUSP={percentualUSP} percentualParceiro={percentualParceiro} aoAlterarPercentualUSP={setPercentualUSP} aoAlterarPercentualParceiro={setPercentualParceiro} />
 
       <FormSection numero={6} icone="fact_check" titulo="Ciência e Concordância do Departamento (USP)">
         <Field label="Departamento / Unidade" span={6} placeholder="Informe o departamento ou unidade" />
@@ -85,12 +92,8 @@ export const ProjetoPesquisa = () => {
         <Field label="Ciência da Chefia de Departamento" tipo="checkbox" placeholder="Declaro ciência e concordância com a execução do projeto" />
       </FormSection>
 
-      <FormSection numero={7} icone="verified_user" titulo="Termos de LGPD, Sigilo, Anuência & Orientações">
-        <Field label="Termo de Sigilo e Confidencialidade" span={6} tipo="checkbox" placeholder="Li e aceito o termo" obrigatorio />
-        <Field label="Termo de Anuência para Execução" span={6} tipo="checkbox" placeholder="Li e aceito o termo" obrigatorio />
-        <Field label="Orientações ao Coordenador" tipo="checkbox" placeholder="Li as orientações e estou ciente das regras do processo" obrigatorio />
-        <Field label="Aceite LGPD" tipo="checkbox" placeholder="Li e aceito as condições de tratamento de dados pessoais" obrigatorio />
-      </FormSection>
+      <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD)} />
+      <OrientacoesCoordenadorCard aceito={aceiteOrientacoes} aoAlterarAceite={setAceiteOrientacoes} />
     </FormPageLayout>
   );
 };

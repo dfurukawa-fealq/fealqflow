@@ -20,12 +20,14 @@ services:
       APP_URL: ${APP_URL:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       LEGACY_SQLITE_PATH: /app/legacy/fealqflow.db
+      UPLOAD_DIR: /app/uploads
     expose:
       - "3333"
     networks:
       - fealq-network
     volumes:
       - ./database:/app/legacy:ro
+      - fealqflow-uploads:/app/uploads
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3333/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
@@ -52,4 +54,7 @@ networks:
   fealq-network:
     external: true
     name: fealq-network
+
+volumes:
+  fealqflow-uploads:
 

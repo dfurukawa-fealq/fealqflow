@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import React, { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -143,22 +144,22 @@ export const OrientacoesCoordenador = () => {
   const navigate = useNavigate();
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
-  const [nomeCoordenador] = useState(
+  const [nomeCoordenador] = useProcessoState('nomeCoordenador',
     sanitizeInputText(searchParams.get('coordenador')) || ''
   );
-  const [cpf] = useState(formatCPF(searchParams.get('cpf') || ''));
+  const [cpf] = useProcessoState('cpf', formatCPF(searchParams.get('cpf') || ''));
 
   // Controle de itens expandidos no accordion
-  const [expanded, setExpanded] = useState<Record<number, boolean>>({ 1: true, 2: true });
-  const [itensLidos, setItensLidos] = useState<Record<number, boolean>>({});
+  const [expanded, setExpanded] = useProcessoState<Record<number, boolean>>('expanded', { 1: true, 2: true });
+  const [itensLidos, setItensLidos] = useProcessoState<Record<number, boolean>>('itensLidos', {});
 
   // Confirmação de Leitura
-  const [leuTodasOrientacoes, setLeuTodasOrientacoes] = useState(false);
-  const [confirmado, setConfirmado] = useState(statusFormulario('CERT-ORIENT-01') === 'concluido');
-  const [dataCertificacao, setDataCertificacao] = useState<string | null>(
+  const [leuTodasOrientacoes, setLeuTodasOrientacoes] = useProcessoState('leuTodasOrientacoes', false);
+  const [confirmado, setConfirmado] = useProcessoState('confirmado', statusFormulario('CERT-ORIENT-01') === 'concluido');
+  const [dataCertificacao, setDataCertificacao] = useProcessoState<string | null>('dataCertificacao',
     statusFormulario('CERT-ORIENT-01') === 'concluido' ? new Date().toLocaleDateString('pt-BR') : null
   );
-  const [horaCertificacao, setHoraCertificacao] = useState<string | null>(
+  const [horaCertificacao, setHoraCertificacao] = useProcessoState<string | null>('horaCertificacao',
     statusFormulario('CERT-ORIENT-01') === 'concluido' ? new Date().toLocaleTimeString('pt-BR') : null
   );
 
@@ -206,7 +207,8 @@ export const OrientacoesCoordenador = () => {
 
   const rawProtocolo = searchParams.get('protocolo');
   const protocoloUrlParam = rawProtocolo ? sanitizeProtocolId(rawProtocolo) : protocolId;
-  const linkRetorno = getSafeReturnUrl(`/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}`);
+  const processoPai = searchParams.get('processo_pai');
+  const linkRetorno = getSafeReturnUrl(`/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}`);
 
   return (
     <FormPageLayout

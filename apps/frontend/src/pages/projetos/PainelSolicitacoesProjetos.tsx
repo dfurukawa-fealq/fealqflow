@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { Footer } from '../../components/Footer';
+import { DocumentoDoProcesso, formatarDocumentosDoProcesso } from '../../utils/processoDocumentos';
 
 interface ProjetoRequest {
   id: string;
@@ -19,105 +20,37 @@ export const PainelSolicitacoesProjetos = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todos' | 'pendente' | 'rascunho' | 'finalizada'>('todos');
 
-  const pendingRequests: ProjetoRequest[] = [
-    {
-      id: 'PRJ-2026/042',
-      formName: 'Protocolo de Abertura de Curso/Evento',
-      projectTitle: 'Simpósio de Tecnologia Agrícola e Sustentabilidade 2026',
-      user: 'Dr. Carlos Eduardo Silva',
-      kit: '5/7 Anexados',
-      status: 'pendente',
-      link: '/projetos/form-curso',
-      docs: [
-        'Termo de LGPD e Confidencialidade (FR 01 - PRO) (Validado)',
-        'Orientações ao Coordenador FEALQ (15 Regras) (Validado)',
-        'Cadastro do Coordenador (Validado)',
-        'Programação do Curso/Evento (PDF) (Validado)',
-        'Cadastro de Equipe Envolvida (Validado)',
-        'FALTANDO: Plano de Aplicação de Recursos (CONV-PL-01)',
-        'FALTANDO: Convênio USP Assinado',
-      ],
-    },
-    {
-      id: 'PRJ-2026/058',
-      formName: 'Protocolo de Abertura de Projeto de Pesquisa',
-      projectTitle: 'Estudo de Eficácia e Resíduos de Bioinsumos na Cultura da Soja',
-      user: 'Dra. Helena Martins',
-      kit: '4/6 Anexados',
-      status: 'pendente',
-      link: '/projetos/form-pesquisa',
-      docs: [
-        'Termo de LGPD e Confidencialidade (Validado)',
-        'Escopo Científico e Metodologia (Validado)',
-        'Ciência e Concordância do Departamento (USP) (Validado)',
-        'Currículo Lattes do Coordenador (Validado)',
-        'FALTANDO: Minuta de Convênio USP',
-        'FALTANDO: Cronograma de Desembolso Financeiro',
-      ],
-    },
-    {
-      id: 'PRJ-2026/071',
-      formName: 'Protocolo de Abertura de Central Multiusuário',
-      projectTitle: 'Laboratório Multiusuário de Espectrometria de Massas Aplicada',
-      user: 'Dr. Roberto Albuquerque',
-      kit: '3/5 Anexados',
-      status: 'pendente',
-      link: '/projetos/form-central',
-      docs: [
-        'Termo de Adesão e Regimento Interno (Validado)',
-        'Relação de Equipamentos e Inventário (Validado)',
-        'Ciência e Concordância do Departamento (USP) (Validado)',
-        'FALTANDO: Tabela de Tarifas e Custos Operacionais',
-        'FALTANDO: Parecer de Aprovação do Conselho Gestor',
-      ],
-    },
-    {
-      id: 'PRJ-2026/089',
-      formName: 'Protocolo de Abertura de Publicação',
-      projectTitle: 'Manual Técnico: Manejo Integrado de Nematoides em Solos Tropicais',
-      user: 'Dr. Fernando Guedes',
-      kit: '2/4 Anexados',
-      status: 'pendente',
-      link: '/projetos/form-publicacao',
-      docs: [
-        'Dados da Obra e Autoria Técnica (Validado)',
-        'Orçamento Gráfico Preliminar (Validado)',
-        'FALTANDO: Parecer do Comitê Editorial',
-        'FALTANDO: Termo de Cessão de Direitos Autorais',
-      ],
-    },
-    {
-      id: 'PRJ-2026/094',
-      formName: 'Protocolo de Abertura de Programa de EPE',
-      projectTitle: 'Programa de Ensino, Pesquisa e Extensão em Cafeicultura Regenerativa',
-      user: 'Dra. Camila Nogueira',
-      kit: '3/6 Anexados',
-      status: 'rascunho',
-      link: '/projetos/form-programa-epe',
-      docs: [
-        'Proposta de Criação do Programa (Validado)',
-        'Plano de Trabalho e Metas Trienais (Validado)',
-        'Termo de Compromisso da Coordenação (Validado)',
-        'FALTANDO: Parecer Departamental',
-        'FALTANDO: Termos de Parceria com Patrocinadores',
-        'FALTANDO: Previsão Orçamentária Trienal',
-      ],
-    },
-    {
-      id: 'PRJ-2026/031',
-      formName: 'Plano de Trabalho',
-      projectTitle: 'Adequação de Infraestrutura e Logística em Ensaios de Campo',
-      user: 'Dr. Carlos Eduardo Silva',
-      kit: '3/3 Anexados',
-      status: 'finalizada',
-      link: '/projetos/form-trabalho',
-      docs: [
-        'Cronograma Físico-Financeiro (Validado)',
-        'Quadro de Metas e Entregas (Validado)',
-        'Parecer de Conformidade FEALQ (Validado)',
-      ],
-    },
-  ];
+  const [pendingRequests, setPendingRequests] = useState<ProjetoRequest[]>([]);
+  const [erro, setErro] = useState('');
+
+  useEffect(() => {
+    let ativo = true;
+    fetch('/api/processos?categoria=projeto', { credentials: 'same-origin' })
+      .then(async (resposta) => {
+        if (!resposta.ok) throw new Error('Não foi possível carregar os processos.');
+        return resposta.json() as Promise<Array<{
+          id: string; protocolo: string; formulario_nome: string; formulario_rota: string;
+          titulo: string; solicitante_nome: string; status: string;
+          documentos_anexados: number; documentos_total: number;
+          documentos: DocumentoDoProcesso[];
+        }>>;
+      })
+      .then((processos) => {
+        if (!ativo) return;
+        setPendingRequests(processos.map((processo) => ({
+          id: processo.protocolo,
+          formName: processo.formulario_nome,
+          projectTitle: processo.titulo,
+          user: processo.solicitante_nome,
+          kit: `${processo.documentos_anexados}/${processo.documentos_total} Concluídos`,
+          status: ['finalizada', 'enviado', 'aprovado'].includes(processo.status) ? 'finalizada' : processo.status === 'rascunho' ? 'rascunho' : 'pendente',
+          link: processo.formulario_rota ? `${processo.formulario_rota}?processo=${processo.id}` : '/projetos',
+          docs: formatarDocumentosDoProcesso(processo.documentos),
+        })));
+      })
+      .catch((falha: unknown) => { if (ativo) setErro(falha instanceof Error ? falha.message : 'Não foi possível carregar os processos.'); });
+    return () => { ativo = false; };
+  }, []);
 
   const filtered = pendingRequests.filter((item) => {
     const matchesStatus = statusFilter === 'todos' || item.status === statusFilter;
@@ -129,13 +62,14 @@ export const PainelSolicitacoesProjetos = () => {
     return matchesStatus && matchesSearch;
   });
 
-  const countRascunho = pendingRequests.filter((p) => p.status === 'rascunho').length + 4; // realistic mock volume
+  const countRascunho = pendingRequests.filter((p) => p.status === 'rascunho').length;
   const countPendente = pendingRequests.filter((p) => p.status === 'pendente').length;
-  const countFinalizada = pendingRequests.filter((p) => p.status === 'finalizada').length + 8;
+  const countFinalizada = pendingRequests.filter((p) => p.status === 'finalizada').length;
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       <main className="flex-1 p-xl overflow-auto flex flex-col gap-xl">
+        {erro && <p role="alert" className="rounded border border-error bg-red-50 p-sm text-sm text-error">{erro}</p>}
         {/* Header with Title and Quick Action */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>

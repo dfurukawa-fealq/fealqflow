@@ -1,12 +1,15 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
+import { FormActionButton } from '../../components/form/FormActionButton';
 import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
 import { StatusCard } from '../../components/form/StatusCard';
 import { KitDocumental } from '../../components/KitDocumental';
 import { DocumentoExigido } from '../../data/programasApoio';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
+import { useProcesso } from '../../contexts/ProcessoContext';
 import { buscarEnderecoPorCep } from '../../utils/cep';
 import { formatCEP, formatCPF } from '../../utils/formatters';
 
@@ -37,89 +40,90 @@ interface LoteInscricao {
 }
 
 export const AberturaCursoEvento: React.FC = () => {
+  const processoAtual = useProcesso();
   const { protocolId, gerarUrlVinculada, statusFormulario, registrarAberturaFormulario, marcarFormularioConcluido } = useRastreabilidade();
   const statusPlanoRecursos = statusFormulario('CONV-PL-01');
   const urlPlanoRecursos = gerarUrlVinculada('/projetos/form-plano-recursos', 'CONV-PL-01', 'Plano de Aplicação de Recursos');
 
   // --- SEÇÃO 1: INFORMAÇÕES SOBRE O PROJETO / CONVÊNIO USP ---
-  const [possuiConvenio, setPossuiConvenio] = useState<'sim' | 'nao'>('nao');
-  const [numConvenioUSP, setNumConvenioUSP] = useState('');
-  const [numProtocoloUSP, setNumProtocoloUSP] = useState('');
+  const [possuiConvenio, setPossuiConvenio] = useProcessoState<'sim' | 'nao'>('possuiConvenio', 'nao');
+  const [numConvenioUSP, setNumConvenioUSP] = useProcessoState('numConvenioUSP', '');
+  const [numProtocoloUSP, setNumProtocoloUSP] = useProcessoState('numProtocoloUSP', '');
 
   // --- SEÇÃO 2: DADOS DO PROJETO ---
-  const [titulo, setTitulo] = useState('');
-  const [edicao, setEdicao] = useState('');
-  const [tipoEvento, setTipoEvento] = useState('Simpósio');
-  const [publicoAlvo, setPublicoAlvo] = useState('');
-  const [cargaHoraria, setCargaHoraria] = useState('');
-  const [numeroVagas, setNumeroVagas] = useState('');
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
-  const [horarioRealizacao, setHorarioRealizacao] = useState('');
-  const [formato, setFormato] = useState<'Presencial' | 'Online (Síncrono)' | 'Online (Assíncrono)' | 'Híbrido'>('Presencial');
+  const [titulo, setTitulo] = useProcessoState('titulo', '');
+  const [edicao, setEdicao] = useProcessoState('edicao', '');
+  const [tipoEvento, setTipoEvento] = useProcessoState('tipoEvento', 'Simpósio');
+  const [publicoAlvo, setPublicoAlvo] = useProcessoState('publicoAlvo', '');
+  const [cargaHoraria, setCargaHoraria] = useProcessoState('cargaHoraria', '');
+  const [numeroVagas, setNumeroVagas] = useProcessoState('numeroVagas', '');
+  const [dataInicio, setDataInicio] = useProcessoState('dataInicio', '');
+  const [dataFim, setDataFim] = useProcessoState('dataFim', '');
+  const [horarioRealizacao, setHorarioRealizacao] = useProcessoState('horarioRealizacao', '');
+  const [formato, setFormato] = useProcessoState<'Presencial' | 'Online (Síncrono)' | 'Online (Assíncrono)' | 'Híbrido'>('formato', 'Presencial');
   
   // Endereço / CEP (para Presencial e Híbrido)
-  const [cep, setCep] = useState('');
+  const [cep, setCep] = useProcessoState('cep', '');
   const [buscandoCep, setBuscandoCep] = useState(false);
-  const [logradouro, setLogradouro] = useState('');
-  const [numeroEndereco, setNumeroEndereco] = useState('');
-  const [complemento, setComplemento] = useState('');
-  const [bairro, setBairro] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [uf, setUf] = useState('');
-  const [localAuditorio, setLocalAuditorio] = useState('');
+  const [logradouro, setLogradouro] = useProcessoState('logradouro', '');
+  const [numeroEndereco, setNumeroEndereco] = useProcessoState('numeroEndereco', '');
+  const [complemento, setComplemento] = useProcessoState('complemento', '');
+  const [bairro, setBairro] = useProcessoState('bairro', '');
+  const [cidade, setCidade] = useProcessoState('cidade', '');
+  const [uf, setUf] = useProcessoState('uf', '');
+  const [localAuditorio, setLocalAuditorio] = useProcessoState('localAuditorio', '');
 
   // Plataforma Doity / FEALQ (para Online e Híbrido)
-  const [utilizaDoity, setUtilizaDoity] = useState<'sim' | 'nao'>('sim');
+  const [utilizaDoity, setUtilizaDoity] = useProcessoState<'sim' | 'nao'>('utilizaDoity', 'sim');
 
   // Objeto do Projeto
-  const [objetoProjeto, setObjetoProjeto] = useState('');
+  const [objetoProjeto, setObjetoProjeto] = useProcessoState('objetoProjeto', '');
 
   // --- SEÇÃO 3: EQUIPE DO PROJETO ---
-  const [coordNome, setCoordNome] = useState('');
-  const [coordCpf, setCoordCpf] = useState('');
-  const [coordRg, setCoordRg] = useState('');
-  const [coordEmail, setCoordEmail] = useState('');
-  const [coordDepto, setCoordDepto] = useState('');
-  const [coordTelefone, setCoordTelefone] = useState('');
+  const [coordNome, setCoordNome] = useProcessoState('coordNome', '');
+  const [coordCpf, setCoordCpf] = useProcessoState('coordCpf', '');
+  const [coordRg, setCoordRg] = useProcessoState('coordRg', '');
+  const [coordEmail, setCoordEmail] = useProcessoState('coordEmail', '');
+  const [coordDepto, setCoordDepto] = useProcessoState('coordDepto', '');
+  const [coordTelefone, setCoordTelefone] = useProcessoState('coordTelefone', '');
 
   // Delegados de Gestão (Conveniar / USP)
-  const [delegados, setDelegados] = useState<Delegado[]>([
+  const [delegados, setDelegados] = useProcessoState<Delegado[]>('delegados', [
     { id: 'inicial', nome: '', cpf: '', telefone: '', email: '', nivelAcesso: 'Nivel 2 - Criador' },
   ]);
 
   // Equipe Técnica / Comissão de Apoio
-  const [equipeTecnica, setEquipeTecnica] = useState<MembroEquipe[]>([
+  const [equipeTecnica, setEquipeTecnica] = useProcessoState<MembroEquipe[]>('equipeTecnica', [
     { id: 'inicial', nome: '', departamento: '', telefone: '', email: '' },
   ]);
 
   // --- SEÇÃO 4: INSTITUIÇÕES ENVOLVIDAS (IN COMPANY & PATROCÍNIO) ---
-  const [inCompany, setInCompany] = useState<'sim' | 'nao'>('nao');
-  const [inCompanyValor, setInCompanyValor] = useState('');
-  const [inCompanyEmpresa, setInCompanyEmpresa] = useState('');
-  const [inCompanyContato, setInCompanyContato] = useState('');
-  const [inCompanyEmail, setInCompanyEmail] = useState('');
-  const [inCompanyOrigem, setInCompanyOrigem] = useState('Recurso Privado');
+  const [inCompany, setInCompany] = useProcessoState<'sim' | 'nao'>('inCompany', 'nao');
+  const [inCompanyValor, setInCompanyValor] = useProcessoState('inCompanyValor', '');
+  const [inCompanyEmpresa, setInCompanyEmpresa] = useProcessoState('inCompanyEmpresa', '');
+  const [inCompanyContato, setInCompanyContato] = useProcessoState('inCompanyContato', '');
+  const [inCompanyEmail, setInCompanyEmail] = useProcessoState('inCompanyEmail', '');
+  const [inCompanyOrigem, setInCompanyOrigem] = useProcessoState('inCompanyOrigem', 'Recurso Privado');
   const [linkParceiroCopiado, setLinkParceiroCopiado] = useState(false);
   const [emailParceiroEnviado, setEmailParceiroEnviado] = useState(false);
 
-  const [patrocinio, setPatrocinio] = useState<'sim' | 'nao'>('nao');
+  const [patrocinio, setPatrocinio] = useProcessoState<'sim' | 'nao'>('patrocinio', 'nao');
   const [linkPatrocinadorCopiado, setLinkPatrocinadorCopiado] = useState(false);
 
   // --- SEÇÃO 5: EXECUÇÃO DO PROJETO (VALORES & INSCRIÇÕES) ---
-  const [tipoInscricao, setTipoInscricao] = useState<'gratuito' | 'pago'>('pago');
-  const [vagasGratuitas, setVagasGratuitas] = useState('');
-  const [lotes, setLotes] = useState<LoteInscricao[]>([
+  const [tipoInscricao, setTipoInscricao] = useProcessoState<'gratuito' | 'pago'>('tipoInscricao', 'pago');
+  const [vagasGratuitas, setVagasGratuitas] = useProcessoState('vagasGratuitas', '');
+  const [lotes, setLotes] = useProcessoState<LoteInscricao[]>('lotes', [
     { id: 'inicial', descricao: '', valor: 0, vagas: 0, dataInicio: '', dataFim: '' },
   ]);
-  const [investimentoTexto, setInvestimentoTexto] = useState('');
-  const [informacoesAdicionais, setInformacoesAdicionais] = useState('');
+  const [investimentoTexto, setInvestimentoTexto] = useProcessoState('investimentoTexto', '');
+  const [informacoesAdicionais, setInformacoesAdicionais] = useProcessoState('informacoesAdicionais', '');
 
   // --- SEÇÃO 6: CIÊNCIA E CONCORDÂNCIA DO DEPARTAMENTO (USP) ---
-  const [deptoNome, setDeptoNome] = useState('');
-  const [aprovacaoDepto, setAprovacaoDepto] = useState<'conselho' | 'ad_referendum'>('conselho');
-  const [dataAprovacaoConselho, setDataAprovacaoConselho] = useState('');
-  const [isencaoTaxaDepto, setIsencaoTaxaDepto] = useState<'sim' | 'nao'>('nao');
+  const [deptoNome, setDeptoNome] = useProcessoState('deptoNome', '');
+  const [aprovacaoDepto, setAprovacaoDepto] = useProcessoState<'conselho' | 'ad_referendum'>('aprovacaoDepto', 'conselho');
+  const [dataAprovacaoConselho, setDataAprovacaoConselho] = useProcessoState('dataAprovacaoConselho', '');
+  const [isencaoTaxaDepto, setIsencaoTaxaDepto] = useProcessoState<'sim' | 'nao'>('isencaoTaxaDepto', 'nao');
 
   // --- ACEITES E LGPD ---
   const [modalLGPDOpen, setModalLGPDOpen] = useState(false);
@@ -488,20 +492,7 @@ export const AberturaCursoEvento: React.FC = () => {
       acaoPrincipal="Submeter Protocolo de Evento"
       podeEnviar={podeSubmeter}
       aoSubmeter={handleSubmit}
-      botoesAcoes={
-        <div className="flex items-center gap-xs">
-          <button
-            type="button"
-            onClick={() => setModalPDFOpen(true)}
-            className="px-md h-[36px] rounded border border-outline text-on-surface text-[13px] font-medium hover:bg-surface-container-low transition-colors flex items-center gap-xs"
-            title="Gerar PDF para assinatura do Coordenador e Chefe de Depto"
-          >
-            <span className="material-symbols-outlined text-[18px] text-primary">picture_as_pdf</span>
-            <span className="sr-only sm:not-sr-only">PDF</span>
-            <span className="hidden sm:inline">Gerar PDF de Assinatura</span>
-          </button>
-        </div>
-      }
+      botoesAcoes={<FormActionButton texto="Gerar PDF de Assinatura" icone="picture_as_pdf" type="button" onClick={() => setModalPDFOpen(true)} title="Gerar PDF para assinatura do Coordenador e Chefe de Depto" />}
       sidebar={
         <div className="flex flex-col gap-lg">
           {/* Box de Rastreabilidade e Protocolo da Sessão */}
@@ -509,8 +500,8 @@ export const AberturaCursoEvento: React.FC = () => {
             <div className="flex items-center gap-xs">
               <span className="material-symbols-outlined text-[18px] text-primary">share_location</span>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant block leading-tight">Protocolo da Sessão</span>
-                <span className="text-[13px] font-bold text-primary font-mono leading-tight">{protocolId}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant block leading-tight">Processo</span>
+                <span className="text-[13px] font-bold text-primary font-mono leading-tight">{processoAtual?.processo.protocolo ?? protocolId}</span>
               </div>
             </div>
             <span className="text-[10px] bg-secondary-fixed text-on-secondary-fixed font-bold px-xs py-[2px] rounded uppercase flex items-center gap-1">

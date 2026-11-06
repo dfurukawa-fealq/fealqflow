@@ -13,7 +13,6 @@ import {
   AberturaCurso,
   AberturaPublicacao,
   ProjetoPesquisa,
-  ProjetoPesquisaV2,
   PlanoTrabalho,
   CadastroPatrocinador,
   CadastroParceiro,
@@ -45,9 +44,12 @@ import {
 
 import { HistoricoPendencias } from './pages/HistoricoPendencias';
 import { RastreabilidadeProvider } from './contexts/RastreabilidadeContext';
+import { ProcessoRoute } from './contexts/ProcessoContext';
 import { AdminProvider } from './contexts/AdminContext';
 import { UserProvider } from './contexts/UserContext';
 import { RequireAdmin } from './components/auth/RequireAdmin';
+import { RequireArea } from './components/auth/RequireArea';
+import { RequireSessao } from './components/auth/RequireSessao';
 import { AdminLogin } from './pages/admin/AdminLogin';
 import { GestaoFormularios } from './pages/admin/GestaoFormularios';
 import { GestaoDocumentos } from './pages/admin/GestaoDocumentos';
@@ -68,31 +70,31 @@ export default function App() {
             <Routes>
             {/* Default root routes to Programas de Apoio requests panel as specified */}
             <Route path="/" element={<Home />} />
-            <Route path="/historico" element={<HistoricoPendencias />} />
+            <Route path="/historico" element={<RequireSessao><HistoricoPendencias /></RequireSessao>} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/formularios" element={<RequireAdmin><GestaoFormularios /></RequireAdmin>} />
             <Route path="/admin/documentos" element={<RequireAdmin><GestaoDocumentos /></RequireAdmin>} />
             <Route path="/admin/usuarios" element={<RequireAdmin><GestaoUsuarios /></RequireAdmin>} />
 
             {/* Projetos Routes */}
-            <Route path="/projetos/painel" element={<PainelSolicitacoesProjetos />} />
+            <Route path="/projetos/painel" element={<RequireSessao><RequireArea area="projeto"><PainelSolicitacoesProjetos /></RequireArea></RequireSessao>} />
             <Route path="/projetos/solicitacoes" element={<Navigate to="/projetos/painel" replace />} />
-            <Route path="/projetos" element={<ProjetosPage />} />
-            <Route path="/projetos/form-coordenador" element={<CadastroCoordenador />} />
-            <Route path="/projetos/form-curso" element={<AberturaCurso />} />
-            <Route path="/projetos/form-evento" element={<AberturaCurso />} />
-            <Route path="/projetos/form-curso-evento" element={<AberturaCurso />} />
-            <Route path="/projetos/form-publicacao" element={<AberturaPublicacao />} />
-            <Route path="/projetos/form-pesquisa" element={<ProjetoPesquisa />} />
-            <Route path="/projetos/form-pesquisa-v2" element={<ProjetoPesquisaV2 />} />
-            <Route path="/projetos/form-trabalho" element={<PlanoTrabalho />} />
-            <Route path="/projetos/form-patrocinador" element={<CadastroPatrocinador />} />
-            <Route path="/projetos/form-parceiro" element={<CadastroParceiro />} />
-            <Route path="/projetos/form-cotas" element={<CotasPatrocinio />} />
-            <Route path="/projetos/form-financiadora" element={<CadastroFinanciadora />} />
-            <Route path="/projetos/form-plano-recursos" element={<PlanoAplicacaoRecursos />} />
-            <Route path="/projetos/form-programa-epe" element={<AberturaProgramaEPE />} />
-            <Route path="/projetos/form-central" element={<CentralMultiusuario />} />
+            <Route path="/projetos" element={<RequireArea area="projeto"><ProjetosPage /></RequireArea>} />
+            <Route path="/projetos/form-coordenador" element={<ProcessoRoute><CadastroCoordenador /></ProcessoRoute>} />
+            <Route path="/projetos/form-curso" element={<ProcessoRoute><AberturaCurso /></ProcessoRoute>} />
+            <Route path="/projetos/form-evento" element={<ProcessoRoute><AberturaCurso /></ProcessoRoute>} />
+            <Route path="/projetos/form-curso-evento" element={<ProcessoRoute><AberturaCurso /></ProcessoRoute>} />
+            <Route path="/projetos/form-publicacao" element={<ProcessoRoute><AberturaPublicacao /></ProcessoRoute>} />
+            <Route path="/projetos/form-pesquisa" element={<ProcessoRoute><ProjetoPesquisa /></ProcessoRoute>} />
+            <Route path="/projetos/form-pesquisa-v2" element={<ProcessoRoute><ProjetoPesquisa /></ProcessoRoute>} />
+            <Route path="/projetos/form-trabalho" element={<ProcessoRoute><PlanoTrabalho /></ProcessoRoute>} />
+            <Route path="/projetos/form-patrocinador" element={<ProcessoRoute><CadastroPatrocinador /></ProcessoRoute>} />
+            <Route path="/projetos/form-parceiro" element={<ProcessoRoute><CadastroParceiro /></ProcessoRoute>} />
+            <Route path="/projetos/form-cotas" element={<ProcessoRoute><CotasPatrocinio /></ProcessoRoute>} />
+            <Route path="/projetos/form-financiadora" element={<ProcessoRoute><CadastroFinanciadora /></ProcessoRoute>} />
+            <Route path="/projetos/form-plano-recursos" element={<ProcessoRoute><PlanoAplicacaoRecursos /></ProcessoRoute>} />
+            <Route path="/projetos/form-programa-epe" element={<ProcessoRoute><AberturaProgramaEPE /></ProcessoRoute>} />
+            <Route path="/projetos/form-central" element={<ProcessoRoute><CentralMultiusuario /></ProcessoRoute>} />
             <Route path="/projetos/termo-lgpd" element={<TermoLGPDConfidencialidade />} />
             <Route path="/projetos/orientacoes-coordenador" element={<OrientacoesCoordenador />} />
             <Route path="/projetos/ciencia-departamento" element={<CienciaConcordanciaDepto />} />
@@ -121,19 +123,19 @@ export default function App() {
             <Route path="/form-central" element={<Navigate to="/projetos/form-central" replace />} />
 
             {/* Programas de Apoio Routes */}
-            <Route path="/programas-de-apoio/painel" element={<PainelSolicitacoesApoio />} />
+            <Route path="/programas-de-apoio/painel" element={<RequireSessao><RequireArea area="apoio"><PainelSolicitacoesApoio /></RequireArea></RequireSessao>} />
             <Route path="/programas-de-apoio/solicitacoes" element={<Navigate to="/programas-de-apoio/painel" replace />} />
-            <Route path="/programas-de-apoio" element={<ProgramasApoioPage />} />
+            <Route path="/programas-de-apoio" element={<RequireArea area="apoio"><ProgramasApoioPage /></RequireArea>} />
             <Route path="/programas" element={<Navigate to="/programas-de-apoio" replace />} />
-            <Route path="/programas-de-apoio/apoio-bolsa-pos" element={<BolsaPosGraduacao />} />
-            <Route path="/programas-de-apoio/apoio-bolsa-grad" element={<BolsaGraduacao />} />
-            <Route path="/programas-de-apoio/apoio-infra" element={<ApoioInfraestrutura />} />
-            <Route path="/programas-de-apoio/apoio-evento-trabalho" element={<ApresentacaoEvento />} />
-            <Route path="/programas-de-apoio/apoio-viagem" element={<AuxilioViagem />} />
-            <Route path="/programas-de-apoio/apoio-publicacao" element={<AuxilioPublicacao />} />
-            <Route path="/programas-de-apoio/apoio-comunidade" element={<InteresseComunidade />} />
-            <Route path="/programas-de-apoio/apoio-material-evento" element={<MaterialEventos />} />
-            <Route path="/programas-de-apoio/apoio-cultura" element={<CulturaExtensao />} />
+            <Route path="/programas-de-apoio/apoio-bolsa-pos" element={<ProcessoRoute><BolsaPosGraduacao /></ProcessoRoute>} />
+            <Route path="/programas-de-apoio/apoio-bolsa-grad" element={<ProcessoRoute><BolsaGraduacao /></ProcessoRoute>} />
+            <Route path="/programas-de-apoio/apoio-infra" element={<ProcessoRoute><ApoioInfraestrutura /></ProcessoRoute>} />
+            <Route path="/programas-de-apoio/apoio-evento-trabalho" element={<ProcessoRoute><ApresentacaoEvento /></ProcessoRoute>} />
+            <Route path="/programas-de-apoio/apoio-viagem" element={<ProcessoRoute><AuxilioViagem /></ProcessoRoute>} />
+            <Route path="/programas-de-apoio/apoio-publicacao" element={<ProcessoRoute><AuxilioPublicacao /></ProcessoRoute>} />
+            <Route path="/programas-de-apoio/apoio-comunidade" element={<ProcessoRoute><InteresseComunidade /></ProcessoRoute>} />
+            <Route path="/programas-de-apoio/apoio-material-evento" element={<ProcessoRoute><MaterialEventos /></ProcessoRoute>} />
+            <Route path="/programas-de-apoio/apoio-cultura" element={<ProcessoRoute><CulturaExtensao /></ProcessoRoute>} />
 
             {/* Legacy compatibility for direct /apoio-* */}
             <Route path="/apoio-bolsa-pos" element={<Navigate to="/programas-de-apoio/apoio-bolsa-pos" replace />} />

@@ -20,6 +20,8 @@ export interface DocumentoExigido {
   condicao?: string;
   acaoEmail?: { email: string; label: string };
   url_template?: string;
+  /** Identificador do documento oficial vinculado ao catálogo administrativo. */
+  documentoId?: string;
   /** Estado de preenchimento para formulários vinculados com rastreabilidade */
   status?: 'concluido' | 'pendente' | 'em_andamento';
   onAbrirLink?: () => void;

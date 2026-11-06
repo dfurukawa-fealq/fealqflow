@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import React, { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -13,27 +14,27 @@ export const CienciaConcordanciaDepto = () => {
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
   // Dados do Departamento e Aprovação
-  const [deptoNome, setDeptoNome] = useState(
+  const [deptoNome, setDeptoNome] = useProcessoState('deptoNome',
     sanitizeInputText(searchParams.get('depto')) || ''
   );
   const [modalidadeAprovacao, setModalidadeAprovacao] = useState<'conselho' | 'ad_referendum'>('conselho');
-  const [dataConselho, setDataConselho] = useState('');
-  const [isentaTaxa, setIsentaTaxa] = useState<'sim' | 'nao'>('nao');
-  const [observacoes, setObservacoes] = useState('');
+  const [dataConselho, setDataConselho] = useProcessoState('dataConselho', '');
+  const [isentaTaxa, setIsentaTaxa] = useProcessoState<'sim' | 'nao'>('isentaTaxa', 'nao');
+  const [observacoes, setObservacoes] = useProcessoState('observacoes', '');
 
   // Declarante / Assinador
-  const [nomeDeclarante] = useState(
+  const [nomeDeclarante] = useProcessoState('nomeDeclarante',
     sanitizeInputText(searchParams.get('declarante') || searchParams.get('coordenador')) || ''
   );
-  const [cargoDeclarante] = useState('Chefe de Departamento / Coordenador em Representação');
+  const [cargoDeclarante] = useProcessoState('cargoDeclarante', 'Chefe de Departamento / Coordenador em Representação');
 
   // Confirmação de Leitura e Ciência
-  const [declaracaoVerdade, setDeclaracaoVerdade] = useState(false);
-  const [confirmado, setConfirmado] = useState(statusFormulario('CERT-DEPTO-01') === 'concluido');
-  const [dataCertificacao, setDataCertificacao] = useState<string | null>(
+  const [declaracaoVerdade, setDeclaracaoVerdade] = useProcessoState('declaracaoVerdade', false);
+  const [confirmado, setConfirmado] = useProcessoState('confirmado', statusFormulario('CERT-DEPTO-01') === 'concluido');
+  const [dataCertificacao, setDataCertificacao] = useProcessoState<string | null>('dataCertificacao',
     statusFormulario('CERT-DEPTO-01') === 'concluido' ? new Date().toLocaleDateString('pt-BR') : null
   );
-  const [horaCertificacao, setHoraCertificacao] = useState<string | null>(
+  const [horaCertificacao, setHoraCertificacao] = useProcessoState<string | null>('horaCertificacao',
     statusFormulario('CERT-DEPTO-01') === 'concluido' ? new Date().toLocaleTimeString('pt-BR') : null
   );
 
@@ -67,7 +68,8 @@ export const CienciaConcordanciaDepto = () => {
 
   const rawProtocolo = searchParams.get('protocolo');
   const protocoloUrlParam = rawProtocolo ? sanitizeProtocolId(rawProtocolo) : protocolId;
-  const linkRetorno = getSafeReturnUrl(`/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}`);
+  const processoPai = searchParams.get('processo_pai');
+  const linkRetorno = getSafeReturnUrl(`/projetos/form-curso?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}`);
 
   const podeConfirmar =
     declaracaoVerdade &&

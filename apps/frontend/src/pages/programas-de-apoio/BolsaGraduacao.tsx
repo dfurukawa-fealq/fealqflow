@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useState } from 'react';
 import { getPrograma } from '../../data/programasApoio';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -11,28 +12,28 @@ const programa = getPrograma('bolsa-graduacao');
 
 export function BolsaGraduacao() {
   // Aluno
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [rg, setRg] = useState('');
-  const [numUsp, setNumUsp] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [curso, setCurso] = useState('');
-  const [semestre, setSemestre] = useState('5º Semestre');
+  const [nome, setNome] = useProcessoState('nome', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [rg, setRg] = useProcessoState('rg', '');
+  const [numUsp, setNumUsp] = useProcessoState('numUsp', '');
+  const [email, setEmail] = useProcessoState('email', '');
+  const [telefone, setTelefone] = useProcessoState('telefone', '');
+  const [curso, setCurso] = useProcessoState('curso', '');
+  const [semestre, setSemestre] = useProcessoState('semestre', '5º Semestre');
 
   // Orientador
-  const [orientador, setOrientador] = useState('');
-  const [orientadorCpf, setOrientadorCpf] = useState('');
-  const [orientadorEmail, setOrientadorEmail] = useState('');
-  const [departamento, setDepartamento] = useState('');
-  const [projetoGuardaChuva, setProjetoGuardaChuva] = useState('');
+  const [orientador, setOrientador] = useProcessoState('orientador', '');
+  const [orientadorCpf, setOrientadorCpf] = useProcessoState('orientadorCpf', '');
+  const [orientadorEmail, setOrientadorEmail] = useProcessoState('orientadorEmail', '');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
+  const [projetoGuardaChuva, setProjetoGuardaChuva] = useProcessoState('projetoGuardaChuva', '');
 
   // Plano
-  const [tituloPlano, setTituloPlano] = useState('');
-  const [resumoPlano, setResumoPlano] = useState('');
-  const [inicioBolsa, setInicioBolsa] = useState('');
-  const [fimBolsa, setFimBolsa] = useState('');
-  const [cargaHoraria, setCargaHoraria] = useState('20h semanais');
+  const [tituloPlano, setTituloPlano] = useProcessoState('tituloPlano', '');
+  const [resumoPlano, setResumoPlano] = useProcessoState('resumoPlano', '');
+  const [inicioBolsa, setInicioBolsa] = useProcessoState('inicioBolsa', '');
+  const [fimBolsa, setFimBolsa] = useProcessoState('fimBolsa', '');
+  const [cargaHoraria, setCargaHoraria] = useProcessoState('cargaHoraria', '20h semanais');
 
   const [submetido, setSubmetido] = useState(false);
 

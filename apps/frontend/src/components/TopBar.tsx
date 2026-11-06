@@ -7,10 +7,10 @@ import { Link } from 'react-router-dom';
  */
 export const TopBar = ({ title = '' }: { title?: string }) => {
   return (
-    <header className="bg-surface border-b border-outline-variant flex justify-between items-center gap-md h-[36px] px-xl sticky top-0 z-30">
+    <header className="bg-surface border-b border-outline-variant flex min-w-0 items-center justify-center gap-sm h-[36px] px-sm sm:px-md lg:px-xl sticky top-0 z-30">
       
       {/* 1. Lado Esquerdo (Título / Busca) */}
-      <div className="flex items-center gap-md min-w-0 flex-1">
+      <div className="hidden min-w-0 flex-1 items-center gap-md sm:flex">
         {title && (
           <span className="text-[13px] font-bold text-primary truncate">
             {title}
@@ -19,15 +19,16 @@ export const TopBar = ({ title = '' }: { title?: string }) => {
       </div>
 
       {/* 2. Centro (Alerta Centralizado Integrado) */}
-      <div className="flex items-center justify-center gap-2 bg-[#F17C58] text-white text-xs px-3 h-[26px] rounded-md shadow-xs whitespace-nowrap">
-        <span className="material-symbols-outlined text-[16px]">warning</span>
-        <span>
+      <div className="flex min-w-0 max-w-full items-center justify-center gap-2 bg-[#F17C58] text-white text-xs px-3 h-[26px] rounded-md shadow-xs">
+        <span className="material-symbols-outlined shrink-0 text-[16px]">warning</span>
+        <span className="min-w-0 truncate sm:hidden">Envio bloqueado: regularize as pendências.</span>
+        <span className="hidden min-w-0 truncate sm:inline">
           <strong>Trava de Envio Ativa:</strong> O sistema bloqueia envios incompletos. Regularize as pendências abaixo.
         </span>
       </div>
 
       {/* 3. Lado Direito (Ações / Ações do Usuário) */}
-      <div className="flex items-center justify-end gap-md flex-1">
+      <div className="hidden min-w-0 flex-1 items-center justify-end gap-md sm:flex">
         {/* Mantido flex-1 para garantir o alinhamento central correto do aviso */}
       </div>  
       {/* <div className="flex items-center gap-md min-w-0">

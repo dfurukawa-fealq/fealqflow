@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useState } from 'react';
 import { getPrograma } from '../../data/programasApoio';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -11,29 +12,29 @@ const programa = getPrograma('bolsa-pos');
 
 export function BolsaPosGraduacao() {
   // Aluno
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [rg, setRg] = useState('');
-  const [numUsp, setNumUsp] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [nivel, setNivel] = useState('Mestrado');
-  const [ppg, setPpg] = useState('');
-  const [anoIngresso, setAnoIngresso] = useState('2024');
+  const [nome, setNome] = useProcessoState('nome', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [rg, setRg] = useProcessoState('rg', '');
+  const [numUsp, setNumUsp] = useProcessoState('numUsp', '');
+  const [email, setEmail] = useProcessoState('email', '');
+  const [telefone, setTelefone] = useProcessoState('telefone', '');
+  const [nivel, setNivel] = useProcessoState('nivel', 'Mestrado');
+  const [ppg, setPpg] = useProcessoState('ppg', '');
+  const [anoIngresso, setAnoIngresso] = useProcessoState('anoIngresso', '2024');
 
   // Orientador
-  const [orientador, setOrientador] = useState('');
-  const [orientadorCpf, setOrientadorCpf] = useState('');
-  const [orientadorEmail, setOrientadorEmail] = useState('');
-  const [departamento, setDepartamento] = useState('');
+  const [orientador, setOrientador] = useProcessoState('orientador', '');
+  const [orientadorCpf, setOrientadorCpf] = useProcessoState('orientadorCpf', '');
+  const [orientadorEmail, setOrientadorEmail] = useProcessoState('orientadorEmail', '');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
 
   // Pesquisa e Vigência
-  const [tituloPesquisa, setTituloPesquisa] = useState('');
-  const [resumoPesquisa, setResumoPesquisa] = useState('');
-  const [finalidadeConcessao, setFinalidadeConcessao] = useState('Início de Curso (Até 3 meses)');
-  const [inicioBolsa, setInicioBolsa] = useState('');
-  const [fimBolsa, setFimBolsa] = useState('');
-  const [valorMensal, setValorMensal] = useState('');
+  const [tituloPesquisa, setTituloPesquisa] = useProcessoState('tituloPesquisa', '');
+  const [resumoPesquisa, setResumoPesquisa] = useProcessoState('resumoPesquisa', '');
+  const [finalidadeConcessao, setFinalidadeConcessao] = useProcessoState('finalidadeConcessao', 'Início de Curso (Até 3 meses)');
+  const [inicioBolsa, setInicioBolsa] = useProcessoState('inicioBolsa', '');
+  const [fimBolsa, setFimBolsa] = useProcessoState('fimBolsa', '');
+  const [valorMensal, setValorMensal] = useProcessoState('valorMensal', '');
 
   const [submetido, setSubmetido] = useState(false);
 
@@ -261,7 +262,7 @@ export function BolsaPosGraduacao() {
             onChange={setTituloPesquisa}
           />
           <div className="col-span-12">
-            <div className="flex items-center justify-between mb-xs">
+            <div className="mb-xs flex flex-wrap items-center justify-between gap-xs">
               <label className="block text-on-surface-variant text-[11px] font-bold uppercase tracking-wide">
                 Resumo do Projeto & Justificativa do Recurso
               </label>

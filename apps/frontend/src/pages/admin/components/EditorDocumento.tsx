@@ -1,5 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent } from 'react';
-import { renderAsync } from 'docx-preview';
+import { useLayoutEffect, useRef, useState, type ClipboardEvent } from 'react';
+import { ModeloDocxPreview } from './ModeloDocxPreview';
+import { importarConteudoDocumento } from './importarConteudoDocumento';
 
 interface EditorDocumentoProps {
   titulo: string;
@@ -8,7 +9,7 @@ interface EditorDocumentoProps {
   aoAlterar: (valor: string) => void;
 }
 
-const tagsPermitidas = new Set(['P', 'BR', 'STRONG', 'B', 'EM', 'I', 'U', 'UL', 'OL', 'LI', 'H2', 'H3', 'BLOCKQUOTE']);
+const tagsPermitidas = new Set(['P', 'BR', 'STRONG', 'B', 'EM', 'I', 'U', 'UL', 'OL', 'LI', 'H2', 'H3', 'BLOCKQUOTE', 'SPAN', 'DIV']);
 const tagsDeBloco = new Set(['P', 'H2', 'H3', 'BLOCKQUOTE', 'LI']);
 
 export const limparHtmlDocumento = (html: string): string => {
@@ -19,17 +20,24 @@ export const limparHtmlDocumento = (html: string): string => {
     if (!(no instanceof HTMLElement)) return [];
 
     const tagOriginal = no.tagName;
-    const tag = tagOriginal === 'B' ? 'STRONG' : tagOriginal === 'I' ? 'EM' : tagOriginal === 'DIV' ? 'P' : tagOriginal;
+    const quebraPagina = tagOriginal === 'DIV' && no.dataset.pageBreak === 'true';
+    const tag = tagOriginal === 'B' ? 'STRONG' : tagOriginal === 'I' ? 'EM' : tagOriginal === 'DIV' ? (quebraPagina ? 'DIV' : 'P') : tagOriginal;
     const filhos = Array.from(no.childNodes).flatMap(limparNo);
     if (!tagsPermitidas.has(tag)) return filhos;
 
     const elemento = documento.createElement(tag.toLowerCase());
+    if (quebraPagina) {
+      elemento.dataset.pageBreak = 'true';
+      elemento.innerHTML = '<br />';
+      return [elemento];
+    }
     if (tagsDeBloco.has(tag)) {
       const alinhamento = no.style.textAlign;
       if (['left', 'center', 'right', 'justify'].includes(alinhamento)) {
         elemento.setAttribute('style', `text-align: ${alinhamento}`);
       }
     }
+    if (tag === 'SPAN' && no.style.fontSize) elemento.setAttribute('style', `font-size: ${no.style.fontSize}`);
     filhos.forEach((filho) => elemento.appendChild(filho));
     return [elemento];
   };
@@ -63,6 +71,14 @@ const botoesFormatacao = [
   { comando: 'justifyLeft', icone: 'format_align_left', titulo: 'Alinhar à esquerda' },
   { comando: 'justifyCenter', icone: 'format_align_center', titulo: 'Centralizar' },
   { comando: 'justifyRight', icone: 'format_align_right', titulo: 'Alinhar à direita' },
+];
+
+const tamanhosFonte = [
+  { valor: '12pt', rotulo: '12' },
+  { valor: '14pt', rotulo: '14' },
+  { valor: '16pt', rotulo: '16' },
+  { valor: '18pt', rotulo: '18' },
+  { valor: '24pt', rotulo: '24' },
 ];
 
 const camposPadrao = ['{NOME}', '{CPF}', '{EMAIL}', '{DATA}', '{CIDADE}', '{DIA}', '{MES}', '{ANO}', '{NACIONALIDADE}', '{NOME_DO_EVENTO_OU_GRUPO_PROJETOS_SOB_SUA_COORDENACAO}'];
@@ -101,72 +117,12 @@ const gerarHtmlPreview = (html: string, valores: Record<string, string>): string
 
 export const EditorDocumento = ({ titulo, modeloUrl, valor, aoAlterar }: EditorDocumentoProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
-  const previewModeloRef = useRef<HTMLDivElement>(null);
   const selecaoRef = useRef<Range | null>(null);
   const [novoCampo, setNovoCampo] = useState('');
   const [previewAberta, setPreviewAberta] = useState(false);
-  const [previewCarregado, setPreviewCarregado] = useState(false);
-  const [previewCarregando, setPreviewCarregando] = useState(false);
-  const [erroPreview, setErroPreview] = useState('');
+  const [importandoConteudo, setImportandoConteudo] = useState(false);
+  const [erroImportacao, setErroImportacao] = useState('');
   const [valoresPreview, setValoresPreview] = useState<Record<string, string>>(valoresIniciaisPreview);
-
-  useEffect(() => {
-    const container = previewModeloRef.current;
-    if (!previewAberta || !container) return;
-
-    let cancelado = false;
-    setPreviewCarregado(false);
-    setPreviewCarregando(true);
-    setErroPreview('');
-    container.replaceChildren();
-
-    const renderizarModelo = async () => {
-      try {
-        const resposta = await fetch(modeloUrl);
-        if (!resposta.ok) throw new Error(`O modelo DOCX não foi encontrado (${resposta.status}).`);
-        const arquivo = await resposta.blob();
-        await renderAsync(arquivo, container, container, {
-          className: 'fealq-word-preview',
-          inWrapper: true,
-          renderHeaders: true,
-          renderFooters: true,
-          useBase64URL: true,
-        });
-        if (!cancelado) setPreviewCarregado(true);
-      } catch (erro) {
-        if (!cancelado) setErroPreview(erro instanceof Error ? erro.message : 'Não foi possível renderizar o modelo DOCX.');
-      } finally {
-        if (!cancelado) setPreviewCarregando(false);
-      }
-    };
-
-    void renderizarModelo();
-    return () => { cancelado = true; };
-  }, [previewAberta, modeloUrl]);
-
-  useEffect(() => {
-    const container = previewModeloRef.current;
-    const corpo = container?.querySelector<HTMLElement>('section.fealq-word-preview article');
-    if (!previewAberta || !previewCarregado || !container || !corpo) return;
-
-    corpo.querySelector('.fealq-preview-conteudo')?.remove();
-    Array.from(corpo.children).forEach((elemento) => {
-      if (!elemento.textContent?.trim() && !elemento.querySelector('img, svg, table')) elemento.remove();
-    });
-
-    const conteudo = document.createElement('div');
-    conteudo.className = 'fealq-preview-conteudo';
-    conteudo.innerHTML = gerarHtmlPreview(valor, valoresPreview);
-    conteudo.style.fontFamily = 'inherit';
-    conteudo.style.fontSize = '11pt';
-    conteudo.style.lineHeight = '1.25';
-    conteudo.style.color = '#111827';
-    conteudo.querySelectorAll<HTMLElement>('p').forEach((paragrafo) => {
-      paragrafo.style.margin = '0 0 10pt';
-      paragrafo.style.minHeight = '1em';
-    });
-    corpo.appendChild(conteudo);
-  }, [previewAberta, previewCarregado, valor, valoresPreview]);
 
   const salvarSelecao = () => {
     const selecao = window.getSelection();
@@ -200,6 +156,41 @@ export const EditorDocumento = ({ titulo, modeloUrl, valor, aoAlterar }: EditorD
     if (editorRef.current) aoAlterar(normalizarMarcadoresDocumento(limparHtmlDocumento(editorRef.current.innerHTML)));
   };
 
+  const alterarTamanhoFonte = (tamanho: string) => {
+    focarNaSelecao();
+    document.execCommand('fontSize', false, '7');
+    editorRef.current?.querySelectorAll('font[size="7"]').forEach((fonte) => {
+      const span = document.createElement('span');
+      span.style.fontSize = tamanho;
+      span.innerHTML = fonte.innerHTML;
+      fonte.replaceWith(span);
+    });
+    if (editorRef.current) aoAlterar(normalizarMarcadoresDocumento(limparHtmlDocumento(editorRef.current.innerHTML)));
+  };
+
+  const inserirQuebraPagina = () => {
+    focarNaSelecao();
+    document.execCommand('insertHTML', false, '<div data-page-break="true"><br /></div>');
+    if (editorRef.current) aoAlterar(normalizarMarcadoresDocumento(limparHtmlDocumento(editorRef.current.innerHTML)));
+  };
+
+  const importarConteudo = async (arquivo: File) => {
+    setImportandoConteudo(true);
+    setErroImportacao('');
+    try {
+      const conteudoImportado = await importarConteudoDocumento(arquivo);
+      const conteudoAtual = valor.trim();
+      const novoConteudo = conteudoAtual
+        ? `${conteudoAtual}<div data-page-break="true"><br /></div>${conteudoImportado}`
+        : conteudoImportado;
+      aoAlterar(normalizarMarcadoresDocumento(limparHtmlDocumento(novoConteudo)));
+    } catch (falha) {
+      setErroImportacao(falha instanceof Error ? falha.message : 'Não foi possível importar o conteúdo.');
+    } finally {
+      setImportandoConteudo(false);
+    }
+  };
+
   const inserirCampo = (campo: string) => {
     focarNaSelecao();
     document.execCommand('insertText', false, campo);
@@ -227,20 +218,26 @@ export const EditorDocumento = ({ titulo, modeloUrl, valor, aoAlterar }: EditorD
           <span className="material-symbols-outlined flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">description</span>
           <div>
             <h3 className="text-sm font-bold text-on-surface">Conteúdo do documento</h3>
-            <p className="text-xs text-on-surface-variant">Texto editável associado ao modelo institucional FEALQ</p>
+            <p className="text-xs text-on-surface-variant">Texto editável associado ao modelo DOCX selecionado</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor="importar-conteudo-documento" className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/10">
+            <span className="material-symbols-outlined text-[17px]">upload_file</span>
+            {importandoConteudo ? 'Importando...' : 'Importar conteúdo'}
+          </label>
+          <input id="importar-conteudo-documento" type="file" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="sr-only" disabled={importandoConteudo} onChange={(evento) => { const arquivo = evento.target.files?.[0]; evento.currentTarget.value = ''; if (arquivo) void importarConteudo(arquivo); }} />
           <button type="button" onClick={() => setPreviewAberta(true)} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-on-primary transition hover:bg-primary/90">
             <span className="material-symbols-outlined text-[17px]">visibility</span>
             Pré-visualizar
           </button>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary/10 px-3 py-1 text-xs font-semibold text-secondary">
             <span className="material-symbols-outlined text-[15px]">verified</span>
-            Modelo institucional
+            {modeloUrl ? 'Modelo DOCX selecionado' : 'Sem modelo DOCX'}
           </span>
         </div>
       </header>
+      {erroImportacao && <p role="alert" className="border-b border-error/30 bg-error/5 px-4 py-2 text-xs text-error">{erroImportacao}</p>}
 
       <div className="flex flex-col gap-3 border-b border-outline-variant bg-surface-container-low/60 p-3">
         <div className="flex flex-wrap items-center gap-1" role="toolbar" aria-label="Formatação do texto">
@@ -256,6 +253,10 @@ export const EditorDocumento = ({ titulo, modeloUrl, valor, aoAlterar }: EditorD
             <option value="H2">Título da seção</option>
             <option value="H3">Subtítulo</option>
             <option value="BLOCKQUOTE">Citação</option>
+          </select>
+          <label className="sr-only" htmlFor="tamanho-fonte-documento">Tamanho da fonte</label>
+          <select id="tamanho-fonte-documento" defaultValue="12pt" onMouseDown={salvarSelecao} onChange={(evento) => alterarTamanhoFonte(evento.target.value)} className="rounded-lg border border-outline-variant bg-surface-container-lowest px-2.5 py-2 text-xs font-medium text-on-surface focus:outline-primary">
+            {tamanhosFonte.map((tamanho) => <option key={tamanho.valor} value={tamanho.valor}>{tamanho.rotulo} pt</option>)}
           </select>
           <span className="mx-1 hidden h-7 border-l border-outline-variant sm:block" />
           {botoesFormatacao.map((botao) => (
@@ -277,6 +278,9 @@ export const EditorDocumento = ({ titulo, modeloUrl, valor, aoAlterar }: EditorD
           </button>
           <button type="button" title="Refazer" aria-label="Refazer" onMouseDown={(evento) => evento.preventDefault()} onClick={() => aplicarComando('redo')} className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-primary/10 hover:text-primary">
             <span className="material-symbols-outlined text-[19px]">redo</span>
+          </button>
+          <button type="button" title="Inserir quebra de página" aria-label="Inserir quebra de página" onMouseDown={(evento) => evento.preventDefault()} onClick={inserirQuebraPagina} className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-primary/10 hover:text-primary">
+            <span className="material-symbols-outlined text-[19px]">insert_page_break</span>
           </button>
         </div>
 
@@ -316,7 +320,7 @@ export const EditorDocumento = ({ titulo, modeloUrl, valor, aoAlterar }: EditorD
             onKeyUp={salvarSelecao}
             onBlur={salvarSelecao}
             onPaste={tratarColagem}
-            className="min-h-[390px] text-[15px] leading-7 text-slate-800 outline-none [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:pl-4 [&_h2]:mb-3 [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mb-2 [&_h3]:mt-5 [&_h3]:text-lg [&_h3]:font-semibold [&_li]:ml-6 [&_ol]:my-3 [&_ol]:list-decimal [&_p]:mb-3 [&_ul]:my-3 [&_ul]:list-disc"
+            className="min-h-[390px] text-[15px] leading-7 text-slate-800 outline-none [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:pl-4 [&_h2]:mb-3 [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mb-2 [&_h3]:mt-5 [&_h3]:text-lg [&_h3]:font-semibold [&_li]:ml-6 [&_ol]:my-3 [&_ol]:list-decimal [&_p]:mb-3 [&_ul]:my-3 [&_[data-page-break]]:my-8 [&_[data-page-break]]:h-8 [&_[data-page-break]]:border-y [&_[data-page-break]]:border-dashed [&_[data-page-break]]:border-slate-300"
           />
           {!valor.replace(/<[^>]*>/g, '').trim() && (
             <p className="pointer-events-none -mt-[390px] min-h-[390px] text-[15px] leading-7 text-slate-400">
@@ -336,8 +340,8 @@ export const EditorDocumento = ({ titulo, modeloUrl, valor, aoAlterar }: EditorD
           <section role="dialog" aria-modal="true" aria-labelledby="titulo-preview-documento" className="flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl">
             <header className="flex items-center justify-between gap-3 border-b border-outline-variant px-5 py-4">
               <div>
-                <h2 id="titulo-preview-documento" className="text-lg font-bold text-on-surface">Prévia do documento</h2>
-                <p className="text-xs text-on-surface-variant">Modelo timbrado original com o conteúdo e os dados de exemplo aplicados.</p>
+                <h2 id="titulo-preview-documento" className="text-lg font-bold text-on-surface">{titulo || 'Prévia do documento'}</h2>
+                <p className="text-xs text-on-surface-variant">{modeloUrl ? 'Modelo DOCX com o conteúdo e os dados de exemplo aplicados.' : 'Selecione um modelo DOCX para conferir a diagramação.'}</p>
               </div>
               <button type="button" onClick={() => setPreviewAberta(false)} aria-label="Fechar prévia" className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-low">
                 <span className="material-symbols-outlined">close</span>
@@ -360,11 +364,7 @@ export const EditorDocumento = ({ titulo, modeloUrl, valor, aoAlterar }: EditorD
                   ))}
                 </div>
               </aside>
-              <div className="relative min-h-[500px] overflow-auto bg-slate-200 p-2 sm:p-5">
-                {previewCarregando && <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-200/85 text-sm font-medium text-slate-700"><span className="material-symbols-outlined mr-2 animate-spin">progress_activity</span>Renderizando {titulo || 'documento'}...</div>}
-                {erroPreview && <div role="alert" className="m-4 rounded-xl border border-error/30 bg-white p-5 text-sm text-error">{erroPreview}<p className="mt-2 text-xs text-on-surface-variant">Verifique o endereço do modelo DOCX no cadastro do documento.</p></div>}
-                <div ref={previewModeloRef} aria-label="Prévia do modelo DOCX timbrado" />
-              </div>
+              <ModeloDocxPreview modeloUrl={modeloUrl} html={gerarHtmlPreview(valor, valoresPreview)} />
             </div>
           </section>
         </div>

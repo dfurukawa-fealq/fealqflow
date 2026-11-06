@@ -1,0 +1,136 @@
+{
+  "tables": [
+    {
+      "table_name": "PESSOA",
+      "description": "Entidade central que armazena todos os parceiros de negócios, financiadores, prestadores de serviço e membros de equipe (Pessoa Física ou Jurídica).",
+      "fields": [
+        {"name": "ID_PESSOA", "data_type": "INT (PK)", "description": "Identificador único da pessoa ou empresa no sistema."},
+        {"name": "TIPO_PESSOA", "data_type": "VARCHAR(2)", "description": "Identifica se é Pessoa Física (PF) ou Pessoa Jurídica (PJ)."},
+        {"name": "DOCUMENTO_PRINCIPAL", "data_type": "VARCHAR(20)", "description": "CPF para PF ou CNPJ para PJ."},
+        {"name": "DOCUMENTO_SECUNDARIO", "data_type": "VARCHAR(50)", "description": "RG com órgão emissor (PF) ou CNAE (PJ)."},
+        {"name": "NOME_RAZAO_SOCIAL", "data_type": "VARCHAR(255)", "description": "Razão Social (PJ) ou Nome Completo (PF)."},
+        {"name": "NOME_FANTASIA", "data_type": "VARCHAR(255)", "description": "Nome fantasia, apelido ou como gostaria de ser chamado."},
+        {"name": "ESTRANGEIRO_NIF", "data_type": "VARCHAR(50)", "description": "Número de Identificação Fiscal (exclusivo para estrangeiros)."},
+        {"name": "DATA_NASCIMENTO", "data_type": "DATE", "description": "Data de nascimento (para Pessoa Física)."},
+        {"name": "INSCRICAO_ESTADUAL", "data_type": "VARCHAR(50)", "description": "Inscrição Estadual ou indicativo de 'Isento'."},
+        {"name": "INSCRICAO_MUNICIPAL", "data_type": "VARCHAR(50)", "description": "Inscrição Municipal (necessário para prestadores de serviço)."},
+        {"name": "SITE", "data_type": "VARCHAR(255)", "description": "Website institucional da empresa ou pessoa."},
+        {"name": "EMAIL_PRINCIPAL", "data_type": "VARCHAR(255)", "description": "E-mail de contato principal."},
+        {"name": "TELEFONE_COMERCIAL", "data_type": "VARCHAR(20)", "description": "Número do telefone comercial."},
+        {"name": "TELEFONE_CELULAR", "data_type": "VARCHAR(20)", "description": "Número do celular / WhatsApp."}
+      ]
+    },
+    {
+      "table_name": "ENDERECO",
+      "description": "Armazena os endereços das entidades (Pessoa) ou locais de eventos/viagens.",
+      "fields": [
+        {"name": "ID_ENDERECO", "data_type": "INT (PK)", "description": "Identificador único do endereço."},
+        {"name": "ID_PESSOA", "data_type": "INT (FK)", "description": "Chave estrangeira relacionando o endereço à Pessoa (Nulo caso seja local de evento/destino)."},
+        {"name": "TIPO_ENDERECO", "data_type": "VARCHAR(50)", "description": "Categoria (Ex: Sede, Cobrança, Local de Evento, Destino Viagem)."},
+        {"name": "CEP", "data_type": "VARCHAR(15)", "description": "Código de Endereçamento Postal."},
+        {"name": "LOGRADOURO", "data_type": "VARCHAR(255)", "description": "Rua, avenida, praça, etc."},
+        {"name": "NUMERO", "data_type": "VARCHAR(20)", "description": "Número do logradouro."},
+        {"name": "COMPLEMENTO", "data_type": "VARCHAR(100)", "description": "Bloco, andar, sala, etc."},
+        {"name": "BAIRRO", "data_type": "VARCHAR(100)", "description": "Bairro do endereço."},
+        {"name": "CIDADE", "data_type": "VARCHAR(100)", "description": "Cidade do endereço."},
+        {"name": "ESTADO", "data_type": "VARCHAR(2)", "description": "Sigla da Unidade Federativa (UF)."},
+        {"name": "PAIS", "data_type": "VARCHAR(100)", "description": "País correspondente ao endereço."}
+      ]
+    },
+    {
+      "table_name": "PROGRAMA_APOIO_SOLICITACAO",
+      "description": "Tabela central para requisições do Programa de Apoios com vínculo ao solicitante e orientador.",
+      "fields": [
+        {"name": "ID_SOLICITACAO", "data_type": "INT (PK)", "description": "Identificador único da solicitação."},
+        {"name": "ID_PESSOA_SOLICITANTE", "data_type": "INT (FK)", "description": "Vínculo com a tabela PESSOA (Aluno, Docente, Pesquisador requisitante)."},
+        {"name": "ID_PESSOA_ORIENTADOR", "data_type": "INT (FK)", "description": "Vínculo com a tabela PESSOA (Docente Orientador ou Coordenador)."},
+        {"name": "INSTITUICAO_VINCULO", "data_type": "VARCHAR(150)", "description": "Unidade/Instituição parceira do solicitante."},
+        {"name": "DEPARTAMENTO", "data_type": "VARCHAR(150)", "description": "Departamento de origem."},
+        {"name": "LINHA_APOIO", "data_type": "VARCHAR(100)", "description": "Linha macro (Ensino, Pesquisa, Interesse da Comunidade, Cultura/Extensão)."},
+        {"name": "MODALIDADE_APOIO", "data_type": "VARCHAR(100)", "description": "Subcategoria (Bolsa Pós, Bolsa Graduação, Auxílio Viagem, etc.)."},
+        {"name": "VALOR_SOLICITADO", "data_type": "DECIMAL(15,2)", "description": "Montante financeiro pleiteado."},
+        {"name": "DATA_SOLICITACAO", "data_type": "DATE", "description": "Data de submissão do formulário."},
+        {"name": "STATUS_SOLICITACAO", "data_type": "VARCHAR(50)", "description": "Status do fluxo (Iniciada, Pendente, Aprovada, Rejeitada)."}
+      ]
+    },
+    {
+      "table_name": "DETALHES_BOLSA_ACADEMICA",
+      "description": "Extensão (1:1) com dados exclusivos para Bolsas Acadêmicas.",
+      "fields": [
+        {"name": "ID_DETALHES_BOLSA", "data_type": "INT (PK)", "description": "ID dos detalhes da bolsa."},
+        {"name": "ID_SOLICITACAO", "data_type": "INT (FK)", "description": "Vínculo com a tabela PROGRAMA_APOIO_SOLICITACAO."},
+        {"name": "NIVEL_VINCULO", "data_type": "VARCHAR(50)", "description": "Grau acadêmico (Graduação, Mestrado, Doutorado)."},
+        {"name": "RECEBE_BOLSA_EXTERNA", "data_type": "BOOLEAN", "description": "Flag indicando se recebe bolsa externa."},
+        {"name": "NOME_BOLSA_EXTERNA", "data_type": "VARCHAR(150)", "description": "Nome do fomento externo (FAPESP, CAPES)."},
+        {"name": "VALOR_BOLSA_EXTERNA", "data_type": "DECIMAL(15,2)", "description": "Valor nominal da bolsa externa."},
+        {"name": "VIGENCIA_BOLSA_EXTERNA", "data_type": "VARCHAR(100)", "description": "Vigência do benefício externo."},
+        {"name": "AVALIACAO_SOCIAL_DVATCOM", "data_type": "BOOLEAN", "description": "Indica se requer/passou por triagem social da DVATCOM."}
+      ]
+    },
+    {
+      "table_name": "DETALHES_VIAGEM_EVENTO",
+      "description": "Extensão (1:1) com dados para Auxílio Viagem e Apresentação em Eventos, com vínculo de endereço de destino.",
+      "fields": [
+        {"name": "ID_DETALHES_VIAGEM", "data_type": "INT (PK)", "description": "ID de viagem/evento."},
+        {"name": "ID_SOLICITACAO", "data_type": "INT (FK)", "description": "Vínculo com a tabela PROGRAMA_APOIO_SOLICITACAO."},
+        {"name": "ID_ENDERECO_DESTINO", "data_type": "INT (FK)", "description": "Vínculo com a tabela ENDERECO indicando local do evento ou viagem."},
+        {"name": "NOME_EVENTO", "data_type": "VARCHAR(255)", "description": "Nome do evento (se aplicável)."},
+        {"name": "DATA_VIAGEM", "data_type": "DATE", "description": "Data de início da viagem/evento."},
+        {"name": "FINALIDADE", "data_type": "TEXT", "description": "Objetivo do deslocamento ou participação."},
+        {"name": "FORMATO_APRESENTACAO", "data_type": "VARCHAR(50)", "description": "Formato (Pôster, Oral, Nenhum)."},
+        {"name": "TIPOS_CUSTEIO", "data_type": "VARCHAR(255)", "description": "Itens custeados (Passagem, Hospedagem, Inscrição)."}
+      ]
+    },
+    {
+      "table_name": "DETALHES_PUBLICACAO_ARTIGO",
+      "description": "Extensão (1:1) para solicitações de Taxas de Publicação.",
+      "fields": [
+        {"name": "ID_DETALHES_PUBLICACAO", "data_type": "INT (PK)", "description": "ID da publicação."},
+        {"name": "ID_SOLICITACAO", "data_type": "INT (FK)", "description": "Vínculo com a tabela PROGRAMA_APOIO_SOLICITACAO."},
+        {"name": "TITULO_ARTIGO", "data_type": "VARCHAR(255)", "description": "Título do artigo científico."},
+        {"name": "NOME_REVISTA", "data_type": "VARCHAR(150)", "description": "Periódico científico."},
+        {"name": "FATOR_IMPACTO", "data_type": "DECIMAL(8,4)", "description": "Fator de Impacto."},
+        {"name": "NUMERO_MEDIO_CITACOES", "data_type": "DECIMAL(8,4)", "description": "Citescore."},
+        {"name": "TIPO_PARTICIPACAO", "data_type": "VARCHAR(50)", "description": "Primeiro Autor ou Autor Correspondente."}
+      ]
+    },
+    {
+      "table_name": "DETALHES_INICIATIVAS_INFRA_CULTURA",
+      "description": "Extensão (1:1) para Infraestrutura, Interesse da Comunidade e Eventos de Cultura e Extensão.",
+      "fields": [
+        {"name": "ID_DETALHES_INICIATIVA", "data_type": "INT (PK)", "description": "ID da iniciativa."},
+        {"name": "ID_SOLICITACAO", "data_type": "INT (FK)", "description": "Vínculo com a tabela PROGRAMA_APOIO_SOLICITACAO."},
+        {"name": "ID_ENDERECO_LOCAL", "data_type": "INT (FK)", "description": "Vínculo opcional com ENDERECO onde a ação/obra ocorrerá."},
+        {"name": "TITULO_INICIATIVA", "data_type": "VARCHAR(255)", "description": "Nome do projeto/obra/evento."},
+        {"name": "DATA_INICIATIVA", "data_type": "DATE", "description": "Data da ação ou evento."},
+        {"name": "PUBLICO_ALVO", "data_type": "VARCHAR(150)", "description": "Comunidade ou grupo beneficiado."},
+        {"name": "NUMERO_ESTIMADO_ALCANCE", "data_type": "INT", "description": "Estimativa de pessoas impactadas."},
+        {"name": "DESTINO_RECURSOS", "data_type": "TEXT", "description": "Descrição dos gastos (Coffee-break, Brindes, Obras, Equipamentos)."},
+        {"name": "ALINHAMENTO_ODS", "data_type": "VARCHAR(255)", "description": "ODS da ONU vinculados."}
+      ]
+    },
+    {
+      "table_name": "ORCAMENTOS_FORNECEDORES",
+      "description": "Armazena os 2 orçamentos exigidos, vinculando cada cotação ao fornecedor na tabela PESSOA.",
+      "fields": [
+        {"name": "ID_ORCAMENTO", "data_type": "INT (PK)", "description": "ID do orçamento."},
+        {"name": "ID_SOLICITACAO", "data_type": "INT (FK)", "description": "Vínculo com PROGRAMA_APOIO_SOLICITACAO."},
+        {"name": "ID_PESSOA_FORNECEDOR", "data_type": "INT (FK)", "description": "Vínculo direto com a tabela PESSOA (Empresa/Fornecedor cotado)."},
+        {"name": "DESCRICAO_ITEM_ORCADO", "data_type": "VARCHAR(255)", "description": "Item cotado (Ex: Passagem, Serviço de Buffet, Impressão)."},
+        {"name": "VALOR_ORCADO", "data_type": "DECIMAL(15,2)", "description": "Valor nominal cotado."}
+      ]
+    },
+    {
+      "table_name": "CHECKLIST_DOCUMENTOS_APOIO",
+      "description": "Controle dos documentos e comprovantes do Kit de Submissão anexados no portal.",
+      "fields": [
+        {"name": "ID_DOCUMENTO", "data_type": "INT (PK)", "description": "ID único do anexo."},
+        {"name": "ID_SOLICITACAO", "data_type": "INT (FK)", "description": "Vínculo com PROGRAMA_APOIO_SOLICITACAO."},
+        {"name": "ID_PESSOA_PROPRIETARIO", "data_type": "INT (FK)", "description": "Vínculo opcional com a PESSOA a quem pertence o documento (Aluno/Orientador)."},
+        {"name": "TIPO_DOCUMENTO", "data_type": "VARCHAR(100)", "description": "Categoria (Currículo Lattes, Histórico, Aceite, Carta de Recomendação)."},
+        {"name": "ARQUIVO_URL", "data_type": "VARCHAR(500)", "description": "Caminho do arquivo mantido no storage em nuvem."},
+        {"name": "STATUS_VALIDACAO", "data_type": "VARCHAR(20)", "description": "Status (Pendente, Aprovado, Assinatura Validada)."}
+      ]
+    }
+  ]
+}

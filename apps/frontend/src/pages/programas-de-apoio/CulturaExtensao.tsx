@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useState } from 'react';
 import { getPrograma } from '../../data/programasApoio';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -11,25 +12,25 @@ const programa = getPrograma('cultura-extensao');
 
 export function CulturaExtensao() {
   // Proponente
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [instituicao, setInstituicao] = useState('ESALQ/USP');
-  const [departamento, setDepartamento] = useState('');
-  const [vinculo, setVinculo] = useState('Docente');
+  const [nome, setNome] = useProcessoState('nome', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [email, setEmail] = useProcessoState('email', '');
+  const [telefone, setTelefone] = useProcessoState('telefone', '');
+  const [instituicao, setInstituicao] = useProcessoState('instituicao', 'ESALQ/USP');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
+  const [vinculo, setVinculo] = useProcessoState('vinculo', 'Docente');
 
   // Projeto Cultural
-  const [nomeProjeto, setNomeProjeto] = useState('');
-  const [areaAtuacao, setAreaAtuacao] = useState('Música');
-  const [vinculacaoCcex, setVinculacaoCcex] = useState('Sim, formalmente vinculado');
-  const [numeroIntegrantes, setNumeroIntegrantes] = useState('');
-  const [descricaoAtividades, setDescricaoAtividades] = useState('');
-  const [publicoEstimado, setPublicoEstimado] = useState('');
+  const [nomeProjeto, setNomeProjeto] = useProcessoState('nomeProjeto', '');
+  const [areaAtuacao, setAreaAtuacao] = useProcessoState('areaAtuacao', 'Música');
+  const [vinculacaoCcex, setVinculacaoCcex] = useProcessoState('vinculacaoCcex', 'Sim, formalmente vinculado');
+  const [numeroIntegrantes, setNumeroIntegrantes] = useProcessoState('numeroIntegrantes', '');
+  const [descricaoAtividades, setDescricaoAtividades] = useProcessoState('descricaoAtividades', '');
+  const [publicoEstimado, setPublicoEstimado] = useProcessoState('publicoEstimado', '');
 
   // Recursos
-  const [finalidadeRecursos, setFinalidadeRecursos] = useState('');
-  const [valorSolicitado, setValorSolicitado] = useState('');
+  const [finalidadeRecursos, setFinalidadeRecursos] = useProcessoState('finalidadeRecursos', '');
+  const [valorSolicitado, setValorSolicitado] = useProcessoState('valorSolicitado', '');
 
   const [submetido, setSubmetido] = useState(false);
 

@@ -1,3 +1,4 @@
+import { useProcessoState } from '../../contexts/ProcessoContext';
 import { useState } from 'react';
 import { getPrograma } from '../../data/programasApoio';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
@@ -11,25 +12,25 @@ const programa = getPrograma('interesse-comunidade');
 
 export function InteresseComunidade() {
   // Responsável
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [departamento, setDepartamento] = useState('');
-  const [funcao, setFuncao] = useState('Coordenador do Projeto');
+  const [nome, setNome] = useProcessoState('nome', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [email, setEmail] = useProcessoState('email', '');
+  const [telefone, setTelefone] = useProcessoState('telefone', '');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
+  const [funcao, setFuncao] = useProcessoState('funcao', 'Coordenador do Projeto');
 
   // Ação Comunitária
-  const [nomeAcao, setNomeAcao] = useState('');
-  const [tema, setTema] = useState('Sustentabilidade e Meio Ambiente');
-  const [objetivo, setObjetivo] = useState('');
-  const [bairro, setBairro] = useState('');
-  const [cidade, setCidade] = useState('Piracicaba, SP');
-  const [publicoEstimado, setPublicoEstimado] = useState('');
+  const [nomeAcao, setNomeAcao] = useProcessoState('nomeAcao', '');
+  const [tema, setTema] = useProcessoState('tema', 'Sustentabilidade e Meio Ambiente');
+  const [objetivo, setObjetivo] = useProcessoState('objetivo', '');
+  const [bairro, setBairro] = useProcessoState('bairro', '');
+  const [cidade, setCidade] = useProcessoState('cidade', 'Piracicaba, SP');
+  const [publicoEstimado, setPublicoEstimado] = useProcessoState('publicoEstimado', '');
 
   // Parcerias e Orçamento
-  const [parceiros, setParceiros] = useState('');
-  const [valorSolicitado, setValorSolicitado] = useState('');
-  const [itensAdquirir, setItensAdquirir] = useState('');
+  const [parceiros, setParceiros] = useProcessoState('parceiros', '');
+  const [valorSolicitado, setValorSolicitado] = useProcessoState('valorSolicitado', '');
+  const [itensAdquirir, setItensAdquirir] = useProcessoState('itensAdquirir', '');
 
   const [submetido, setSubmetido] = useState(false);
 
