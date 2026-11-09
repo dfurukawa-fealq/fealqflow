@@ -36,7 +36,7 @@ export const ProjetosPage = () => {
     },
     {
       id: 'PESQ2',
-      label: 'Protocolo de Abertura de Projeto de Pesquisa v2',
+      label: 'Protocolo de Abertura de Projeto de Pesquisa',
       icon: 'biotech',
       req: 'Escopo Científico',
       path: '/projetos/form-pesquisa-v2',

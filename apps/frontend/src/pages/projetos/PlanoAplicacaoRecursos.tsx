@@ -5,7 +5,7 @@ import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormActionButton } from '../../components/form/FormActionButton';
 import { FormSection } from '../../components/form/FormSection';
 import { Field, CELULA_TABELA } from '../../components/form/Field';
-import { usePlanoAplicacaoCalculos, formatMoney, ESTRUTURA_DESPESAS } from './PlanoAplicacaoRecursos_Calculos';
+import { usePlanoAplicacaoCalculos, formatMoney, ESTRUTURA_DESPESAS, TipoProjetoFPA } from './PlanoAplicacaoRecursos_Calculos';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 
 export const PlanoAplicacaoRecursos = () => {
@@ -160,7 +160,12 @@ export const PlanoAplicacaoRecursos = () => {
         <Field label="Perfil do Projeto (FPA)" span={12} hint="Define as regras de taxas administrativas do projeto">
           <select
             value={valores.tipoProjetoFPA}
-            onChange={(e) => setters.setTipoProjetoFPA(e.target.value as any)}
+            onChange={(e) => {
+              const tipo = e.target.value;
+              if (tipo === 'cursos' || tipo === 'evento' || tipo === 'isento') {
+                setters.setTipoProjetoFPA(tipo as TipoProjetoFPA);
+              }
+            }}
             className="w-full h-[40px] px-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface"
           >
             <option value="cursos">FZEA - Cursos</option>

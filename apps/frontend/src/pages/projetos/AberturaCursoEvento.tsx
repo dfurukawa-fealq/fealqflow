@@ -1,6 +1,6 @@
 import { useProcessoState } from '../../contexts/ProcessoContext';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormActionButton } from '../../components/form/FormActionButton';
 import { FormSection } from '../../components/form/FormSection';
@@ -12,6 +12,18 @@ import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { useProcesso } from '../../contexts/ProcessoContext';
 import { buscarEnderecoPorCep } from '../../utils/cep';
 import { formatCEP, formatCPF } from '../../utils/formatters';
+import { gerarIdLocal } from '../../utils/id';
+import { EquipeTecnicaEditor } from '../../components/form/projetos/EquipeTecnicaEditor';
+import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSection';
+import { OrientacoesCoordenadorCard } from '../../components/form/projetos/OrientacoesCoordenadorCard';
+
+interface MembroEquipe {
+  id: string;
+  nome: string;
+  departamento: string;
+  telefone: string;
+  email: string;
+}
 
 interface Delegado {
   id: string;
@@ -20,14 +32,6 @@ interface Delegado {
   telefone: string;
   email: string;
   nivelAcesso: 'Nivel 1 - Ordenador' | 'Nivel 2 - Criador';
-}
-
-interface MembroEquipe {
-  id: string;
-  nome: string;
-  departamento: string;
-  telefone: string;
-  email: string;
 }
 
 interface LoteInscricao {
@@ -40,10 +44,13 @@ interface LoteInscricao {
 }
 
 export const AberturaCursoEvento: React.FC = () => {
+  const location = useLocation();
   const processoAtual = useProcesso();
   const { protocolId, gerarUrlVinculada, statusFormulario, registrarAberturaFormulario, marcarFormularioConcluido } = useRastreabilidade();
   const statusPlanoRecursos = statusFormulario('CONV-PL-01');
   const urlPlanoRecursos = gerarUrlVinculada('/projetos/form-plano-recursos', 'CONV-PL-01', 'Plano de Aplicação de Recursos');
+  const statusCadastroCoordenador = statusFormulario('CONV-FR-07-CADT');
+  const urlCadastroCoordenador = gerarUrlVinculada('/projetos/form-coordenador', 'CONV-FR-07-CADT', 'Cadastro de Coordenador');
 
   // --- SEÇÃO 1: INFORMAÇÕES SOBRE O PROJETO / CONVÊNIO USP ---
   const [possuiConvenio, setPossuiConvenio] = useProcessoState<'sim' | 'nao'>('possuiConvenio', 'nao');
@@ -93,9 +100,7 @@ export const AberturaCursoEvento: React.FC = () => {
   ]);
 
   // Equipe Técnica / Comissão de Apoio
-  const [equipeTecnica, setEquipeTecnica] = useProcessoState<MembroEquipe[]>('equipeTecnica', [
-    { id: 'inicial', nome: '', departamento: '', telefone: '', email: '' },
-  ]);
+  const [equipeTecnica, setEquipeTecnica] = useProcessoState<MembroEquipe[]>('equipeTecnica', []);
 
   // --- SEÇÃO 4: INSTITUIÇÕES ENVOLVIDAS (IN COMPANY & PATROCÍNIO) ---
   const [inCompany, setInCompany] = useProcessoState<'sim' | 'nao'>('inCompany', 'nao');
@@ -176,30 +181,16 @@ export const AberturaCursoEvento: React.FC = () => {
   };
 
   // Funções de manipulação de equipe técnica
-  const adicionarMembroEquipe = () => {
-    setEquipeTecnica(prev => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        nome: '',
-        departamento: '',
-        telefone: '',
-        email: '',
-      },
-    ]);
-  };
-
-  const removerMembroEquipe = (id: string) => {
-    setEquipeTecnica(prev => prev.filter(m => m.id !== id));
-  };
-
-  const atualizarMembroEquipe = (id: string, campo: keyof MembroEquipe, valor: string) => {
-    setEquipeTecnica(prev =>
-      prev.map(m => (m.id === id ? { ...m, [campo]: valor } : m))
-    );
-  };
-
+  /* membro global */
   // Funções de manipulação de lotes
+  const adicionarMembroEquipe = () => {
+    const ultimo = equipeTecnica[equipeTecnica.length - 1];
+    if (!ultimo?.nome.trim()) return;
+    setEquipeTecnica((atuais) => [...atuais, { id: gerarIdLocal(), nome: '', departamento: '', telefone: '', email: '' }]);
+  };
+  const removerMembroEquipe = (id: string) => setEquipeTecnica((atuais) => atuais.filter((membro) => membro.id !== id));
+  const atualizarMembroEquipe = (id: string, campo: keyof MembroEquipe, valor: string) => setEquipeTecnica((atuais) => atuais.map((membro) => membro.id === id ? { ...membro, [campo]: valor } : membro));
+
   const adicionarLote = () => {
     setLotes(prev => [
       ...prev,
@@ -265,7 +256,7 @@ export const AberturaCursoEvento: React.FC = () => {
   const statusDepto = statusFormulario('CERT-DEPTO-01');
 
   const urlLGPD = gerarUrlVinculada(
-    `/projetos/termo-lgpd?coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}&rg=${encodeURIComponent(coordRg || '')}&email=${encodeURIComponent(coordEmail || '')}&departamento=${encodeURIComponent(coordDepto || deptoNome || '')}&projeto=${encodeURIComponent(titulo || '')}`,
+    `/projetos/termo-lgpd?coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}&rg=${encodeURIComponent(coordRg || '')}&email=${encodeURIComponent(coordEmail || '')}&departamento=${encodeURIComponent(coordDepto || deptoNome || '')}&projeto=${encodeURIComponent(titulo || '')}&rota_retorno=${encodeURIComponent(location.pathname)}`,
     'CERT-LGPD-01',
     'Termo de LGPD e Confidencialidade'
   );
@@ -334,22 +325,24 @@ export const AberturaCursoEvento: React.FC = () => {
       tipo: 'gerado',
       obrigatorio: false,
       condicao: 'Condicional',
-      url_template: `/projetos/form-coordenador?protocolo=${protocolId}`,
+      url_template: urlCadastroCoordenador,
+      status: statusCadastroCoordenador === 'concluido' ? 'concluido' : undefined,
+      onAbrirLink: () => registrarAberturaFormulario('CONV-FR-07-CADT', 'Cadastro de Coordenador', urlCadastroCoordenador),
       linkTexto: 'Preencher',
     },
-    {
-      id: 'cadastro-equipe',
-      label: 'Cadastro de Equipe Envolvida / Apoio',
-      descricao: 'Docentes, alunos, pesquisadores e comissão técnica.',
-      tipo: 'gerado',
-      obrigatorio: false,
-      condicao: 'Condicional',
-      url_template: '#equipe-tecnica',
-      status: equipePreenchida ? 'concluido' : undefined,
-      onAbrirLink: () =>
-        document.getElementById('equipe-tecnica')?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
-      linkTexto: equipePreenchida ? 'Revisar' : 'Preencher',
-    },
+    // {
+    //   id: 'cadastro-equipe',
+    //   label: 'Cadastro de Equipe Envolvida / Apoio',
+    //   descricao: 'Docentes, alunos, pesquisadores e comissão técnica.',
+    //   tipo: 'gerado',
+    //   obrigatorio: false,
+    //   condicao: 'Condicional',
+    //   url_template: '#equipe-tecnica',
+    //   status: equipePreenchida ? 'concluido' : undefined,
+    //   onAbrirLink: () =>
+    //     document.getElementById('equipe-tecnica')?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+    //   linkTexto: equipePreenchida ? 'Revisar' : 'Preencher',
+    // },
     {
       id: 'programacao-evento',
       label: 'Programação do Curso/Evento (PDF)',
@@ -742,7 +735,7 @@ export const AberturaCursoEvento: React.FC = () => {
           onChange={setHorarioRealizacao}
         />
         <Field
-          label="Número Estimado de Vagas"
+          label="Vaga(s) Estimada(s)"
           span={3}
           tipo="number"
           placeholder="Ex: 100"
@@ -1123,7 +1116,7 @@ export const AberturaCursoEvento: React.FC = () => {
         </div>
 
         {/* Equipe Técnica / Comissão de Apoio */}
-        <div id="equipe-tecnica" className="col-span-12 mt-md">
+        <div id="equipe-tecnica-legado" className="hidden">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-xs mb-xs">
             <div>
               <h4 className="font-bold text-[13px] text-on-surface flex items-center gap-xs">
@@ -1140,7 +1133,7 @@ export const AberturaCursoEvento: React.FC = () => {
               className="px-sm py-1 bg-surface-container border border-outline text-on-surface text-[12px] font-medium rounded hover:bg-surface-container-high flex items-center gap-1 self-start md:self-auto"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
-              Adicionar Membro
+              Salvar e adicionar membro
             </button>
           </div>
 
@@ -1160,7 +1153,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/60">
-                {equipeTecnica.map((membro) => (
+                {equipeTecnica.map((membro, indice) => (
                   <tr key={membro.id} className="hover:bg-surface-container-lowest">
                     <td className="p-xs px-sm">
                       <input
@@ -1199,14 +1192,15 @@ export const AberturaCursoEvento: React.FC = () => {
                       />
                     </td>
                     <td className="p-xs px-sm text-center">
-                      <button
-                        type="button"
-                        onClick={() => removerMembroEquipe(membro.id)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                        title="Remover membro"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">delete</span>
-                      </button>
+                      {indice === equipeTecnica.length - 1 ? (
+                        <button type="button" onClick={adicionarMembroEquipe} disabled={!membro.nome.trim()} className="inline-flex h-8 w-8 items-center justify-center text-primary hover:text-primary/70 disabled:cursor-not-allowed disabled:opacity-35" title="Salvar membro e adicionar outro" aria-label="Salvar membro e adicionar outro">
+                          <span className="material-symbols-outlined text-[22px]">save</span>
+                        </button>
+                      ) : (
+                        <button type="button" onClick={() => removerMembroEquipe(membro.id)} className="inline-flex h-8 w-8 items-center justify-center text-error hover:text-error/70" title="Remover membro" aria-label={`Remover ${membro.nome}`}>
+                          <span className="material-symbols-outlined text-[22px]">delete</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -1217,6 +1211,8 @@ export const AberturaCursoEvento: React.FC = () => {
       </FormSection>
 
       {/* 4. INSTITUIÇÕES ENVOLVIDAS (IN COMPANY & PATROCÍNIO) */}
+      <EquipeTecnicaEditor membros={equipeTecnica.map((membro) => ({ ...membro, vinculo: membro.departamento }))} aoAlterar={(membros) => setEquipeTecnica(membros.map((membro) => ({ ...membro, departamento: membro.vinculo })))} />
+
       <FormSection
         numero={4}
         icone="handshake"
@@ -1738,6 +1734,9 @@ export const AberturaCursoEvento: React.FC = () => {
       </FormSection>
 
       {/* 7. TERMOS, LGPD E DECLARAÇÕES FINAIS */}
+      <TermosLGPDSection aceito={isLGPDValido} urlTermo={urlLGPD} aoAbrirTermo={() => { registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD); void processoAtual?.save_state().finally(() => window.location.assign(urlLGPD)); }} />
+      <OrientacoesCoordenadorCard aceito={isOrientacoesValido} urlOrientacoes={urlOrientacoes} aoAbrirOrientacoes={() => { registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); void processoAtual?.save_state().finally(() => window.location.assign(urlOrientacoes)); }} />
+      <div className="hidden">
       <FormSection
         numero={7}
         icone="verified_user"
@@ -1791,22 +1790,11 @@ export const AberturaCursoEvento: React.FC = () => {
                   }}
                   className="w-5 h-5 rounded text-primary accent-primary cursor-pointer"
                 />
-                <span className="text-[13px] font-bold text-on-surface">
+                <Link to={urlLGPD} onClick={() => { void processoAtual?.save_state(); registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD); }} className="text-[13px] font-bold text-primary underline hover:text-primary-dark">
                   Declaro ter lido e aceito integralmente o Termo de LGPD e Confidencialidade (FLAG OBRIGATÓRIA) *
-                </span>
+                </Link>
               </label>
 
-              {isLGPDValido ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-800 bg-green-100 border border-green-300 px-2 py-0.5 rounded-full shrink-0">
-                  <span className="material-symbols-outlined text-[14px]">verified</span>
-                  Certificado Eletronicamente
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full shrink-0">
-                  <span className="material-symbols-outlined text-[14px]">pending</span>
-                  Assinatura Pendente
-                </span>
-              )}
             </div>
           </div>
 
@@ -1814,6 +1802,12 @@ export const AberturaCursoEvento: React.FC = () => {
           <div className="p-md rounded-lg border border-outline-variant bg-surface-container-low flex flex-col gap-sm">
             <div className="flex items-center gap-xs text-on-surface font-bold text-[14px]">
               <span className="material-symbols-outlined text-[20px] text-secondary">menu_book</span>
+              <div className="ml-auto flex items-center gap-sm text-[12px] font-medium">
+                <Link to={urlOrientacoes} onClick={() => { void processoAtual?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'OrientaÃ§Ãµes ao Coordenador FEALQ', urlOrientacoes); }} className="flex items-center gap-0.5 text-primary hover:underline">
+                  <span className="material-symbols-outlined text-[15px]">open_in_new</span>
+                  PÃ¡gina Exclusiva
+                </Link>
+              </div>
               Orientações ao Coordenador FEALQ
             </div>
 
@@ -1825,17 +1819,23 @@ export const AberturaCursoEvento: React.FC = () => {
               <input
                 type="checkbox"
                 checked={isOrientacoesValido}
-                readOnly
-                disabled
-                className="w-5 h-5 rounded text-primary accent-primary"
+                onChange={() => {
+                  if (!isOrientacoesValido) {
+                    void processoAtual?.save_state();
+                    registrarAberturaFormulario('CERT-ORIENT-01', 'OrientaÃ§Ãµes ao Coordenador FEALQ', urlOrientacoes);
+                  }
+                }}
+                className="w-5 h-5 rounded text-primary accent-primary cursor-pointer"
               />
-              <span className="text-[13px] font-bold text-on-surface">
+              <Link to={urlOrientacoes} onClick={() => { void processoAtual?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); }} className="text-[13px] font-bold text-primary underline hover:text-primary-dark">
                 Declaro estar ciente e de acordo com as Orientações ao Coordenador da FEALQ *
-              </span>
+              </Link>
             </label>
           </div>
         </div>
       </FormSection>
+
+      </div>
 
       {/* MODAL: TERMO DE LGPD AUTOPREENCHIDO */}
       {modalLGPDOpen && (

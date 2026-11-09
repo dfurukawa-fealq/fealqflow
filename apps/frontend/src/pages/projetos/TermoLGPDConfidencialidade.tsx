@@ -1,5 +1,5 @@
 import { useProcessoState } from '../../contexts/ProcessoContext';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
@@ -9,6 +9,9 @@ import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { formatCPF, formatRG } from '../../utils/formatters';
 import { sanitizeInputText, sanitizeProtocolId, getSafeReturnUrl } from '../../utils/security';
 import { AutoPreencherButton } from '../../components/form/AutoPreencherButton';
+import { safeGetItem } from '../../utils/safeStorage';
+
+interface DadosProcessoPai { dados_json?: { campos?: Record<string, unknown> }; }
 
 export const TermoLGPDConfidencialidade = () => {
   const [searchParams] = useSearchParams();
@@ -29,15 +32,41 @@ export const TermoLGPDConfidencialidade = () => {
   );
   const [email, setEmail] = useProcessoState('email', sanitizeInputText(searchParams.get('email')) || '');
   const [mensagemAutoPreenchimento, setMensagemAutoPreenchimento] = useState('');
+  const [toast, setToast] = useState('');
+  const [camposProcessoPai, setCamposProcessoPai] = useState<Record<string, unknown>>({});
+  const [carregandoDadosPai, setCarregandoDadosPai] = useState(false);
+
+  useEffect(() => {
+    const processoPai = searchParams.get('processo_pai');
+    if (!processoPai || !/^[0-9a-f-]{36}$/i.test(processoPai)) return;
+    const token = safeGetItem(`@Fealq:processo:${processoPai}`);
+    if (!token) return;
+    let ativo = true;
+    setCarregandoDadosPai(true);
+    fetch(`/api/processos/${encodeURIComponent(processoPai)}`, { credentials: 'same-origin', headers: { 'x-processo-token': token } })
+      .then(async (resposta) => {
+        if (!resposta.ok) throw new Error('Não foi possível consultar o formulário pai.');
+        return resposta.json() as Promise<DadosProcessoPai>;
+      })
+      .then((pai) => { if (ativo) setCamposProcessoPai(pai.dados_json?.campos || {}); })
+      .catch(() => { if (ativo) setCamposProcessoPai({}); })
+      .finally(() => { if (ativo) setCarregandoDadosPai(false); });
+    return () => { ativo = false; };
+  }, [searchParams]);
 
   const preencherAutomaticamente = () => {
+    const lerCampoPai = (...nomes: string[]) => {
+      const chave = Object.keys(camposProcessoPai).find((item) => nomes.some((nome) => item === nome || item.startsWith(`campo:${nome}:`)));
+      const valor = chave ? camposProcessoPai[chave] : '';
+      return typeof valor === 'string' ? valor.trim() : '';
+    };
     const valores = {
-      nome: sanitizeInputText(searchParams.get('coordenador') || ''),
-      cpf: formatCPF(searchParams.get('cpf') || ''),
-      rg: formatRG(searchParams.get('rg') || ''),
-      departamento: sanitizeInputText(searchParams.get('departamento') || ''),
-      titulo: sanitizeInputText(searchParams.get('projeto') || ''),
-      email: sanitizeInputText(searchParams.get('email') || ''),
+      nome: sanitizeInputText(lerCampoPai('coordNome', 'Nome Completo do Coordenador')),
+      cpf: formatCPF(lerCampoPai('coordCpf', 'CPF')),
+      rg: formatRG(lerCampoPai('coordRg', 'RG / Órgão Emissor')),
+      departamento: sanitizeInputText(lerCampoPai('coordDepto', 'Departamento / Instituição', 'Departamento / Unidade USP')),
+      titulo: sanitizeInputText(lerCampoPai('titulo', 'Título', 'Título do Projeto', 'Título do Projeto / Curso / Evento')),
+      email: sanitizeInputText(lerCampoPai('coordEmail', 'E-mail Institucional')),
     };
     let preenchidos = 0;
     if (!nomeCoordenador.trim() && valores.nome) { setNomeCoordenador(valores.nome); preenchidos += 1; }
@@ -60,11 +89,45 @@ export const TermoLGPDConfidencialidade = () => {
   const [horaCertificacao, setHoraCertificacao] = useProcessoState<string | null>('horaCertificacao',
     statusFormulario('CERT-LGPD-01') === 'concluido' ? new Date().toLocaleTimeString('pt-BR') : null
   );
+  const instrumentoRef = useRef<HTMLDivElement>(null);
 
   const codigoCertificacao = `FEALQ-LGPD-${protocolId}-${sessionId.slice(-6).toUpperCase()}`;
 
+  const camposIdentificacaoValidos = [nomeCoordenador, cpf, departamento, email, tituloProjeto].every((valor) => valor.trim().length > 0);
+  const validarIdentificacao = () => {
+    if (camposIdentificacaoValidos) return true;
+    setMensagemAutoPreenchimento('Preencha Nome, CPF, Departamento, E-mail e Título do Projeto antes de continuar.');
+    return false;
+  };
+
+  const mostrarToastIdentificacao = () => {
+    setToast('Necessário preencher os dados de Identificação');
+    window.setTimeout(() => setToast(''), 3500);
+  };
+
+  const imprimirInstrumento = () => {
+    const conteudo = instrumentoRef.current?.innerHTML;
+    if (!conteudo) return;
+    const frame = document.createElement('iframe');
+    frame.setAttribute('title', 'Impressão do instrumento de confidencialidade');
+    frame.style.position = 'fixed';
+    frame.style.width = '1px';
+    frame.style.height = '1px';
+    frame.style.opacity = '0';
+    frame.style.pointerEvents = 'none';
+    frame.srcdoc = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Instrumento de Confidencialidade e LGPD</title><style>body{font-family:Arial,sans-serif;color:#111;line-height:1.55;margin:32px}h1{text-align:center;font-size:18px;border-bottom:1px solid #999;padding-bottom:12px}h2,h3,h4,h5{color:#123b57;margin-top:22px}p{font-size:12px}strong{font-weight:700}@media print{body{margin:18mm}}</style></head><body><h1>Instrumento de Confidencialidade e LGPD</h1>${conteudo}</body></html>`;
+    frame.onload = () => {
+      const janela = frame.contentWindow;
+      if (!janela) return;
+      janela.focus();
+      janela.print();
+      window.setTimeout(() => frame.remove(), 1000);
+    };
+    document.body.appendChild(frame);
+  };
+
   const handleConfirmarLeitura = () => {
-    if (!leuTermo) return;
+    if (!validarIdentificacao() || !leuTermo) return;
     const agora = new Date();
     const dataStr = agora.toLocaleDateString('pt-BR');
     const horaStr = agora.toLocaleTimeString('pt-BR');
@@ -91,6 +154,8 @@ export const TermoLGPDConfidencialidade = () => {
   const rotaSolicitada = searchParams.get('rota_retorno');
   const rotaRetorno = rotaSolicitada === '/projetos/form-pesquisa-v2' || rotaSolicitada === '/projetos/form-pesquisa'
     ? rotaSolicitada
+    : rotaSolicitada === '/projetos/form-curso-evento' || rotaSolicitada === '/projetos/form-curso'
+      ? rotaSolicitada
     : searchParams.get('retorno') === 'pesquisa' ? '/projetos/form-pesquisa' : '/projetos/form-curso';
   const processoPai = searchParams.get('processo_pai');
   const linkRetorno = getSafeReturnUrl(`${rotaRetorno}?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}`);
@@ -160,7 +225,7 @@ export const TermoLGPDConfidencialidade = () => {
           numero={1}
           icone="person"
           titulo="Identificação do Declarante e Projeto"
-          acao={<AutoPreencherButton onClick={preencherAutomaticamente} />}
+          acao={<AutoPreencherButton onClick={preencherAutomaticamente} disabled={carregandoDadosPai} />}
         >
           <p className="col-span-12 -mt-xs text-[12px] text-on-surface-variant">
             Dados autopreenchidos a partir do cadastro do coordenador e do protocolo de abertura.
@@ -222,7 +287,7 @@ export const TermoLGPDConfidencialidade = () => {
           titulo="Instrumento de Confidencialidade e LGPD (FR 01 - PRO - Rev. 05)"
           livre
         >
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg text-[13px] text-on-surface leading-relaxed max-h-[460px] overflow-y-auto space-y-4 shadow-inner pr-4">
+          <div ref={instrumentoRef} className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg text-[13px] text-on-surface leading-relaxed max-h-[460px] overflow-y-auto space-y-4 shadow-inner pr-4">
             <div className="text-center font-bold pb-2 border-b border-outline-variant text-primary text-[14px]">
               FUNDAÇÃO DE ESTUDOS AGRÁRIOS LUIZ DE QUEIROZ – FEALQ
               <span className="block text-[11px] font-normal text-on-surface-variant">
@@ -300,7 +365,12 @@ export const TermoLGPDConfidencialidade = () => {
                 type="checkbox"
                 checked={leuTermo}
                 disabled={confirmado}
-                onChange={(e) => setLeuTermo(e.target.checked)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    if (validarIdentificacao()) setLeuTermo(true);
+                    else mostrarToastIdentificacao();
+                  } else setLeuTermo(false);
+                }}
                 className="mt-1 h-5 w-5 rounded border-outline text-primary focus:ring-primary cursor-pointer"
               />
               <div className="flex-1">
@@ -335,7 +405,7 @@ export const TermoLGPDConfidencialidade = () => {
                 <div className="flex items-center gap-xs">
                   <button
                     type="button"
-                    onClick={() => window.print()}
+                    onClick={imprimirInstrumento}
                     className="px-md py-2 text-[12px] font-medium border border-green-600 text-green-800 rounded bg-white hover:bg-green-50 transition-colors flex items-center gap-1"
                   >
                     <span className="material-symbols-outlined text-[16px]">print</span>
@@ -358,10 +428,10 @@ export const TermoLGPDConfidencialidade = () => {
                 </div>
                 <button
                   type="button"
-                  disabled={!leuTermo}
+                  disabled={!leuTermo || !camposIdentificacaoValidos}
                   onClick={handleConfirmarLeitura}
                   className={`px-lg py-2.5 rounded font-semibold text-[13px] flex items-center gap-2 transition-all ${
-                    leuTermo
+                    leuTermo && camposIdentificacaoValidos
                       ? 'bg-primary text-white hover:bg-primary-dark shadow-sm cursor-pointer'
                       : 'bg-surface-variant text-on-surface-variant cursor-not-allowed opacity-60'
                   }`}
@@ -374,6 +444,7 @@ export const TermoLGPDConfidencialidade = () => {
           </div>
         </FormSection>
       </div>
+      {toast && <div role="status" aria-live="assertive" className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-error px-4 py-3 text-sm font-semibold text-white shadow-lg">{toast}</div>}
     </FormPageLayout>
   );
 };

@@ -448,6 +448,9 @@ app.get('/api/processos', exigirSessao, asyncRoute(async (request, response) => 
     valores.push(request.query.status.trim());
     filtros.push(`p.status = $${valores.length}`);
   }
+  // Listagens por módulo representam solicitações principais; subprocessos do kit
+  // continuam acessíveis dentro do protocolo pai, mas não aparecem como linhas próprias.
+  if (categoriaSolicitada && request.query.incluir_filhos !== '1') filtros.push('p.processo_pai_id IS NULL');
   filtros.push('p.ativo = TRUE');
   const where = filtros.length ? `WHERE ${filtros.join(' AND ')}` : '';
   const { rows } = await pool.query(`
@@ -463,6 +466,8 @@ app.get('/api/processos', exigirSessao, asyncRoute(async (request, response) => 
             'nome', d.nome,
             'obrigatorio', d.obrigatorio,
             'status', d.status,
+            'preenchido', d.preenchido,
+            'emitido', d.emitido,
             'arquivo_nome', d.arquivo_nome
           ) ORDER BY d.id
         ) FILTER (WHERE d.id IS NOT NULL),
@@ -558,7 +563,7 @@ app.get('/api/processos/:id', asyncRoute(autorizarProcesso), asyncRoute(async (r
     FROM processos WHERE id = $1
   `, [request.params.id]);
   const { rows: documentos } = await pool.query(`
-    SELECT nome AS id, arquivo_nome, status, enviado_em FROM processo_documentos WHERE processo_id = $1
+    SELECT nome AS id, arquivo_nome, status, preenchido, emitido, enviado_em FROM processo_documentos WHERE processo_id = $1
   `, [request.params.id]);
   return response.json({ ...rows[0], documentos });
 }));
@@ -627,7 +632,8 @@ app.put('/api/processos/:id/documentos', validarOrigem, asyncRoute(autorizarProc
   const documentos = request.body?.documentos;
   if (!Array.isArray(documentos) || documentos.length > 100
     || documentos.some((item) => !item || !validarCodigoDocumento(item.id)
-      || typeof item.obrigatorio !== 'boolean' || typeof item.concluido !== 'boolean')
+      || typeof item.obrigatorio !== 'boolean' || typeof item.concluido !== 'boolean'
+      || typeof item.preenchido !== 'boolean' || typeof item.emitido !== 'boolean')
     || new Set(documentos.map((item) => item.id)).size !== documentos.length) {
     return response.status(400).json({ error: 'Lista de documentos inválida.' });
   }
@@ -640,13 +646,15 @@ app.put('/api/processos/:id/documentos', validarOrigem, asyncRoute(autorizarProc
       return response.status(409).json({ error: 'O processo já foi enviado.' });
     }
     for (const item of documentos) await cliente.query(`
-      INSERT INTO processo_documentos (processo_id, nome, obrigatorio, status) VALUES ($1, $2, $3, $4)
+      INSERT INTO processo_documentos (processo_id, nome, obrigatorio, status, preenchido, emitido) VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (processo_id, nome) DO UPDATE SET obrigatorio = EXCLUDED.obrigatorio,
-        status = CASE WHEN processo_documentos.arquivo_url IS NOT NULL THEN processo_documentos.status ELSE EXCLUDED.status END
-    `, [request.params.id, item.id, item.obrigatorio, item.concluido ? 'validado' : 'pendente']);
+        status = CASE WHEN processo_documentos.arquivo_url IS NOT NULL THEN processo_documentos.status ELSE EXCLUDED.status END,
+        preenchido = CASE WHEN processo_documentos.arquivo_url IS NOT NULL THEN TRUE ELSE EXCLUDED.preenchido END,
+        emitido = CASE WHEN processo_documentos.arquivo_url IS NOT NULL THEN TRUE ELSE EXCLUDED.emitido END
+    `, [request.params.id, item.id, item.obrigatorio, item.concluido ? 'validado' : 'pendente', item.preenchido, item.emitido]);
     await cliente.query('UPDATE processo_documentos SET obrigatorio = FALSE WHERE processo_id = $1 AND NOT (nome = ANY($2::text[]))',
       [request.params.id, documentos.map((item) => item.id)]);
-    const { rows } = await cliente.query('SELECT nome AS id, arquivo_nome, status, enviado_em FROM processo_documentos WHERE processo_id = $1', [request.params.id]);
+    const { rows } = await cliente.query('SELECT nome AS id, arquivo_nome, status, preenchido, emitido, enviado_em FROM processo_documentos WHERE processo_id = $1', [request.params.id]);
     await cliente.query('COMMIT');
     return response.json(rows);
   } catch (erro) {
@@ -678,11 +686,11 @@ app.post('/api/processos/:id/documentos/:codigo', validarOrigem, asyncRoute(auto
   await writeFile(path.join(pastaAnexos, request.params.id, destino), request.body, { flag: 'wx' });
   try {
     const { rows } = await pool.query(`
-      INSERT INTO processo_documentos (processo_id, nome, status, arquivo_nome, arquivo_url, enviado_em)
-      VALUES ($1, $2, 'enviado', $3, $4, CURRENT_TIMESTAMP)
+      INSERT INTO processo_documentos (processo_id, nome, status, arquivo_nome, arquivo_url, enviado_em, preenchido, emitido)
+      VALUES ($1, $2, 'enviado', $3, $4, CURRENT_TIMESTAMP, TRUE, TRUE)
       ON CONFLICT (processo_id, nome) DO UPDATE SET status = 'enviado', arquivo_nome = EXCLUDED.arquivo_nome,
-        arquivo_url = EXCLUDED.arquivo_url, enviado_em = CURRENT_TIMESTAMP
-      RETURNING nome AS id, arquivo_nome, status, enviado_em
+        arquivo_url = EXCLUDED.arquivo_url, enviado_em = CURRENT_TIMESTAMP, preenchido = TRUE, emitido = TRUE
+      RETURNING nome AS id, arquivo_nome, status, preenchido, emitido, enviado_em
     `, [request.params.id, request.params.codigo, nomeOriginal, destino]);
     if (anteriores[0]?.arquivo_url) await unlink(path.join(pastaAnexos, request.params.id, anteriores[0].arquivo_url)).catch(() => undefined);
     return response.status(201).json(rows[0]);
@@ -713,7 +721,7 @@ app.delete('/api/processos/:id/documentos/:codigo', validarOrigem, asyncRoute(au
   const { rows: estados } = await pool.query('SELECT status FROM processos WHERE id = $1', [request.params.id]);
   if (!['rascunho', 'em_preenchimento'].includes(estados[0]?.status)) return response.status(409).json({ error: 'O processo já foi enviado.' });
   const { rows } = await pool.query('SELECT arquivo_url FROM processo_documentos WHERE processo_id = $1 AND nome = $2', [request.params.id, request.params.codigo]);
-  await pool.query(`UPDATE processo_documentos SET arquivo_nome = NULL, arquivo_url = NULL, enviado_em = NULL, status = 'pendente'
+  await pool.query(`UPDATE processo_documentos SET arquivo_nome = NULL, arquivo_url = NULL, enviado_em = NULL, status = 'pendente', preenchido = FALSE, emitido = FALSE
     WHERE processo_id = $1 AND nome = $2`, [request.params.id, request.params.codigo]);
   if (rows[0]?.arquivo_url) await unlink(path.join(pastaAnexos, request.params.id, rows[0].arquivo_url)).catch(() => undefined);
   return response.status(204).end();

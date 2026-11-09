@@ -210,7 +210,7 @@ export const ProjetoPesquisaV2 = () => (
   <FormPageLayout
     breadcrumb={[
       'Área do Coordenador',
-      'Protocolo de Abertura de Projeto de Pesquisa v2',
+      'Protocolo de Abertura de Projeto de Pesquisa',
     ]}
     titulo="Protocolo de Abertura de Projeto de Pesquisa"
     codigo="CONV-FR-03-PRO-V2"

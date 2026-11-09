@@ -1,5 +1,5 @@
 import { useProcesso, useProcessoState } from '../../contexts/ProcessoContext';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
@@ -42,6 +42,8 @@ export const ProjetoPesquisa = () => {
   const statusLGPD = statusFormulario('CERT-LGPD-01');
   const statusOrientacoes = statusFormulario('CERT-ORIENT-01');
   const statusPlanoRecursos = statusFormulario('CONV-PL-01');
+  const statusCadastroCoordenador = statusFormulario('CONV-FR-07-CADT');
+  const urlCadastroCoordenador = gerarUrlVinculada(`/projetos/form-coordenador?rota_retorno=${rotaRetorno}`, 'CONV-FR-07-CADT', 'Cadastro de Coordenador');
   const [possuiConvenio, setPossuiConvenio] = useProcessoState('possuiConvenio', false);
   const [numeroConvenio, setNumeroConvenio] = useProcessoState('numeroConvenio', '');
   const [numeroProcesso, setNumeroProcesso] = useProcessoState('numeroProcesso', '');
@@ -52,7 +54,6 @@ export const ProjetoPesquisa = () => {
   const [regimeTrabalho, setRegimeTrabalho] = useProcessoState<'RTP' | 'RTC' | 'RDIDP'>('regimeTrabalho', 'RTP');
   const [numeroCert, setNumeroCert] = useProcessoState('numeroCert', '');
   const [validadeCert, setValidadeCert] = useProcessoState('validadeCert', '');
-  const [aceiteOrientacoes, setAceiteOrientacoes] = useProcessoState('aceiteOrientacoes', false);
   const documentos = useMemo<DocumentoExigido[]>(() => [
     { id: 'processo-pesquisa', label: 'Processo de Abertura de Projeto de Pesquisa', descricao: 'Gerado pelo sistema.', tipo: 'gerado', obrigatorio: true },
     // { id: 'termo-sigilo', label: 'Termo de Sigilo e Confidencialidade', descricao: 'Autopreenchido e aceite obrigatório.', tipo: 'aceite', obrigatorio: true },
@@ -105,6 +106,21 @@ export const ProjetoPesquisa = () => {
     return [
       ...documentosBase,
       {
+        id: 'cadastro-coordenador',
+        label: 'Cadastro de Coordenador (Sem Certidões)',
+        descricao: 'Caso não possua cadastro prévio na FEALQ.',
+        tipo: 'gerado',
+        obrigatorio: false,
+        condicao: 'Condicional',
+        url_template: urlCadastroCoordenador,
+        status: statusCadastroCoordenador === 'concluido' ? 'concluido' : undefined,
+        onAbrirLink: async () => {
+          await processo?.save_state();
+          registrarAberturaFormulario('CONV-FR-07-CADT', 'Cadastro de Coordenador', urlCadastroCoordenador);
+        },
+        linkTexto: statusCadastroCoordenador === 'concluido' ? 'Revisar' : 'Preencher',
+      },
+      {
         id: 'termo-lgpd',
         label: cadastroLGPD?.nome || 'Termo de LGPD e Confidencialidade',
         // descricao: detalhes(cadastroLGPD, 'Autopreenchido e aceite obrigatório.'),
@@ -135,7 +151,7 @@ export const ProjetoPesquisa = () => {
         linkTexto: statusOrientacoes === 'concluido' ? 'Revisar' : 'Ler',
       },
     ];
-  }, [documentos, formularios, processo, registrarAberturaFormulario, statusLGPD, statusOrientacoes, statusPlanoRecursos, urlOrientacoes, urlPlanoRecursos, urlTermoLGPD]);
+  }, [documentos, formularios, processo, registrarAberturaFormulario, statusCadastroCoordenador, statusLGPD, statusOrientacoes, statusPlanoRecursos, urlCadastroCoordenador, urlOrientacoes, urlPlanoRecursos, urlTermoLGPD]);
 
   return (
     <FormPageLayout
@@ -189,7 +205,7 @@ export const ProjetoPesquisa = () => {
       </FormSection>
 
       <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD)} />
-      <OrientacoesCoordenadorCard aceito={aceiteOrientacoes} aoAlterarAceite={setAceiteOrientacoes} />
+      <OrientacoesCoordenadorCard aceito={statusOrientacoes === 'concluido'} urlOrientacoes={urlOrientacoes} aoAbrirOrientacoes={() => { void processo?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); }} />
     </FormPageLayout>
   );
 };

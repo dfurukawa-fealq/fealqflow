@@ -54,6 +54,7 @@ export const FormPageLayout = ({
 }: FormPageLayoutProps) => {
   const navigate = useNavigate();
   const processo = useProcesso();
+  const somenteLeitura = processo?.somenteLeitura ?? false;
   const mainRef = useRef<HTMLElement>(null);
   const ocupadoRef = useRef(false);
   const [executando, setExecutando] = useState(false);
@@ -83,7 +84,7 @@ export const FormPageLayout = ({
   );
   const envio = useMemo(() => ({ registrarPendencias }), [registrarPendencias]);
   const liberado = (podeEnviar ?? true) && (pendencias === null || pendencias === 0)
-    && Boolean(processo || aoSubmeter) && !executando;
+    && Boolean(processo || aoSubmeter) && !executando && !somenteLeitura;
 
   useEffect(() => {
     // Os campos do formulário são controlados pelo React/ProcessoContext.
@@ -118,34 +119,6 @@ export const FormPageLayout = ({
     */
   }, []);
 
-  useEffect(() => {
-    const raiz = mainRef.current;
-    if (!raiz || !processo) return;
-
-    const capturar = (evento: Event) => {
-      const elemento = evento.target;
-      if (!(elemento instanceof HTMLInputElement || elemento instanceof HTMLSelectElement || elemento instanceof HTMLTextAreaElement)) return;
-      if (['file', 'hidden', 'button', 'submit'].includes(elemento.type) || elemento.disabled) return;
-
-      const campo = elemento.closest<HTMLElement>('[data-fealq-field]')?.dataset.fealqField
-        || elemento.name
-        || elemento.id;
-      if (!campo) return;
-
-      const valor = elemento instanceof HTMLInputElement && ['checkbox', 'radio'].includes(elemento.type)
-        ? elemento.checked
-        : elemento.value;
-      processo.atualizarCampo(campo, valor);
-    };
-
-    raiz.addEventListener('input', capturar, true);
-    raiz.addEventListener('change', capturar, true);
-    return () => {
-      raiz.removeEventListener('input', capturar, true);
-      raiz.removeEventListener('change', capturar, true);
-    };
-  }, [processo?.processo.id, processo?.atualizarCampo]);
-
   const executar = async (acao: () => Promise<void>) => {
     if (ocupadoRef.current) return;
     ocupadoRef.current = true;
@@ -171,9 +144,29 @@ export const FormPageLayout = ({
 
   const validarCampos = () => {
     const campos = mainRef.current?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input:required, select:required, textarea:required');
+    const pendentes: string[] = [];
+    let primeiroPendente: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null = null;
     for (const campo of campos || []) {
-      if (!campo.reportValidity()) { campo.focus(); return false; }
+      if (!campo.checkValidity()) {
+        primeiroPendente ??= campo;
+        const rotulo = campo.labels?.[0]?.textContent?.replace('*', '').trim()
+          || campo.getAttribute('aria-label')
+          || campo.name
+          || 'Campo obrigatório';
+        if (!pendentes.includes(rotulo)) pendentes.push(rotulo);
+      }
     }
+    if (primeiroPendente) {
+      primeiroPendente.reportValidity();
+      primeiroPendente.focus();
+      const resumo = pendentes.length > 3
+        ? `${pendentes.slice(0, 3).join(', ')} e mais ${pendentes.length - 3}.`
+        : `${pendentes.join(', ')}.`;
+      setErroAcao(`Preencha os campos obrigatórios: ${resumo}`);
+      mostrarToast('erro', 'Há campos obrigatórios pendentes.');
+      return false;
+    }
+    setErroAcao('');
     return true;
   };
 
@@ -199,6 +192,7 @@ export const FormPageLayout = ({
           </div>
           {(erroAcao || processo?.erro) && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAcao || processo?.erro}</p>}
           {processo && <p className="mb-md text-xs text-on-surface-variant">Processo {processo.processo.protocolo} · {processo.salvando ? 'Salvando rascunho...' : armazenamentoPersistenteDisponivel ? 'Rascunho disponível para retomada neste navegador' : 'O navegador bloqueia o armazenamento local; a retomada após fechá-lo pode não funcionar.'}</p>}
+          {somenteLeitura && <p role="status" className="mb-md rounded border border-primary/30 bg-primary/5 p-sm text-sm text-primary">Protocolo enviado — visualização somente leitura.</p>}
 
           <div className="mb-lg border-b border-outline-variant pb-sm">
             <div>
@@ -282,7 +276,7 @@ export const FormPageLayout = ({
                 sidebar ? 'lg:col-span-8' : 'lg:col-span-12'
               }`}
             >
-              {children}
+              {somenteLeitura ? <fieldset disabled className="contents">{children}</fieldset> : children}
             </div>
             {sidebar && (
               <>
@@ -334,16 +328,31 @@ export const FormPageLayout = ({
           {footerCenter && <div className="flex min-w-0 justify-center lg:hidden">{footerCenter}</div>}
           <div className="flex min-w-0 w-full flex-wrap items-center justify-between gap-xs lg:flex-nowrap">
             <div className="flex min-w-0 shrink-0 items-center gap-xs">
-              <FormActionButton texto="Cancelar" icone="close" type="button" disabled={executando} onClick={() => void executar(async () => { if (processo) await processo.salvar(); navigate(-1); })} className="border-outline-variant text-on-surface shadow-sm" />
+              <FormActionButton
+                texto={somenteLeitura ? 'Voltar à Lista' : 'Cancelar'}
+                icone={somenteLeitura ? 'arrow_back' : 'close'}
+                type="button"
+                disabled={executando}
+                onClick={() => void executar(async () => {
+                  if (somenteLeitura && processo) {
+                    navigate(processo.processo.categoria === 'projeto' ? '/projetos/painel' : '/programas-de-apoio/painel');
+                    return;
+                  }
+                  if (processo) await processo.salvar();
+                  navigate(-1);
+                })}
+                className="border-outline-variant text-on-surface shadow-sm"
+              />
               {footerCenter && <div className="hidden min-w-0 lg:flex">{footerCenter}</div>}
             </div>
             <div className="flex min-w-0 flex-wrap items-center justify-end gap-xs lg:flex-1">
               {botoesAcoes}
-              {processo && <FormActionButton texto="Reiniciar" icone="restart_alt" type="button" disabled={executando} onClick={() => {
+              {processo && !somenteLeitura && <FormActionButton texto="Reiniciar" icone="restart_alt" type="button" disabled={executando} onClick={() => {
                 if (window.confirm('Iniciar uma nova tentativa? O processo atual será preservado.')) void executar(async () => { await processo.salvar(); await processo.novaTentativa(); });
               }} />}
-              {mostrarRascunho && <FormActionButton texto="Salvar Rascunho" icone="save" type="button" disabled={!processo || executando} onClick={salvarRascunho} />}
-              <FormActionButton
+              {mostrarRascunho && !somenteLeitura && <FormActionButton texto="Salvar Rascunho" icone="save" type="button" disabled={!processo || executando} onClick={salvarRascunho} />}
+              {somenteLeitura && <span className="px-sm py-xs text-xs font-semibold text-on-surface-variant">Somente leitura</span>}
+              {!somenteLeitura && <FormActionButton
                 texto={acaoPrincipal}
                 icone={acaoIcone}
                 destaque={liberado}
@@ -352,7 +361,7 @@ export const FormPageLayout = ({
                 onClick={() => { if (validarCampos()) void executar(async () => { if (processo) await processo.enviar(); aoSubmeter?.(); }); }}
                 title={liberado ? acaoPrincipal : pendencias === null ? 'Preencha os campos obrigatórios para liberar o envio.' : `Faltam ${pendencias} documento(s) obrigatório(s) no Kit de Documentos.`}
                 className={!liberado ? 'border-transparent bg-surface-variant text-on-surface-variant cursor-not-allowed' : ''}
-              />
+              />}
             </div>
           </div>
         </footer>

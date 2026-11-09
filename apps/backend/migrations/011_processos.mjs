@@ -31,6 +31,8 @@ export async function executarProcessos(pool) {
       nome VARCHAR(255) NOT NULL,
       obrigatorio BOOLEAN NOT NULL DEFAULT TRUE,
       status VARCHAR(30) NOT NULL DEFAULT 'pendente',
+      preenchido BOOLEAN NOT NULL DEFAULT FALSE,
+      emitido BOOLEAN NOT NULL DEFAULT FALSE,
       arquivo_nome TEXT,
       arquivo_url TEXT,
       enviado_em TIMESTAMPTZ,
@@ -49,6 +51,8 @@ export async function executarProcessos(pool) {
     ALTER TABLE processos ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE;
     ALTER TABLE processos ADD COLUMN IF NOT EXISTS inativado_em TIMESTAMPTZ;
     ALTER TABLE processos ADD COLUMN IF NOT EXISTS inativado_por UUID;
+    ALTER TABLE processo_documentos ADD COLUMN IF NOT EXISTS preenchido BOOLEAN NOT NULL DEFAULT FALSE;
+    ALTER TABLE processo_documentos ADD COLUMN IF NOT EXISTS emitido BOOLEAN NOT NULL DEFAULT FALSE;
     CREATE UNIQUE INDEX IF NOT EXISTS idx_processos_chave_criacao ON processos (chave_criacao);
   `);
 }

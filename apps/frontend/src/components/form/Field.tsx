@@ -34,7 +34,7 @@ interface FieldProps {
   mascara?: MascaraInput;
   disabled?: boolean;
   obrigatorio?: boolean;
-  onChange?: (valor: any) => void;
+  onChange?: (valor: string) => void;
   /** Substitui o controle por um conteúdo próprio, mantendo label e grade. */
   children?: ReactNode;
 }
@@ -165,7 +165,7 @@ export const Field = ({
               disabled={disabled}
               required={obrigatorio}
               checked={onChange ? Boolean(valor) : Boolean(valorLocal)}
-              onChange={(e) => onChange ? onChange(e.target.checked) : setValorLocal(e.target.checked)}
+              onChange={(e) => onChange ? onChange(String(e.target.checked)) : setValorLocal(e.target.checked)}
               className="rounded border-outline-variant text-secondary focus:ring-secondary w-4 h-4 cursor-pointer"
             />
             <span className="text-[13px] text-on-surface-variant">

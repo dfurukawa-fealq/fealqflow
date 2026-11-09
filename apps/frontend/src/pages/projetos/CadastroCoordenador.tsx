@@ -1,3 +1,5 @@
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
@@ -36,7 +38,28 @@ const TRAVA = (
   </div>
 );
 
-export const CadastroCoordenador = () => (
+export const CadastroCoordenador = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { marcarFormularioConcluido } = useRastreabilidade();
+  const retornarAoProtocolo = () => {
+    marcarFormularioConcluido('CONV-FR-07-CADT', { origem: 'Protocolo de Abertura de Curso/Evento' });
+    const processoPai = searchParams.get('processo_pai');
+    const protocolo = searchParams.get('protocolo');
+    const sessao = searchParams.get('sessao');
+    if (processoPai) {
+      const rotaSolicitada = searchParams.get('rota_retorno');
+      const rotaRetorno = rotaSolicitada === '/projetos/form-pesquisa-v2' || rotaSolicitada === '/projetos/form-pesquisa'
+        ? rotaSolicitada
+        : '/projetos/form-curso-evento';
+      const parametros = new URLSearchParams({ processo: processoPai });
+      if (protocolo) parametros.set('protocolo', protocolo);
+      if (sessao) parametros.set('sessao', sessao);
+      navigate(`${rotaRetorno}?${parametros.toString()}`);
+    }
+  };
+
+  return (
   <FormPageLayout
     breadcrumb={['Área do Coordenador', 'Cadastro de Coordenador']}
     titulo="Cadastro de Coordenador"
@@ -44,6 +67,7 @@ export const CadastroCoordenador = () => (
     alerta={TRAVA}
     acaoPrincipal="Salvar e Cadastrar Coordenador"
     acaoIcone="save"
+    aoSubmeter={retornarAoProtocolo}
     sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
   >
     <FormSection numero={1} icone="badge" titulo="Dados Pessoais">
@@ -126,5 +150,6 @@ export const CadastroCoordenador = () => (
       </div>
     </FormSection>
   </FormPageLayout>
-);
+  );
+};
 

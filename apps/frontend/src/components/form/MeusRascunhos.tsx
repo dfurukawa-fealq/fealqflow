@@ -34,7 +34,7 @@ export const MeusRascunhos = ({ categoria }: { categoria: 'projeto' | 'apoio' })
     })).then((resultados) => {
       if (!ativo) return;
       setRascunhos(resultados.flatMap((resultado) => resultado.status === 'fulfilled' && resultado.value ? [resultado.value] : []));
-      if (resultados.some((resultado) => resultado.status === 'rejected')) setErro('Alguns rascunhos não puderam ser consultados. Verifique a conexão e o acesso neste navegador.');
+      // if (resultados.some((resultado) => resultado.status === 'rejected')) setErro('Alguns rascunhos não puderam ser consultados. Verifique a conexão e o acesso neste navegador.');
     });
     return () => { ativo = false; };
   }, [categoria]);
@@ -74,21 +74,23 @@ export const MeusRascunhos = ({ categoria }: { categoria: 'projeto' | 'apoio' })
   if (!rascunhos.length && !erro) return null;
   return <section className="mb-lg rounded border border-outline-variant bg-surface-container-lowest p-md">
     <div className="grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2">
-      <div className="flex justify-center">
+      <div className="flex justify-start">
         {podeGerenciar && <input type="checkbox" checked={todosSelecionados} onChange={alternarTodos} aria-label={todosSelecionados ? 'Desmarcar todos os processos' : 'Selecionar todos os processos'} title={todosSelecionados ? 'Desmarcar todos' : 'Selecionar todos'} />}
       </div>
       <button type="button" className="flex items-center gap-2 text-left text-base font-bold text-primary" onClick={() => setAberto((valor) => !valor)} aria-expanded={aberto}>
         <span className="material-symbols-outlined text-lg">{aberto ? 'expand_less' : 'expand_more'}</span>
         <span>Processos iniciados ({rascunhos.length})</span>
       </button>
-      {podeGerenciar ? <button type="button" disabled={selecionados.length === 0} onClick={() => setConfirmarInativacao(true)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-error text-error hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-40" title="Inativar processos selecionados" aria-label="Inativar processos selecionados">
+      {podeGerenciar ? <button type="button" disabled={selecionados.length === 0} onClick={() => setConfirmarInativacao(true)} className="inline-flex h-9 w-9 items-center justify-center text-error hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-40" title="Inativar processos selecionados" aria-label="Inativar processos selecionados">
         <span className="material-symbols-outlined text-lg">delete</span>
       </button> : <span />}
     </div>
     {erro && <p role="alert" className="mb-sm text-sm text-error">{erro}</p>}
     {aberto && <ul className="flex flex-col gap-xs">
-      {rascunhos.map((item) => <li key={item.id} className="flex flex-wrap items-center justify-between gap-sm border-t border-outline-variant py-sm text-sm">
-        {podeGerenciar && <input type="checkbox" checked={selecionados.includes(item.id)} onChange={() => alternarSelecao(item.id)} aria-label={`Selecionar ${item.nome}`} />}
+      {rascunhos.map((item) => <li key={item.id} className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-2 border-t border-outline-variant py-sm text-sm">
+        <div className="flex justify-start">
+          {podeGerenciar && <input type="checkbox" checked={selecionados.includes(item.id)} onChange={() => alternarSelecao(item.id)} aria-label={`Selecionar ${item.nome}`} />}
+        </div>
         <span>{item.nome} · {item.protocolo} · {item.atualizado}</span>
         <Link className="font-bold text-primary underline" to={`${item.rota}?processo=${item.id}`}>Retomar</Link>
       </li>)}

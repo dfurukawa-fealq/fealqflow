@@ -24,7 +24,7 @@
     "documentos_solicitados": []
   },
   { "id": "projeto-coordenador", "formulario": "Cadastro De Coordenador", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Cadastro de dados do coordenador responsável pelo projeto." },
-  { "id": "projeto-pesquisa-v2", "formulario": "Protocolo de Abertura de Projeto de Pesquisa v2", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Formulário para abertura de projeto de pesquisa." },
+  { "id": "projeto-pesquisa-v2", "formulario": "Protocolo de Abertura de Projeto de Pesquisa", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Formulário para abertura de projeto de pesquisa." },
   { "id": "projeto-plano-trabalho", "formulario": "Plano de Trabalho", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Plano de trabalho e cronograma físico." },
   { "id": "projeto-patrocinador", "formulario": "Cadastro de Patrocinador", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Cadastro de patrocinador e documentos institucionais." },
   { "id": "projeto-parceiro", "formulario": "Cadastro de Parceiro – Evento/Curso fechado", "linha_de_incentivo": "Projetos", "status_de_abertura": "Aberto", "normas": "Cadastro de parceiro para evento ou curso fechado." },

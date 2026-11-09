@@ -195,7 +195,7 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
         status: 'pendente',
         dadosVinculados: {},
       };
-      return {
+      const atualizada: SessaoRastreabilidade = {
         ...prev,
         formulariosVinculados: {
           ...prev.formulariosVinculados,
@@ -207,8 +207,9 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
           },
         },
       };
+      safeSetItem(`${STORAGE_PREFIX}sessao_${protocolId}`, JSON.stringify(atualizada));
+      return atualizada;
     });
-
   };
 
   const statusFormulario = (formCodigo: string): 'pendente' | 'em_andamento' | 'concluido' => {

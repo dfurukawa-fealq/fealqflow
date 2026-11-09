@@ -1,5 +1,5 @@
 import { useProcessoState } from '../../contexts/ProcessoContext';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
@@ -162,6 +162,8 @@ export const OrientacoesCoordenador = () => {
   const [horaCertificacao, setHoraCertificacao] = useProcessoState<string | null>('horaCertificacao',
     statusFormulario('CERT-ORIENT-01') === 'concluido' ? new Date().toLocaleTimeString('pt-BR') : null
   );
+  const [toast, setToast] = useState('');
+  const orientacoesRef = useRef<HTMLDivElement>(null);
 
   const codigoCertificacao = `FEALQ-ORIENT-${protocolId}-${sessionId.slice(-6).toUpperCase()}`;
 
@@ -170,7 +172,37 @@ export const OrientacoesCoordenador = () => {
   };
 
   const toggleLido = (num: number) => {
-    setItensLidos((prev) => ({ ...prev, [num]: !prev[num] }));
+    setItensLidos((prev) => {
+      const proximo = { ...prev, [num]: !prev[num] };
+      setLeuTodasOrientacoes(ORIENTACOES_OFICIAIS.every((item) => proximo[item.numero]));
+      return proximo;
+    });
+  };
+
+  const mostrarToastOrientacoes = () => {
+    setToast('Necessário ler e concordar com todas as orientações');
+    window.setTimeout(() => setToast(''), 3500);
+  };
+
+  const imprimirOrientacoes = () => {
+    const conteudo = orientacoesRef.current?.innerHTML;
+    if (!conteudo) return;
+    const frame = document.createElement('iframe');
+    frame.setAttribute('title', 'Impressão das orientações ao coordenador');
+    frame.style.position = 'fixed';
+    frame.style.width = '1px';
+    frame.style.height = '1px';
+    frame.style.opacity = '0';
+    frame.style.pointerEvents = 'none';
+    frame.srcdoc = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Orientações ao Coordenador FEALQ</title><style>body{font-family:Arial,sans-serif;color:#111;line-height:1.5;margin:30px}h1{text-align:center;font-size:18px;border-bottom:1px solid #999;padding-bottom:12px}h2,h3,h4,h5{color:#123b57;margin-top:18px}p{font-size:12px}button{display:none!important}.material-symbols-outlined{display:none!important}@media print{body{margin:18mm}}</style></head><body><h1>Orientações ao Coordenador de Projetos e Eventos</h1><p><strong>ORI-COORD-01 / REV-03</strong> · 15 Diretrizes Institucionais</p>${conteudo}</body></html>`;
+    frame.onload = () => {
+      const janela = frame.contentWindow;
+      if (!janela) return;
+      janela.focus();
+      janela.print();
+      window.setTimeout(() => frame.remove(), 1000);
+    };
+    document.body.appendChild(frame);
   };
 
   const marcarTodosComoLidos = () => {
@@ -186,7 +218,10 @@ export const OrientacoesCoordenador = () => {
   const percentualLido = Math.round((totalLidos / ORIENTACOES_OFICIAIS.length) * 100);
 
   const handleConfirmarLeitura = () => {
-    if (!leuTodasOrientacoes) return;
+    if (!leuTodasOrientacoes || totalLidos !== ORIENTACOES_OFICIAIS.length) {
+      mostrarToastOrientacoes();
+      return;
+    }
     const agora = new Date();
     const dataStr = agora.toLocaleDateString('pt-BR');
     const horaStr = agora.toLocaleTimeString('pt-BR');
@@ -305,7 +340,7 @@ export const OrientacoesCoordenador = () => {
           titulo="Diretrizes Oficiais de Gestão Financeira e Acadêmica"
           livre
         >
-          <div className="flex flex-col gap-sm">
+          <div ref={orientacoesRef} className="flex flex-col gap-sm">
             {ORIENTACOES_OFICIAIS.map((item) => {
               const isExpanded = expanded[item.numero];
               const isLido = itensLidos[item.numero];
@@ -392,7 +427,12 @@ export const OrientacoesCoordenador = () => {
                 type="checkbox"
                 checked={leuTodasOrientacoes}
                 disabled={confirmado}
-                onChange={(e) => setLeuTodasOrientacoes(e.target.checked)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    if (totalLidos === ORIENTACOES_OFICIAIS.length) setLeuTodasOrientacoes(true);
+                    else mostrarToastOrientacoes();
+                  } else setLeuTodasOrientacoes(false);
+                }}
                 className="mt-1 h-5 w-5 rounded border-outline text-primary focus:ring-primary cursor-pointer"
               />
               <div className="flex-1">
@@ -427,7 +467,7 @@ export const OrientacoesCoordenador = () => {
                 <div className="flex items-center gap-xs">
                   <button
                     type="button"
-                    onClick={() => window.print()}
+                    onClick={imprimirOrientacoes}
                     className="px-md py-2 text-[12px] font-medium border border-green-600 text-green-800 rounded bg-white hover:bg-green-50 transition-colors flex items-center gap-1"
                   >
                     <span className="material-symbols-outlined text-[16px]">print</span>
@@ -450,10 +490,10 @@ export const OrientacoesCoordenador = () => {
                 </div>
                 <button
                   type="button"
-                  disabled={!leuTodasOrientacoes}
+                  disabled={!leuTodasOrientacoes || totalLidos !== ORIENTACOES_OFICIAIS.length}
                   onClick={handleConfirmarLeitura}
                   className={`px-lg py-2.5 rounded font-semibold text-[13px] flex items-center gap-2 transition-all ${
-                    leuTodasOrientacoes
+                    leuTodasOrientacoes && totalLidos === ORIENTACOES_OFICIAIS.length
                       ? 'bg-primary text-white hover:bg-primary-dark shadow-sm cursor-pointer'
                       : 'bg-surface-variant text-on-surface-variant cursor-not-allowed opacity-60'
                   }`}
@@ -466,6 +506,7 @@ export const OrientacoesCoordenador = () => {
           </div>
         </FormSection>
       </div>
+      {toast && <div role="status" aria-live="assertive" className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-error px-4 py-3 text-sm font-semibold text-white shadow-lg">{toast}</div>}
     </FormPageLayout>
   );
 };

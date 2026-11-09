@@ -50,19 +50,21 @@ export const KitDocumental = ({
   const [erroAnexo, setErroAnexo] = useState('');
   const [enviando, setEnviando] = useState<string | null>(null);
   const processo = useProcesso();
-  const registrarDocumentos = processo?.registrarDocumentos;
+  const registrarDocumentos = processo?.somenteLeitura ? undefined : processo?.registrarDocumentos;
   const assinaturaDocumentos = documentos.map((item) => `${item.id}:${item.documentoId || ''}:${item.obrigatorio}:${item.status}:${item.tipo}:${Boolean(item.url_template)}`).join('|');
   useEffect(() => {
     if (!registrarDocumentos) return;
     void registrarDocumentos(documentos.map((item) => ({
       id: item.id, obrigatorio: item.obrigatorio,
       concluido: item.status === 'concluido' || (item.status === undefined && (item.tipo === 'externo' || (item.tipo === 'gerado' && !item.url_template))),
+      preenchido: item.status === 'concluido' || item.tipo === 'externo' || (item.tipo === 'gerado' && !item.url_template),
+      emitido: item.status === 'concluido' || (item.tipo === 'gerado' && !item.url_template),
     })))
       .catch((falha: unknown) => setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível registrar o Kit Documental.'));
   // A assinatura muda apenas quando os requisitos do Kit mudam.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registrarDocumentos, assinaturaDocumentos]);
-  const documentoSalvo = (id: string) => processo?.documentos.some((item) => item.id === id && ['enviado', 'validado'].includes(item.status)) ?? false;
+  const documentoSalvo = (id: string) => processo?.documentos.some((item) => item.id === id && item.preenchido) ?? false;
   const { registrarPendencias } = useEnvio();
 
   const estaConcluido = (doc: DocumentoExigido) => {
@@ -148,6 +150,9 @@ export const KitDocumental = ({
             doc={doc}
             arquivo={anexos[doc.id] ?? null}
             arquivoSalvo={processo?.documentos.find((item) => item.id === doc.id)?.arquivo_nome || undefined}
+            preenchido={processo?.documentos.find((item) => item.id === doc.id)?.preenchido ?? false}
+            emitido={processo?.documentos.find((item) => item.id === doc.id)?.emitido ?? false}
+            somenteLeitura={processo?.somenteLeitura ?? false}
             enviando={enviando === doc.id}
             onBaixar={arquivoSalvo => { if (processo) void processo.baixarDocumento(doc.id, arquivoSalvo).catch((falha: unknown) => setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível baixar o anexo.')); }}
             onSelecionar={(a) => { void selecionar(doc.id, a); }}
@@ -167,13 +172,16 @@ interface ItemDocumentoProps {
   doc: DocumentoExigido;
   arquivo: File | null;
   arquivoSalvo?: string;
+  preenchido: boolean;
+  emitido: boolean;
+  somenteLeitura: boolean;
   enviando: boolean;
   onBaixar: (nome: string) => void;
   onSelecionar: (arquivo: File | null) => void;
   acaoNoCard: boolean;
 }
 
-const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelecionar, acaoNoCard }: ItemDocumentoProps) => {
+const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, enviando, somenteLeitura, onBaixar, onSelecionar, acaoNoCard }: ItemDocumentoProps) => {
   const navigate = useNavigate();
   const processo = useProcesso();
   const isCustomStatus = doc.status !== undefined;
@@ -183,11 +191,15 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
   const gerado = doc.tipo === 'gerado';
   const documentoCatalogo = Boolean(doc.documentoId);
   const arquivoPdfCatalogo = documentoCatalogo && /\.pdf(?:$|[?#])/i.test(doc.url_template || '');
-  const concluido = isCustomStatus
+  // Em protocolos enviados, o estado persistido do item é a fonte canônica.
+  // O status de rastreabilidade pode estar ausente/desatualizado (por exemplo,
+  // em um protocolo carregado em modo somente leitura), mesmo com o item
+  // registrado como preenchido e emitido no processo.
+  const concluido = (preenchido && emitido) || (isCustomStatus
     ? isConcluidoStatus
-    : ((gerado && !doc.url_template) || Boolean(arquivoSalvo));
+    : ((gerado && !doc.url_template) || Boolean(arquivoSalvo)));
   const detalhe = [doc.descricao ? resumirDescricao(doc.descricao) : '', doc.condicao].filter(Boolean).join(' ');
-  const cardAcionavel = acaoNoCard && Boolean(doc.url_template) && !arquivoPdfCatalogo;
+  const cardAcionavel = !somenteLeitura && acaoNoCard && Boolean(doc.url_template) && !arquivoPdfCatalogo;
   // Todo documento obrigatório pendente sinaliza ação necessária. Quando há
   // URL, o card também é navegável; uploads continuam usando o anexo interno.
   const cardComMotion = acaoNoCard && !concluido && (doc.obrigatorio || Boolean(doc.url_template));
@@ -209,6 +221,9 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
 
   return (
     <div
+      data-documento-id={doc.id}
+      data-preenchido={preenchido ? 'SIM' : 'NAO'}
+      data-emitido={emitido ? 'SIM' : 'NAO'}
       onClick={cardAcionavel ? abrirDocumento : undefined}
       onKeyDown={(event) => {
         if (cardAcionavel && (event.key === 'Enter' || event.key === ' ')) {
@@ -266,7 +281,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
                 <span className="text-secondary text-[11px] font-bold uppercase" title="Concluído">
                   Concluído
                 </span>
-                {!acaoNoCard && <Link
+                {!acaoNoCard && !somenteLeitura && <Link
                   to={doc.url_template}
                   onClick={(evento) => {
                     evento.preventDefault();
@@ -290,7 +305,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
                     {isEmAndamento ? 'rate_review' : 'edit'}
                   </span>
                 </span>
-                {!acaoNoCard && <Link
+                {!acaoNoCard && !somenteLeitura && <Link
                   to={doc.url_template}
                   onClick={(evento) => {
                     evento.preventDefault();
@@ -326,14 +341,23 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, enviando, onBaixar, onSelec
                 Modelo
               </a>
             )}
-            <AnexarArquivo
-              id={`anexo-${doc.id}`}
-              arquivo={arquivo}
-              arquivoSalvo={arquivoSalvo}
-              onSelecionar={onSelecionar}
-            />
+            {somenteLeitura ? (
+              <span className="text-[10px] font-semibold text-on-surface-variant">Consulta</span>
+            ) : (
+              <AnexarArquivo
+                id={`anexo-${doc.id}`}
+                arquivo={arquivo}
+                arquivoSalvo={arquivoSalvo}
+                onSelecionar={onSelecionar}
+              />
+            )}
           </div>
         )}
+      </div>
+
+      <div className="mt-xs pl-[26px] flex gap-2 text-[9px] font-bold uppercase">
+        <span className={preenchido ? 'text-secondary' : 'text-on-surface-variant'}>Preenchido: {preenchido ? 'SIM' : 'NÃO'}</span>
+        <span className={emitido ? 'text-secondary' : 'text-on-surface-variant'}>Emitido: {emitido ? 'SIM' : 'NÃO'}</span>
       </div>
 
       {arquivo && <ArquivoSelecionado arquivo={arquivo} />}

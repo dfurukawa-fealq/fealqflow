@@ -2,32 +2,12 @@ import { createContext, Dispatch, ReactNode, SetStateAction, useCallback, useCon
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { safeGetItem, safeJsonParse, safeRemoveItem, safeSetItem } from '../utils/safeStorage';
 import { useUser } from './UserContext';
-
-interface DadosProcesso {
-  campos: Record<string, unknown>;
-}
-
-interface Processo {
-  id: string;
-  protocolo: string;
-  categoria: 'projeto' | 'apoio';
-  formulario_id: string;
-  formulario_nome: string;
-  formulario_rota: string;
-  status: string;
-  dados_json: DadosProcesso;
-  versao: number;
-  documentos?: DocumentoProcesso[];
-}
-
-interface DocumentoProcesso {
-  id: string;
-  arquivo_nome: string | null;
-  status: string;
-}
+import { BackupProcesso, DadosProcesso, DocumentoProcesso, Processo, ProcessoComToken, ProcessoLocal } from '../types/processo';
+export type { ProcessoLocal } from '../types/processo';
 
 interface ContextoProcesso {
   processo: Processo;
+  somenteLeitura: boolean;
   dados: DadosProcesso;
   erro: string;
   salvando: boolean;
@@ -40,11 +20,11 @@ interface ContextoProcesso {
   anexarDocumento: (codigo: string, arquivo: File) => Promise<void>;
   removerDocumento: (codigo: string) => Promise<void>;
   baixarDocumento: (codigo: string, nome: string) => Promise<void>;
-  registrarDocumentos: (itens: Array<{ id: string; obrigatorio: boolean; concluido: boolean }>) => Promise<void>;
+  registrarDocumentos: (itens: Array<{ id: string; obrigatorio: boolean; concluido: boolean; preenchido: boolean; emitido: boolean }>) => Promise<void>;
 }
 
 const ProcessoContext = createContext<ContextoProcesso | null>(null);
-const requisicoesCriacao = new Map<string, Promise<Processo & { token: string }>>();
+const requisicoesCriacao = new Map<string, Promise<ProcessoComToken>>();
 const gerarBytes = (tamanho: number) => crypto.getRandomValues(new Uint8Array(tamanho));
 const gerarUuid = () => {
   const bytes = gerarBytes(16);
@@ -71,8 +51,7 @@ const nomesFormularios: Record<string, string> = {
   'apoio-cultura': 'Cultura e Extensão',
 };
 export const CHAVE_PROCESSOS_LOCAIS = '@Fealq:processos_locais';
-export interface ProcessoLocal { id: string; rota: string; categoria: 'projeto' | 'apoio'; processoPaiId?: string; }
-const registrarProcessoLocal = (processo: Processo & { token: string }, processoPaiId?: string | null) => {
+const registrarProcessoLocal = (processo: ProcessoComToken, processoPaiId?: string | null) => {
   safeSetItem(`@Fealq:processo:${processo.id}`, processo.token);
   const atuais = safeJsonParse<ProcessoLocal[]>(safeGetItem(CHAVE_PROCESSOS_LOCAIS), []);
   const proximos = [{ id: processo.id, rota: processo.formulario_rota, categoria: processo.categoria, ...(processoPaiId ? { processoPaiId } : {}) }, ...atuais.filter((item) => item.id !== processo.id)];
@@ -85,7 +64,7 @@ const mensagemErro = async (resposta: Response) => {
     ? corpo.error : `Falha na comunicação com o servidor (${resposta.status}).`;
 };
 
-const criarProcesso = async (rota: string, chaveCriacao: string, token: string, processoPaiId?: string | null): Promise<Processo & { token: string }> => {
+const criarProcesso = async (rota: string, chaveCriacao: string, token: string, processoPaiId?: string | null): Promise<ProcessoComToken> => {
   const categoria = rota.startsWith('/projetos/') ? 'projeto' : 'apoio';
   const resposta = await fetch('/api/processos', {
     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
@@ -98,7 +77,7 @@ const criarProcesso = async (rota: string, chaveCriacao: string, token: string, 
     }),
   });
   if (!resposta.ok) throw new Error(await mensagemErro(resposta));
-  return resposta.json() as Promise<Processo & { token: string }>;
+  return resposta.json() as Promise<ProcessoComToken>;
 };
 
 export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
@@ -107,6 +86,7 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const parametros = new URLSearchParams(location.search);
   const id = parametros.get('processo');
+  const somenteLeituraSolicitada = parametros.get('modo') === 'consulta';
   const inicio = parametros.get('inicio');
   const [processo, setProcesso] = useState<Processo | null>(null);
   const [erro, setErro] = useState('');
@@ -196,24 +176,26 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
     </main>
   );
   if (!processo || !id) return <div className="p-lg text-on-surface" role="status">Preparando processo...</div>;
-  if (!['rascunho', 'em_preenchimento'].includes(processo.status)) return (
+  const processoEditavel = ['rascunho', 'em_preenchimento'].includes(processo.status);
+  if (!processoEditavel && !somenteLeituraSolicitada) return (
     <main className="mx-auto flex w-full max-w-[600px] flex-col gap-md p-lg">
       <h1 className="text-xl font-bold text-primary">Processo enviado</h1>
       <p>O processo {processo.protocolo} foi registrado. Para preencher novamente, inicie outra tentativa.</p>
       <button type="button" className="self-start rounded bg-primary px-md py-sm text-white" onClick={() => void novaTentativa().catch((falha: unknown) => setErro(falha instanceof Error ? falha.message : 'Não foi possível iniciar outra tentativa.'))}>Iniciar nova tentativa</button>
     </main>
   );
-  return <ProcessoProvider key={processo.id} processoInicial={processo} token={token} novaTentativa={novaTentativa}>{children}</ProcessoProvider>;
+  return <ProcessoProvider key={processo.id} processoInicial={processo} token={token} novaTentativa={novaTentativa} somenteLeitura={!processoEditavel || somenteLeituraSolicitada}>{children}</ProcessoProvider>;
 };
 
-const ProcessoProvider = ({ children, processoInicial, token, novaTentativa }: {
-  children: ReactNode; processoInicial: Processo; token: string; novaTentativa: () => Promise<void>;
+const ProcessoProvider = ({ children, processoInicial, token, novaTentativa, somenteLeitura }: {
+  children: ReactNode; processoInicial: Processo; token: string; novaTentativa: () => Promise<void>; somenteLeitura: boolean;
 }) => {
+  const navigate = useNavigate();
   const chaveBackup = `@Fealq:rascunho:${processoInicial.id}`;
   const dadosServidor = processoInicial.dados_json?.campos ? processoInicial.dados_json : { campos: {} };
   const [dados, setDados] = useState<DadosProcesso>(() => {
-    const backup = safeJsonParse<{ versao: number; dados: DadosProcesso } | null>(safeGetItem(chaveBackup), null);
-    return backup?.versao === processoInicial.versao && backup.dados?.campos ? backup.dados : dadosServidor;
+    const backup = safeJsonParse<BackupProcesso | null>(safeGetItem(chaveBackup), null);
+    return backup && backup.versao >= processoInicial.versao && backup.dados?.campos ? backup.dados : dadosServidor;
   });
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
@@ -248,7 +230,7 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa }: {
           }
           return '';
         };
-        const resposta = await fetch(`/api/processos/${processoInicial.id}`, {
+        const enviarSnapshot = async (): Promise<Response> => fetch(`/api/processos/${processoInicial.id}`, {
           method: 'PATCH', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json', 'x-processo-token': token },
           body: JSON.stringify({
@@ -258,6 +240,17 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa }: {
             solicitanteEmail: lerCampo('coordEmail', 'email', 'E-mail Institucional'),
           }),
         });
+        let resposta: Response | null = null;
+        for (let tentativa = 0; tentativa < 3; tentativa += 1) {
+          try {
+            resposta = await enviarSnapshot();
+          } catch (falha) {
+            if (tentativa === 2) throw falha;
+          }
+          if (resposta?.ok || (resposta && resposta.status < 500) || tentativa === 2) break;
+          await new Promise<void>((resolver) => window.setTimeout(resolver, 400 * (tentativa + 1)));
+        }
+        if (!resposta) throw new Error('NÃ£o foi possÃ­vel salvar o rascunho.');
         if (!resposta.ok) throw new Error(await mensagemErro(resposta));
         const salvo = await resposta.json() as { versao: number };
         versaoRef.current = salvo.versao;
@@ -281,6 +274,22 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa }: {
     const temporizador = window.setTimeout(() => { void salvar().catch(() => undefined); }, 900);
     return () => window.clearTimeout(temporizador);
   }, [dados, salvar, chaveBackup]);
+
+  useEffect(() => {
+    const preservarBackup = () => {
+      if (JSON.stringify(dadosRef.current) === ultimoSalvoRef.current) return;
+      safeSetItem(chaveBackup, JSON.stringify({ versao: versaoRef.current, dados: dadosRef.current }));
+    };
+    const aoOcultarPagina = () => {
+      if (document.visibilityState === 'hidden') preservarBackup();
+    };
+    window.addEventListener('pagehide', preservarBackup);
+    document.addEventListener('visibilitychange', aoOcultarPagina);
+    return () => {
+      window.removeEventListener('pagehide', preservarBackup);
+      document.removeEventListener('visibilitychange', aoOcultarPagina);
+    };
+  }, [chaveBackup]);
 
   const enviar = useCallback(async () => {
     await salvar();
@@ -336,7 +345,7 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa }: {
     window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }, [processoInicial.id, token]);
 
-  const registrarDocumentos = useCallback(async (itens: Array<{ id: string; obrigatorio: boolean; concluido: boolean }>) => {
+  const registrarDocumentos = useCallback(async (itens: Array<{ id: string; obrigatorio: boolean; concluido: boolean; preenchido: boolean; emitido: boolean }>) => {
     const resposta = await fetch(`/api/processos/${processoInicial.id}/documentos`, {
       method: 'PUT', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'x-processo-token': token },
@@ -346,12 +355,12 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa }: {
     setDocumentos(await resposta.json() as DocumentoProcesso[]);
   }, [processoInicial.id, token]);
 
-  const valor = useMemo<ContextoProcesso>(() => ({ processo: processoInicial, dados, erro, salvando, documentos, atualizarCampo, salvar, save_state: salvar, enviar, novaTentativa, anexarDocumento, removerDocumento, baixarDocumento, registrarDocumentos }),
-    [processoInicial, dados, erro, salvando, documentos, atualizarCampo, salvar, enviar, novaTentativa, anexarDocumento, removerDocumento, baixarDocumento, registrarDocumentos]);
+  const valor = useMemo<ContextoProcesso>(() => ({ processo: processoInicial, somenteLeitura, dados, erro, salvando, documentos, atualizarCampo, salvar, save_state: salvar, enviar, novaTentativa, anexarDocumento, removerDocumento, baixarDocumento, registrarDocumentos }),
+    [processoInicial, somenteLeitura, dados, erro, salvando, documentos, atualizarCampo, salvar, enviar, novaTentativa, anexarDocumento, removerDocumento, baixarDocumento, registrarDocumentos]);
   if (enviado) return <main className="mx-auto flex w-full max-w-[600px] flex-col gap-md p-lg">
     <h1 className="text-xl font-bold text-primary">Processo enviado</h1>
     <p>O processo {processoInicial.protocolo} foi registrado no servidor.</p>
-    <button type="button" className="self-start rounded bg-primary px-md py-sm text-white" onClick={() => void novaTentativa()}>Iniciar nova tentativa</button>
+    <button type="button" className="self-start rounded bg-primary px-md py-sm text-white" onClick={() => navigate(processoInicial.categoria === 'projeto' ? '/projetos' : '/programas-de-apoio')}>OK</button>
   </main>;
   return <ProcessoContext.Provider value={valor}>{children}</ProcessoContext.Provider>;
 };

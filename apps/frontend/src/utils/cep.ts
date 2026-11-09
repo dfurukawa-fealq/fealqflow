@@ -50,7 +50,13 @@ export const buscarEnderecoPorCep = async (
       };
     }
 
-    const data = await res.json();
+    const data = await res.json() as {
+      erro?: boolean;
+      logradouro?: string;
+      bairro?: string;
+      localidade?: string;
+      uf?: string;
+    };
     if (data.erro) {
       return {
         logradouro: '',
@@ -69,9 +75,9 @@ export const buscarEnderecoPorCep = async (
       uf: data.uf || '',
       sucesso: true,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     clearTimeout(timer);
-    const isTimeout = err?.name === 'AbortError';
+    const isTimeout = err instanceof DOMException && err.name === 'AbortError';
     return {
       logradouro: '',
       bairro: '',
