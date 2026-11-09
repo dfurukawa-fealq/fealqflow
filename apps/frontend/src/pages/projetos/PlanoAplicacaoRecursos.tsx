@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { NumericFormat } from 'react-number-format';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
-import { FormActionButton } from '../../components/form/FormActionButton';
 import { FormSection } from '../../components/form/FormSection';
 import { Field, CELULA_TABELA } from '../../components/form/Field';
 import { usePlanoAplicacaoCalculos, formatMoney, ESTRUTURA_DESPESAS, TipoProjetoFPA } from './PlanoAplicacaoRecursos_Calculos';
@@ -123,7 +122,6 @@ export const PlanoAplicacaoRecursos = () => {
             <span className="material-symbols-outlined text-[20px] lg:text-[18px]" aria-hidden="true">arrow_back</span>
             <span className="hidden truncate xl:inline">Voltar ao Protocolo</span>
           </Link>}
-          <FormActionButton texto="Gerar PDF" icone="print" type="button" onClick={() => window.print()} />
         </div>
       }
     >

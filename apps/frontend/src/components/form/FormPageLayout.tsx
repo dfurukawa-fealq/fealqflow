@@ -5,6 +5,7 @@ import { EnvioContext } from './EnvioContext';
 import { FormActionButton } from './FormActionButton';
 import { useProcesso } from '../../contexts/ProcessoContext';
 import { armazenamentoPersistenteDisponivel } from '../../utils/safeStorage';
+import { RelatorioFormulario } from './RelatorioFormulario';
 
 export interface FormPageLayoutProps {
   /** Trilha completa, incluindo a página atual: ['Área do Coordenador', 'Auxílio Viagem'] */
@@ -346,6 +347,7 @@ export const FormPageLayout = ({
               {footerCenter && <div className="hidden min-w-0 lg:flex">{footerCenter}</div>}
             </div>
             <div className="flex min-w-0 flex-wrap items-center justify-end gap-xs lg:flex-1">
+              <RelatorioFormulario titulo={titulo} />
               {botoesAcoes}
               {processo && !somenteLeitura && <FormActionButton texto="Reiniciar" icone="restart_alt" type="button" disabled={executando} onClick={() => {
                 if (window.confirm('Iniciar uma nova tentativa? O processo atual será preservado.')) void executar(async () => { await processo.salvar(); await processo.novaTentativa(); });

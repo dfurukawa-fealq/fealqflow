@@ -195,7 +195,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
   // O status de rastreabilidade pode estar ausente/desatualizado (por exemplo,
   // em um protocolo carregado em modo somente leitura), mesmo com o item
   // registrado como preenchido e emitido no processo.
-  const concluido = (preenchido && emitido) || (isCustomStatus
+  const concluido = (preenchido && (emitido || doc.tipo === 'externo')) || (isCustomStatus
     ? isConcluidoStatus
     : ((gerado && !doc.url_template) || Boolean(arquivoSalvo)));
   const detalhe = [doc.descricao ? resumirDescricao(doc.descricao) : '', doc.condicao].filter(Boolean).join(' ');
