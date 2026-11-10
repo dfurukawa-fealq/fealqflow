@@ -2,7 +2,7 @@ import { FormSection } from '../FormSection';
 import { Field } from '../Field';
 
 export const EquipeProjetoSection = () => (
-  <FormSection numero={3} icone="supervisor_account" titulo="Equipe do Projeto & Delegados de Gestão">
+  <FormSection numero={4} icone="supervisor_account" titulo="Equipe do Projeto & Delegados de Gestão">
     <div className="col-span-12 rounded-lg border border-outline-variant bg-surface-container-low p-sm">
       <div className="mb-sm flex items-center justify-between"><h3 className="flex items-center gap-xs text-sm font-bold text-on-surface"><span className="material-symbols-outlined text-base text-primary">person</span>Coordenador Responsável</h3><span className="rounded bg-primary/10 px-sm py-xs text-[10px] font-semibold text-primary">Acesso Nível 1 Automático</span></div>
       <p className="mb-sm rounded border border-amber-300 bg-amber-50 px-sm py-xs text-[11px] text-amber-800">*Caso não tenha cadastro como coordenador na FEALQ, preencher o <strong>CADASTRO DE COORDENADOR</strong> no kit de documentação.</p>

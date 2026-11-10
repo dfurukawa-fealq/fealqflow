@@ -354,7 +354,7 @@ const renderKitDocumental = (programa: ProgramaApoio) => {
                   ` : ''}
                   ${!doc.obrigatorio ? `
                     <span class="inline-block mt-1 w-fit text-[9px] font-bold uppercase tracking-wide px-1.5 py-[1px] rounded bg-surface-variant text-on-surface-variant">
-                      Condicional
+                      NÃO OBRIGATÓRIO
                     </span>
                   ` : ''}
                 </div>

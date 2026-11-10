@@ -35,6 +35,8 @@ interface FieldProps {
   disabled?: boolean;
   obrigatorio?: boolean;
   onChange?: (valor: string) => void;
+  ordem?: number;
+  inicio?: number;
   /** Substitui o controle por um conteúdo próprio, mantendo label e grade. */
   children?: ReactNode;
 }
@@ -54,6 +56,8 @@ const SPAN: Record<number, string> = {
   11: 'md:col-span-11',
   12: 'md:col-span-12',
 };
+const ORDEM: Record<number, string> = { 1: 'md:order-1', 2: 'md:order-2', 3: 'md:order-3', 4: 'md:order-4', 5: 'md:order-5', 6: 'md:order-6' };
+const INICIO: Record<number, string> = { 1: 'md:col-start-1', 7: 'md:col-start-7' };
 
 const CONTROLE =
   'w-full h-[36px] px-sm py-xs border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors disabled:opacity-50';
@@ -83,6 +87,8 @@ export const Field = ({
   disabled,
   obrigatorio,
   onChange,
+  ordem,
+  inicio,
   children,
 }: FieldProps) => {
   const id = useId();
@@ -105,7 +111,7 @@ export const Field = ({
   };
 
   return (
-    <div data-fealq-field={chaveEstavel} className={`col-span-12 min-w-0 ${SPAN[span] ?? SPAN[12]}`}>
+    <div data-fealq-field={chaveEstavel} className={`col-span-12 min-w-0 ${SPAN[span] ?? SPAN[12]} ${ordem ? ORDEM[ordem] ?? '' : ''} ${inicio ? INICIO[inicio] ?? '' : ''}`}>
       <label className={LABEL} htmlFor={id}>
         {label}
         {obrigatorio && <span className="text-red-500 ml-0.5">*</span>}

@@ -15,6 +15,10 @@ import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSect
 import { OrientacoesCoordenadorCard } from '../../components/form/projetos/OrientacoesCoordenadorCard';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { useAdmin } from '../../contexts/AdminContext';
+import { CronogramaExecucaoSection } from '../../components/form/projetos/CronogramaExecucaoSection';
+import { CoordenadorResponsavelSection } from '../../components/form/projetos/CoordenadorResponsavelSection';
+import { DelegadosEditor, DelegadoEditorItem } from '../../components/form/projetos/DelegadosEditor';
+import { CienciaConcordanciaSection } from '../../components/form/projetos/CienciaConcordanciaSection';
 
 export const ProjetoPesquisa = () => {
   const location = useLocation();
@@ -48,6 +52,7 @@ export const ProjetoPesquisa = () => {
   const [numeroConvenio, setNumeroConvenio] = useProcessoState('numeroConvenio', '');
   const [numeroProcesso, setNumeroProcesso] = useProcessoState('numeroProcesso', '');
   const [equipe, setEquipe] = useProcessoState<MembroEquipeProjeto[]>('equipe', []);
+  const [delegados, setDelegados] = useProcessoState<DelegadoEditorItem[]>('delegados', []);
   const [envolvePropriedade, setEnvolvePropriedade] = useProcessoState('envolvePropriedade', true);
   const [percentualUSP, setPercentualUSP] = useProcessoState('percentualUSP', '50');
   const [percentualParceiro, setPercentualParceiro] = useProcessoState('percentualParceiro', '50');
@@ -63,7 +68,7 @@ export const ProjetoPesquisa = () => {
     // { id: 'cadastro-parceiro', label: 'Cadastro de Parceiro / Financiador', descricao: 'Pode ser preenchido por link externo.', tipo: 'externo', obrigatorio: false },
       ...(possuiConvenio
       ? [{ id: 'planilha-recursos-usp', label: 'Planilha de Aplicação de Recursos USP', descricao: 'Anexo obrigatório para projeto com convênio USP.', tipo: 'upload' as const, obrigatorio: true }]
-      : [{ id: 'plano-aplicacao-recursos', label: 'Plano de Aplicação de Recursos', descricao: 'Preenchimento obrigatório para projeto sem convênio USP.', tipo: 'gerado' as const, obrigatorio: true }]),
+      : [{ id: 'plano-aplicacao-recursos', label: 'Plano de Aplicação dos Recursos', descricao: 'Anexe o plano de aplicação dos recursos do projeto.', tipo: 'upload' as const, obrigatorio: true, url_template: '' }]),
     // { id: 'informacoes-complementares', label: 'Informações Complementares', descricao: 'Anexo opcional.', tipo: 'upload', obrigatorio: false },
   ], [possuiConvenio]);
 
@@ -91,8 +96,8 @@ export const ProjetoPesquisa = () => {
       if (documento.id === 'plano-aplicacao-recursos') {
         return {
           ...documento,
-          url_template: urlPlanoRecursos,
-          status: statusPlanoRecursos,
+          url_template: '',
+          status: undefined,
           onAbrirLink: async () => {
             await processo?.save_state();
             registrarAberturaFormulario('CONV-PL-01', 'Plano de AplicaÃ§Ã£o de Recursos', urlPlanoRecursos);
@@ -111,7 +116,7 @@ export const ProjetoPesquisa = () => {
         descricao: 'Caso não possua cadastro prévio na FEALQ.',
         tipo: 'gerado',
         obrigatorio: false,
-        condicao: 'Condicional',
+        condicao: 'NÃO OBRIGATÓRIO',
         url_template: urlCadastroCoordenador,
         status: statusCadastroCoordenador === 'concluido' ? 'concluido' : undefined,
         onAbrirLink: async () => {
@@ -162,21 +167,28 @@ export const ProjetoPesquisa = () => {
       sidebar={<KitDocumental acaoNoCard documentos={documentosKit} />}
     >
       <ConvenioUSPSection possuiConvenio={possuiConvenio} aoAlterar={setPossuiConvenio} numeroConvenio={numeroConvenio} numeroProtocolo={numeroProcesso} aoAlterarNumeroConvenio={setNumeroConvenio} aoAlterarNumeroProtocolo={setNumeroProcesso} />
-      <CertRegimeTrabalhoSection regime={regimeTrabalho} numeroCert={numeroCert} validadeCert={validadeCert} aoAlterarRegime={setRegimeTrabalho} aoAlterarNumeroCert={setNumeroCert} aoAlterarValidadeCert={setValidadeCert} />
+      {possuiConvenio && (
+        <CertRegimeTrabalhoSection regime={regimeTrabalho} numeroCert={numeroCert} validadeCert={validadeCert} aoAlterarRegime={setRegimeTrabalho} aoAlterarNumeroCert={setNumeroCert} aoAlterarValidadeCert={setValidadeCert} />
+      )}
+      {possuiConvenio && (
+        <PropriedadeIntelectualSection envolvePropriedade={envolvePropriedade} aoAlterarEnvolvimento={setEnvolvePropriedade} percentualUSP={percentualUSP} percentualParceiro={percentualParceiro} aoAlterarPercentualUSP={setPercentualUSP} aoAlterarPercentualParceiro={setPercentualParceiro} />
+      )}
 
       <FormSection numero={2} icone="science" titulo="Dados do Projeto & Detalhamento Técnico">
         <Field label="Título do Projeto" span={8} placeholder="Informe o título completo do projeto" obrigatorio />
         <Field label="Prazo de Execução (meses)" span={4} tipo="number" placeholder="Ex.: 24" />
-        <Field label="Objetivo do Projeto" tipo="textarea" placeholder="Descreva o objetivo principal da pesquisa" obrigatorio />
-        <Field label="Detalhamento Técnico / Metodologia" tipo="textarea" placeholder="Descreva o problema, a metodologia e as etapas da pesquisa" obrigatorio />
+        <Field label="Objeto do Projeto" tipo="textarea" placeholder="Descreva o objetivo principal da pesquisa" obrigatorio />
+        <Field label="Objetivo Geral" tipo="textarea" placeholder="Descreva o problema, a metodologia e as etapas da pesquisa" obrigatorio />
+        <Field label="Justificativa" tipo="textarea" placeholder="Descreva o problema, a metodologia e as etapas da pesquisa" obrigatorio />
         <Field label="Resultados Esperados" tipo="textarea" placeholder="Descreva os resultados esperados" />
-        <Field label="Cronograma de Execução" tipo="textarea" placeholder="Informe as principais etapas e respectivos períodos" />
       </FormSection>
 
-      <EquipeProjetoSection />
-      <EquipeTecnicaEditor membros={equipe} aoAlterar={setEquipe} />
+      <CoordenadorResponsavelSection numero={4} />
+      <DelegadosEditor delegados={delegados} aoAlterar={setDelegados} />
+      <EquipeTecnicaEditor numero={4} membros={equipe} aoAlterar={setEquipe} />
+      <CronogramaExecucaoSection />
 
-      <FormSection numero={4} icone="account_balance" titulo="Instituições Envolvidas (Parcerias & Financiamento)">
+      <FormSection numero={6} icone="account_balance" titulo="Instituições Envolvidas (Financiadoras)">
         <Field label="Nome da Instituição / Empresa Parceira" span={6} placeholder="Nome da instituição" />
         <Field label="Ponto de Contato (Nome / Área)" span={6} placeholder="Responsável pelo contato" />
         <Field label="E-mail de Contato" span={6} tipo="email" placeholder="contato@instituicao.br" />
@@ -187,7 +199,7 @@ export const ProjetoPesquisa = () => {
         <Field label="Preenchimento pelo Financiador" tipo="checkbox" placeholder="Enviar link para o financiador preencher seus dados" />
       </FormSection>
 
-      <FormSection numero={5} icone="payments" titulo="Execução do Projeto (Recursos & Desembolso)">
+      <FormSection numero={7} icone="payments" titulo="Execução do Projeto (Recursos & Desembolso)">
         <Field label="Plano de Aplicação / Desembolso" tipo="textarea" placeholder={possuiConvenio ? 'Consulte a Planilha de Aplicação de Recursos USP anexada.' : 'Descreva a aplicação dos recursos e o desembolso previsto.'} obrigatorio />
         <Field label="Informações Adicionais" tipo="textarea" placeholder="Inclua informações complementares sobre a execução" />
         <div className="col-span-12 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-on-surface-variant">
@@ -195,15 +207,7 @@ export const ProjetoPesquisa = () => {
         </div>
       </FormSection>
 
-      <PropriedadeIntelectualSection envolvePropriedade={envolvePropriedade} aoAlterarEnvolvimento={setEnvolvePropriedade} percentualUSP={percentualUSP} percentualParceiro={percentualParceiro} aoAlterarPercentualUSP={setPercentualUSP} aoAlterarPercentualParceiro={setPercentualParceiro} />
-
-      <FormSection numero={6} icone="fact_check" titulo="Ciência e Concordância do Departamento (USP)">
-        <Field label="Departamento / Unidade" span={6} placeholder="Informe o departamento ou unidade" />
-        <Field label="Situação da Aprovação" span={6} tipo="select" opcoes={['Pendente', 'Aprovada', 'Dispensada']} padrao="Pendente" />
-        <Field label="Observações da Chefia" tipo="textarea" placeholder="Registre informações complementares da aprovação" />
-        <Field label="Ciência da Chefia de Departamento" tipo="checkbox" placeholder="Declaro ciência e concordância com a execução do projeto" />
-      </FormSection>
-
+      <CienciaConcordanciaSection numero={8} />
       <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD)} />
       <OrientacoesCoordenadorCard aceito={statusOrientacoes === 'concluido'} urlOrientacoes={urlOrientacoes} aoAbrirOrientacoes={() => { void processo?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); }} />
     </FormPageLayout>

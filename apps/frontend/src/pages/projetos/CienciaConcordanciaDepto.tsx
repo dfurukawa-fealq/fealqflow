@@ -7,6 +7,7 @@ import { Field } from '../../components/form/Field';
 import { CertificacaoSidebarCard } from '../../components/form/CertificacaoSidebarCard';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { sanitizeInputText, sanitizeProtocolId, getSafeReturnUrl } from '../../utils/security';
+import { UNIDADES_USP } from '../../data/listas';
 
 export const CienciaConcordanciaDepto = () => {
   const [searchParams] = useSearchParams();
@@ -14,8 +15,8 @@ export const CienciaConcordanciaDepto = () => {
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
   // Dados do Departamento e Aprovação
-  const [deptoNome, setDeptoNome] = useProcessoState('deptoNome',
-    sanitizeInputText(searchParams.get('depto')) || ''
+  const [deptoNome, setDeptoNome] = useProcessoState('coordUnidade',
+    sanitizeInputText(searchParams.get('depto')) || '', ['deptoNome']
   );
   const [modalidadeAprovacao, setModalidadeAprovacao] = useState<'conselho' | 'ad_referendum'>('conselho');
   const [dataConselho, setDataConselho] = useProcessoState('dataConselho', '');
@@ -159,40 +160,41 @@ export const CienciaConcordanciaDepto = () => {
             <label className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
               INSERIR RESPECTIVO DEPARTAMENTO / UNIDADE *
             </label>
-            <input
-              type="text"
+            <select
               value={deptoNome}
               onChange={(e) => setDeptoNome(e.target.value)}
-              placeholder="Ex: Departamento de Engenharia de Alimentos - FZEA/USP"
               className="w-full px-sm py-2 rounded border border-outline bg-surface text-on-surface text-[13px] focus:outline-none focus:border-primary"
               required
-            />
+            >
+              <option value="">Selecione a unidade</option>
+              {UNIDADES_USP.map((unidade) => <option key={unidade} value={unidade}>{unidade}</option>)}
+            </select>
             <div className="flex items-center gap-2 flex-wrap text-[11px] text-on-surface-variant">
               <span>Sugestões rápidas:</span>
               <button
                 type="button"
-                onClick={() => setDeptoNome('Departamento de Engenharia de Alimentos - FZEA/USP')}
+                onClick={() => setDeptoNome('FZEA')}
                 className="px-2 py-0.5 rounded border border-outline-variant hover:bg-surface-variant transition-colors"
               >
                 FZEA/USP - Alimentos
               </button>
               <button
                 type="button"
-                onClick={() => setDeptoNome('Departamento de Agroindústria, Alimentos e Nutrição - ESALQ/USP')}
+                onClick={() => setDeptoNome('ESALQ')}
                 className="px-2 py-0.5 rounded border border-outline-variant hover:bg-surface-variant transition-colors"
               >
                 ESALQ/USP - Alimentos
               </button>
               <button
                 type="button"
-                onClick={() => setDeptoNome('Departamento de Ciência do Solo - ESALQ/USP')}
+                onClick={() => setDeptoNome('CENA')}
                 className="px-2 py-0.5 rounded border border-outline-variant hover:bg-surface-variant transition-colors"
               >
                 ESALQ/USP - Solos
               </button>
               <button
                 type="button"
-                onClick={() => setDeptoNome('Departamento de Zootecnia - FZEA/USP')}
+                onClick={() => setDeptoNome('FMVZ')}
                 className="px-2 py-0.5 rounded border border-outline-variant hover:bg-surface-variant transition-colors"
               >
                 FZEA/USP - Zootecnia

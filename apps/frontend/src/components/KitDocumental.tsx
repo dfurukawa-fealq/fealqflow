@@ -383,7 +383,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
 
       {!doc.obrigatorio && (
         <span className="inline-block mt-xs ml-[26px] text-[9px] font-bold uppercase tracking-wide px-1.5 py-[1px] rounded bg-surface-variant text-on-surface-variant">
-          Condicional
+          NÃO OBRIGATÓRIO
         </span>
       )}
     </div>

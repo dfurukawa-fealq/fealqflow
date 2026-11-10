@@ -15,7 +15,7 @@ export interface DocumentoExigido {
   /** Detalhe do edital: assinaturas exigidas, limite de páginas, etc. */
   descricao?: string;
   tipo: TipoDocumento;
-  /** false = condicional ou opcional; nesse caso preencha `condicao`. */
+  /** false = NÃO OBRIGATÓRIO ou opcional; nesse caso preencha `condicao`. */
   obrigatorio: boolean;
   condicao?: string;
   acaoEmail?: { email: string; label: string };

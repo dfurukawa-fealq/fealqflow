@@ -11,7 +11,7 @@ interface PropriedadeIntelectualSectionProps {
 }
 
 export const PropriedadeIntelectualSection = ({ envolvePropriedade, aoAlterarEnvolvimento, percentualUSP, percentualParceiro, aoAlterarPercentualUSP, aoAlterarPercentualParceiro }: PropriedadeIntelectualSectionProps) => (
-  <FormSection numero={5} icone="workspace_premium" titulo="Propriedade Intelectual (PI) e Patentes">
+  <FormSection numero={3} icone="workspace_premium" titulo="Propriedade Intelectual (PI) e Patentes">
     <div className="col-span-12">
       <h3 className="mb-3 text-sm font-semibold text-on-surface">Previsão de Propriedade Intelectual</h3>
       <p className="mb-3 whitespace-nowrap text-[12px] font-bold uppercase text-on-surface-variant">O projeto envolve a criação ou desenvolvimento de propriedade intelectual?</p>

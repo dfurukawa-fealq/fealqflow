@@ -87,7 +87,7 @@ export const CadastroCoordenador = () => {
 
     <FormSection numero={2} icone="school" titulo="Dados Institucionais">
       <Field
-        label="Unidade USP"
+        label="Unidade"
         span={6}
         tipo="select"
         placeholder="Selecione a Unidade..."
@@ -113,7 +113,22 @@ export const CadastroCoordenador = () => {
       />
     </FormSection>
 
-    <FormSection numero={3} icone="location_on" titulo="Endereço Comercial">
+    {/* <FormSection numero={3} icone="location_on" titulo="Endereço Comercial">
+      <Field label="CEP" span={3} placeholder="00000-000" />
+      <Field label="Logradouro" span={6} placeholder="Avenida Pádua Dias" />
+      <Field label="Número" span={3} placeholder="11" />
+      <Field label="Bairro" span={4} placeholder="Agronomia" />
+      <Field label="Cidade" span={5} placeholder="Piracicaba" />
+      <Field
+        label="Estado (UF)"
+        span={3}
+        tipo="select"
+        placeholder="UF"
+        opcoes={['SP']}
+      />
+    </FormSection> */}
+
+    <FormSection numero={3} icone="location_on" titulo="Endereço Residencial">
       <Field label="CEP" span={3} placeholder="00000-000" />
       <Field label="Logradouro" span={6} placeholder="Avenida Pádua Dias" />
       <Field label="Número" span={3} placeholder="11" />

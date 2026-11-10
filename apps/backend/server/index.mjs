@@ -19,7 +19,7 @@ const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error('Configure DATABASE_URL para iniciar o backend PostgreSQL.');
 
 const resultadoBootstrap = await criarBasePostgreSQL(databaseUrl);
-console.info(`Banco PostgreSQL ${resultadoBootstrap.criada ? 'criado' : 'já existente'}: ${resultadoBootstrap.nome}`);
+console.info(`Banco PostgreSQL ${resultadoBootstrap.criada ? 'criado' : 'jÃ¡ existente'}: ${resultadoBootstrap.nome}`);
 
 const pool = new Pool({
   connectionString: databaseUrl,
@@ -27,7 +27,7 @@ const pool = new Pool({
   connectionTimeoutMillis: 10_000,
   idleTimeoutMillis: 30_000,
 });
-pool.on('error', () => console.error('Falha inesperada em uma conexão PostgreSQL ociosa.'));
+pool.on('error', () => console.error('Falha inesperada em uma conexÃ£o PostgreSQL ociosa.'));
 
 try {
   await pool.query('SELECT 1');
@@ -37,7 +37,7 @@ try {
   await executarProcessos(pool);
 } catch (erro) {
   await pool.end();
-  console.error('Falha ao conectar ou migrar o PostgreSQL. Verifique acesso, permissões e migrations.');
+  console.error('Falha ao conectar ou migrar o PostgreSQL. Verifique acesso, permissÃµes e migrations.');
   throw erro;
 }
 
@@ -56,7 +56,7 @@ app.use('/templates', express.static(path.join(root, 'template')));
 const asyncRoute = (handler) => (request, response, next) => Promise.resolve(handler(request, response, next)).catch(next);
 const nomeCookieSessao = 'fealqflow_admin';
 const duracaoSessaoMs = 12 * 60 * 60 * 1000;
-// Em HTTP local/rede interna, o cookie não pode ter Secure. Em produção com HTTPS,
+// Em HTTP local/rede interna, o cookie nÃ£o pode ter Secure. Em produÃ§Ã£o com HTTPS,
 // configure COOKIE_SECURE=true na stack.
 const cookieSecure = process.env.COOKIE_SECURE === 'true';
 const hashToken = (token) => createHash('sha256').update(token).digest('hex');
@@ -79,7 +79,7 @@ const validarOrigem = (request, response, next) => {
   } catch {
     corresponde = false;
   }
-  if (!corresponde) return response.status(403).json({ error: 'Origem da requisição inválida.' });
+  if (!corresponde) return response.status(403).json({ error: 'Origem da requisiÃ§Ã£o invÃ¡lida.' });
   return next();
 };
 const buscarSessao = async (request) => {
@@ -105,14 +105,14 @@ const buscarSessao = async (request) => {
 };
 const exigirSessao = (request, response, next) => {
   buscarSessao(request).then((usuario) => {
-    if (!usuario) return response.status(401).json({ error: 'Autenticação necessária.' });
+    if (!usuario) return response.status(401).json({ error: 'AutenticaÃ§Ã£o necessÃ¡ria.' });
     request.usuarioAutenticado = usuario;
     return next();
   }).catch(next);
 };
 const exigirAdmin = (request, response, next) => {
   buscarSessao(request).then((usuario) => {
-    if (!usuario || usuario.role !== 'admin') return response.status(401).json({ error: 'Autenticação administrativa necessária.' });
+    if (!usuario || usuario.role !== 'admin') return response.status(401).json({ error: 'AutenticaÃ§Ã£o administrativa necessÃ¡ria.' });
     request.usuarioAutenticado = usuario;
     return next();
   }).catch(next);
@@ -137,7 +137,7 @@ const normalizarDocumentosSolicitados = (valor) => {
   if (!Array.isArray(documentos)) return [];
   return documentos.filter((documento) => documento && typeof documento === 'object').map((documento) => ({
     ...documento,
-    tipo: documento.tipo === 'FormulÃ¡rio' || documento.tipo === 'Formulário' ? 'Formulário' : 'Documento',
+    tipo: documento.tipo === 'FormulÃƒÂ¡rio' || documento.tipo === 'FormulÃ¡rio' ? 'FormulÃ¡rio' : 'Documento',
     obrigatorio: documento.obrigatorio !== false,
     url_template: normalizarCaminhoTemplate(documento.url_template),
   }));
@@ -147,7 +147,7 @@ const serializar = (row) => ({
   id: row.id,
   nome: row.nome,
   area: row.area || row.tipo,
-  tipo: row.tipo_cadastro || 'Formulário',
+  tipo: row.tipo_cadastro || 'FormulÃ¡rio',
   linhaApoioId: row.linha_apoio_id,
   status: row.status,
   normas: row.normas,
@@ -163,42 +163,42 @@ const chaveComparacaoDocumento = (nome) => normalizarChaveDocumento(nome).replac
 const validarId = (id) => typeof id === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(id);
 
 const validar = (body) => {
-  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corpo JSON inválido.';
-  if (typeof body.nome !== 'string' || !body.nome.trim() || body.nome.length > 200) return 'Nome inválido (máximo 200 caracteres).';
-  if (!['Projetos', 'Programa de Apoio'].includes(body.area)) return 'Área inválida.';
-  if (!['Formulário', 'Documento'].includes(body.tipo)) return 'Tipo inválido.';
-  if (body.tipo === 'Formulário' && (typeof body.linhaApoioId !== 'string' || !body.linhaApoioId.trim() || body.linhaApoioId.length > 120)) return 'Linha de apoio inválida.';
-  if (!['Aberto', 'Fechado'].includes(body.status)) return 'Status inválido.';
-  if (body.id !== undefined && !validarId(body.id)) return 'ID inválido.';
-  if (body.normas !== undefined && (typeof body.normas !== 'string' || body.normas.length > 500000)) return 'Texto de regras inválido ou grande demais.';
-  if (body.active !== undefined && typeof body.active !== 'boolean') return 'Status de ativação inválido.';
-  if (body.periodosSubmissao !== undefined && (!Array.isArray(body.periodosSubmissao) || body.periodosSubmissao.length > 100)) return 'Calendário inválido.';
-  if (body.documentosSolicitados !== undefined && (!Array.isArray(body.documentosSolicitados) || body.documentosSolicitados.length > 200)) return 'Lista de documentos inválida.';
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corpo JSON invÃ¡lido.';
+  if (typeof body.nome !== 'string' || !body.nome.trim() || body.nome.length > 200) return 'Nome invÃ¡lido (mÃ¡ximo 200 caracteres).';
+  if (!['Projetos', 'Programa de Apoio'].includes(body.area)) return 'Ãrea invÃ¡lida.';
+  if (!['FormulÃ¡rio', 'Documento'].includes(body.tipo)) return 'Tipo invÃ¡lido.';
+  if (body.tipo === 'FormulÃ¡rio' && (typeof body.linhaApoioId !== 'string' || !body.linhaApoioId.trim() || body.linhaApoioId.length > 120)) return 'Linha de apoio invÃ¡lida.';
+  if (!['Aberto', 'Fechado'].includes(body.status)) return 'Status invÃ¡lido.';
+  if (body.id !== undefined && !validarId(body.id)) return 'ID invÃ¡lido.';
+  if (body.normas !== undefined && (typeof body.normas !== 'string' || body.normas.length > 500000)) return 'Texto de regras invÃ¡lido ou grande demais.';
+  if (body.active !== undefined && typeof body.active !== 'boolean') return 'Status de ativaÃ§Ã£o invÃ¡lido.';
+  if (body.periodosSubmissao !== undefined && (!Array.isArray(body.periodosSubmissao) || body.periodosSubmissao.length > 100)) return 'CalendÃ¡rio invÃ¡lido.';
+  if (body.documentosSolicitados !== undefined && (!Array.isArray(body.documentosSolicitados) || body.documentosSolicitados.length > 200)) return 'Lista de documentos invÃ¡lida.';
   for (const periodo of body.periodosSubmissao || []) {
     if (!periodo || typeof periodo !== 'object' || !validarId(periodo.id)
       || typeof periodo.dataInicio !== 'string' || periodo.dataInicio.length > 30
       || typeof periodo.dataFim !== 'string' || periodo.dataFim.length > 30
-      || !['Aberto', 'Fechado'].includes(periodo.status)) return 'Período de submissão inválido.';
+      || !['Aberto', 'Fechado'].includes(periodo.status)) return 'PerÃ­odo de submissÃ£o invÃ¡lido.';
   }
   for (const documento of body.documentosSolicitados || []) {
     if (!documento || typeof documento !== 'object' || !validarId(documento.id)
       || typeof documento.nome !== 'string' || documento.nome.length > 200
-      || (documento.tipo !== undefined && !['Documento', 'FormulÃ¡rio', 'Formulário'].includes(documento.tipo))
+      || (documento.tipo !== undefined && !['Documento', 'FormulÃƒÂ¡rio', 'FormulÃ¡rio'].includes(documento.tipo))
       || (documento.obrigatorio !== undefined && typeof documento.obrigatorio !== 'boolean')
       || (documento.documentoId !== undefined && !validarId(documento.documentoId))
       || (documento.info !== undefined && (typeof documento.info !== 'string' || documento.info.length > 500000))
-      || (documento.url_template !== undefined && (typeof documento.url_template !== 'string' || documento.url_template.length > 2048))) return 'Documento solicitado inválido.';
+      || (documento.url_template !== undefined && (typeof documento.url_template !== 'string' || documento.url_template.length > 2048))) return 'Documento solicitado invÃ¡lido.';
   }
   return null;
 };
 
 const validarDocumento = (body) => {
-  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corpo JSON inválido.';
-  if (typeof body.nome !== 'string' || !body.nome.trim() || body.nome.length > 200) return 'Nome inválido.';
-  if (body.id !== undefined && !validarId(body.id)) return 'ID inválido.';
-  if (body.descricao !== undefined && (typeof body.descricao !== 'string' || body.descricao.length > 500000)) return 'Descrição inválida ou grande demais.';
-  if (body.template_url !== undefined && (typeof body.template_url !== 'string' || body.template_url.length > 2048)) return 'URL de modelo inválida.';
-  if (body.active !== undefined && typeof body.active !== 'boolean') return 'Status de ativação inválido.';
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corpo JSON invÃ¡lido.';
+  if (typeof body.nome !== 'string' || !body.nome.trim() || body.nome.length > 200) return 'Nome invÃ¡lido.';
+  if (body.id !== undefined && !validarId(body.id)) return 'ID invÃ¡lido.';
+  if (body.descricao !== undefined && (typeof body.descricao !== 'string' || body.descricao.length > 500000)) return 'DescriÃ§Ã£o invÃ¡lida ou grande demais.';
+  if (body.template_url !== undefined && (typeof body.template_url !== 'string' || body.template_url.length > 2048)) return 'URL de modelo invÃ¡lida.';
+  if (body.active !== undefined && typeof body.active !== 'boolean') return 'Status de ativaÃ§Ã£o invÃ¡lido.';
   return null;
 };
 
@@ -215,7 +215,7 @@ app.post('/api/auth/login', validarOrigem, asyncRoute(async (request, response) 
   const username = typeof request.body?.username === 'string' ? request.body.username.trim().toLocaleLowerCase('pt-BR') : '';
   const password = typeof request.body?.password === 'string' ? request.body.password : '';
   if (!username || username.length > 120 || Buffer.byteLength(password, 'utf8') > 1024) {
-    return response.status(400).json({ error: 'Usuário ou senha inválidos.' });
+    return response.status(400).json({ error: 'UsuÃ¡rio ou senha invÃ¡lidos.' });
   }
 
   const chaveTentativa = hashToken(`${request.ip}\0${username}`);
@@ -259,7 +259,7 @@ app.post('/api/auth/login', validarOrigem, asyncRoute(async (request, response) 
     if (tentativa.rows[0]?.bloqueado) {
       return response.status(429).json({ error: 'Muitas tentativas. Aguarde 15 minutos e tente novamente.' });
     }
-    return response.status(401).json({ error: 'Usuário ou senha inválidos.' });
+    return response.status(401).json({ error: 'UsuÃ¡rio ou senha invÃ¡lidos.' });
   }
 
   const token = randomBytes(32).toString('base64url');
@@ -296,10 +296,10 @@ app.post('/api/usuarios', validarOrigem, exigirAdmin, asyncRoute(async (request,
   const tenant = perfil === 'admin' ? 'global' : perfil;
   const confirmPassword = typeof request.body?.confirmPassword === 'string' ? request.body.confirmPassword : '';
   if (!username || username.length > 120 || [...password].length < 12 || password !== confirmPassword) {
-    return response.status(400).json({ error: 'Usuário válido e senha com pelo menos 12 caracteres são obrigatórios.' });
+    return response.status(400).json({ error: 'UsuÃ¡rio vÃ¡lido e senha com pelo menos 12 caracteres sÃ£o obrigatÃ³rios.' });
   }
   const existente = await pool.query('SELECT 1 FROM users WHERE username = $1', [username]);
-  if (existente.rowCount) return response.status(409).json({ error: 'Usuário já cadastrado.' });
+  if (existente.rowCount) return response.status(409).json({ error: 'UsuÃ¡rio jÃ¡ cadastrado.' });
   const hash = await hashPassword(password);
   const { rows } = await pool.query(`
     INSERT INTO users (id, username, password_hash, role, perfil, tenant, is_active)
@@ -315,7 +315,7 @@ app.put('/api/usuarios/:id', validarOrigem, exigirAdmin, asyncRoute(async (reque
   const perfil = ['admin', 'projeto', 'prog_apoio'].includes(request.body?.perfil) ? request.body.perfil : 'projeto';
   const tenant = perfil === 'admin' ? 'global' : perfil;
   const ativo = request.body?.is_active !== false;
-  if (!username || username.length > 120) return response.status(400).json({ error: 'Usuário inválido.' });
+  if (!username || username.length > 120) return response.status(400).json({ error: 'UsuÃ¡rio invÃ¡lido.' });
   const password = typeof request.body?.password === 'string' ? request.body.password : '';
   const hash = password ? await hashPassword(password) : null;
   const { rows } = await pool.query(`
@@ -324,7 +324,7 @@ app.put('/api/usuarios/:id', validarOrigem, exigirAdmin, asyncRoute(async (reque
     WHERE id = $5
     RETURNING id, username, role, perfil, tenant, is_active, created_at, updated_at, last_login_at
   `, [username, role, ativo, hash, request.params.id, perfil, tenant]);
-  if (!rows[0]) return response.status(404).json({ error: 'Usuário não encontrado.' });
+  if (!rows[0]) return response.status(404).json({ error: 'UsuÃ¡rio nÃ£o encontrado.' });
   return response.json(rows[0]);
 }));
 
@@ -332,14 +332,14 @@ app.post('/api/usuarios/:id/senha', validarOrigem, exigirAdmin, asyncRoute(async
   const password = typeof request.body?.password === 'string' ? request.body.password : '';
   const confirmPassword = typeof request.body?.confirmPassword === 'string' ? request.body.confirmPassword : '';
   if ([...password].length < 12 || password !== confirmPassword) {
-    return response.status(400).json({ error: 'A senha deve ter pelo menos 12 caracteres e a confirmação deve coincidir.' });
+    return response.status(400).json({ error: 'A senha deve ter pelo menos 12 caracteres e a confirmaÃ§Ã£o deve coincidir.' });
   }
   const hash = await hashPassword(password);
   const resultado = await pool.query(`
     UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP
     WHERE id = $2 AND is_active = TRUE RETURNING id
   `, [hash, request.params.id]);
-  if (!resultado.rowCount) return response.status(404).json({ error: 'Usuário não encontrado ou inativo.' });
+  if (!resultado.rowCount) return response.status(404).json({ error: 'UsuÃ¡rio nÃ£o encontrado ou inativo.' });
   return response.status(204).send();
 }));
 
@@ -362,7 +362,7 @@ app.post('/api/auth/change-password', validarOrigem, exigirSessao, asyncRoute(as
 
   const usuario = await pool.query('SELECT password_hash FROM users WHERE id = $1 AND is_active = TRUE', [request.usuarioAutenticado.id]);
   if (!usuario.rows[0] || !(await verifyPassword(senhaAtual, usuario.rows[0].password_hash))) {
-    return response.status(401).json({ error: 'A senha atual não confere.' });
+    return response.status(401).json({ error: 'A senha atual nÃ£o confere.' });
   }
 
   const novoHash = await hashPassword(novaSenha);
@@ -438,7 +438,7 @@ app.get('/api/processos', exigirSessao, asyncRoute(async (request, response) => 
     ? request.query.categoria : null;
   const categoriaEscopo = escopoDoUsuario(request.usuarioAutenticado);
   if (categoriaSolicitada && !usuarioPodeAcessarCategoria(request.usuarioAutenticado, categoriaSolicitada)) {
-    return response.status(403).json({ error: 'Seu perfil não possui acesso a esta área.' });
+    return response.status(403).json({ error: 'Seu perfil nÃ£o possui acesso a esta Ã¡rea.' });
   }
   if (categoriaSolicitada || categoriaEscopo) {
     valores.push(categoriaSolicitada || categoriaEscopo);
@@ -448,8 +448,8 @@ app.get('/api/processos', exigirSessao, asyncRoute(async (request, response) => 
     valores.push(request.query.status.trim());
     filtros.push(`p.status = $${valores.length}`);
   }
-  // Listagens por módulo representam solicitações principais; subprocessos do kit
-  // continuam acessíveis dentro do protocolo pai, mas não aparecem como linhas próprias.
+  // Listagens por mÃ³dulo representam solicitaÃ§Ãµes principais; subprocessos do kit
+  // continuam acessÃ­veis dentro do protocolo pai, mas nÃ£o aparecem como linhas prÃ³prias.
   if (categoriaSolicitada && request.query.incluir_filhos !== '1') filtros.push('p.processo_pai_id IS NULL');
   filtros.push('p.ativo = TRUE');
   const where = filtros.length ? `WHERE ${filtros.join(' AND ')}` : '';
@@ -507,11 +507,11 @@ app.post('/api/processos', validarOrigem, asyncRoute(async (request, response) =
     || body.formularioId !== body.formularioRota.split('/').pop()
     || typeof body.chaveCriacao !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.chaveCriacao)
     || typeof body.token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(body.token)) {
-    return response.status(400).json({ error: 'Categoria e formulário são obrigatórios.' });
+    return response.status(400).json({ error: 'Categoria e formulÃ¡rio sÃ£o obrigatÃ³rios.' });
   }
   const usuario = await buscarSessao(request);
   if (usuario && !usuarioPodeAcessarCategoria(usuario, body.categoria)) {
-    return response.status(403).json({ error: 'Seu perfil não pode iniciar processos nesta área.' });
+    return response.status(403).json({ error: 'Seu perfil nÃ£o pode iniciar processos nesta Ã¡rea.' });
   }
   const processoId = randomUUID();
   const processoPaiId = body.processoPaiId || null;
@@ -530,7 +530,7 @@ app.post('/api/processos', validarOrigem, asyncRoute(async (request, response) =
   `, [body.chaveCriacao]);
   const existente = repetidos[0];
   if (!existente || existente.acesso_hash !== hashToken(token) || existente.formulario_rota !== body.formularioRota) {
-    return response.status(409).json({ error: 'Tentativa de criação já utilizada.' });
+    return response.status(409).json({ error: 'Tentativa de criaÃ§Ã£o jÃ¡ utilizada.' });
   }
   const { acesso_hash: _hash, ...processo } = existente;
   return response.json({ ...processo, token });
@@ -538,10 +538,10 @@ app.post('/api/processos', validarOrigem, asyncRoute(async (request, response) =
 
 const uuidValido = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 const autorizarProcesso = async (request, response, next) => {
-  if (!uuidValido(request.params.id)) return response.status(400).json({ error: 'UUID inválido.' });
+  if (!uuidValido(request.params.id)) return response.status(400).json({ error: 'UUID invÃ¡lido.' });
   const token = request.get('x-processo-token') || '';
   const { rows } = await pool.query('SELECT acesso_hash, categoria, ativo FROM processos WHERE id = $1', [request.params.id]);
-  if (!rows[0]) return response.status(404).json({ error: 'Processo não encontrado.' });
+  if (!rows[0]) return response.status(404).json({ error: 'Processo nÃ£o encontrado.' });
   if (!rows[0].ativo) return response.status(410).json({ error: 'Processo inativado.' });
   const esperado = rows[0].acesso_hash;
   const recebido = /^[A-Za-z0-9_-]{43}$/.test(token) ? hashToken(token) : '';
@@ -550,7 +550,7 @@ const autorizarProcesso = async (request, response, next) => {
   if (!autorizado) {
     const usuario = await buscarSessao(request);
     if (!usuario || !usuarioPodeAcessarCategoria(usuario, rows[0].categoria)) {
-      return response.status(403).json({ error: 'Acesso ao processo não autorizado.' });
+      return response.status(403).json({ error: 'Acesso ao processo nÃ£o autorizado.' });
     }
   }
   return next();
@@ -571,7 +571,7 @@ app.get('/api/processos/:id', asyncRoute(autorizarProcesso), asyncRoute(async (r
 app.post('/api/processos/inativar', validarOrigem, exigirSessao, asyncRoute(async (request, response) => {
   const ids = request.body?.ids;
   if (!Array.isArray(ids) || ids.length < 1 || ids.length > 100 || ids.some((id) => !uuidValido(id))) {
-    return response.status(400).json({ error: 'Seleção de processos inválida.' });
+    return response.status(400).json({ error: 'SeleÃ§Ã£o de processos invÃ¡lida.' });
   }
   const escopo = escopoDoUsuario(request.usuarioAutenticado);
   const valores = [ids];
@@ -589,7 +589,7 @@ app.post('/api/processos/inativar', validarOrigem, exigirSessao, asyncRoute(asyn
 app.patch('/api/processos/:id', validarOrigem, asyncRoute(autorizarProcesso), asyncRoute(async (request, response) => {
   const { dados, versao } = request.body || {};
   if (!dados || typeof dados !== 'object' || Array.isArray(dados) || !Number.isInteger(versao) || versao < 0) {
-    return response.status(400).json({ error: 'Dados ou versão do rascunho inválidos.' });
+    return response.status(400).json({ error: 'Dados ou versÃ£o do rascunho invÃ¡lidos.' });
   }
   const { rows } = await pool.query(`
     UPDATE processos SET dados_json = $1::jsonb, versao = versao + 1,
@@ -603,18 +603,18 @@ app.patch('/api/processos/:id', validarOrigem, asyncRoute(autorizarProcesso), as
     typeof request.body.titulo === 'string' ? request.body.titulo : null,
     typeof request.body.solicitanteNome === 'string' ? request.body.solicitanteNome : null,
     typeof request.body.solicitanteEmail === 'string' ? request.body.solicitanteEmail : null]);
-  if (!rows[0]) return response.status(409).json({ error: 'Rascunho alterado em outra aba ou já enviado. Reabra o processo antes de continuar.' });
+  if (!rows[0]) return response.status(409).json({ error: 'Rascunho alterado em outra aba ou jÃ¡ enviado. Reabra o processo antes de continuar.' });
   return response.json(rows[0]);
 }));
 
 app.post('/api/processos/:id/enviar', validarOrigem, asyncRoute(autorizarProcesso), asyncRoute(async (request, response) => {
   const { versao } = request.body || {};
-  if (!Number.isInteger(versao) || versao < 0) return response.status(400).json({ error: 'Versão inválida.' });
+  if (!Number.isInteger(versao) || versao < 0) return response.status(400).json({ error: 'VersÃ£o invÃ¡lida.' });
   const { rows: pendencias } = await pool.query(`
     SELECT COUNT(*)::int AS total FROM processo_documentos
     WHERE processo_id = $1 AND obrigatorio = TRUE AND status NOT IN ('enviado', 'validado')
   `, [request.params.id]);
-  if (pendencias[0].total > 0) return response.status(409).json({ error: 'Conclua os documentos obrigatórios antes de enviar.' });
+  if (pendencias[0].total > 0) return response.status(409).json({ error: 'Conclua os documentos obrigatÃ³rios antes de enviar.' });
   const { rows } = await pool.query(`
     UPDATE processos SET status = 'enviado', enviado_em = CURRENT_TIMESTAMP, atualizado_em = CURRENT_TIMESTAMP,
       versao = versao + 1
@@ -623,29 +623,57 @@ app.post('/api/processos/:id/enviar', validarOrigem, asyncRoute(autorizarProcess
         AND d.obrigatorio = TRUE AND d.status NOT IN ('enviado', 'validado'))
     RETURNING id, protocolo, status, versao, enviado_em
   `, [request.params.id, versao]);
-  if (!rows[0]) return response.status(409).json({ error: 'Processo já enviado ou alterado em outra aba.' });
+  if (!rows[0]) return response.status(409).json({ error: 'Processo jÃ¡ enviado ou alterado em outra aba.' });
   return response.json(rows[0]);
 }));
 
 const validarCodigoDocumento = (codigo) => typeof codigo === 'string' && /^[a-zA-Z0-9_-]{1,100}$/.test(codigo);
 app.put('/api/processos/:id/documentos', validarOrigem, asyncRoute(autorizarProcesso), asyncRoute(async (request, response) => {
   const documentos = request.body?.documentos;
-  if (!Array.isArray(documentos) || documentos.length > 100
-    || documentos.some((item) => !item || !validarCodigoDocumento(item.id)
-      || typeof item.obrigatorio !== 'boolean' || typeof item.concluido !== 'boolean'
-      || typeof item.preenchido !== 'boolean' || typeof item.emitido !== 'boolean')
-    || new Set(documentos.map((item) => item.id)).size !== documentos.length) {
-    return response.status(400).json({ error: 'Lista de documentos inválida.' });
+  let motivoInvalidez = '';
+  if (!Array.isArray(documentos)) motivoInvalidez = 'O campo documentos deve ser uma lista.';
+  else if (documentos.length > 100) motivoInvalidez = 'A lista excede o limite de 100 documentos.';
+  else {
+    const ids = new Set();
+    for (const [indice, item] of documentos.entries()) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        motivoInvalidez = `O item ${indice + 1} deve ser um objeto.`;
+        break;
+      }
+      if (!validarCodigoDocumento(item.id)) {
+        motivoInvalidez = `O identificador do item ${indice + 1} é inválido.`;
+        break;
+      }
+      if (ids.has(item.id)) {
+        motivoInvalidez = `O identificador "${item.id}" está duplicado.`;
+        break;
+      }
+      ids.add(item.id);
+      if (typeof item.obrigatorio !== 'boolean' || typeof item.concluido !== 'boolean'
+        || (item.preenchido !== undefined && typeof item.preenchido !== 'boolean')
+        || (item.emitido !== undefined && typeof item.emitido !== 'boolean')) {
+        motivoInvalidez = `O item "${item.id}" contém estados inválidos.`;
+        break;
+      }
+    }
   }
+  if (motivoInvalidez) return response.status(400).json({ error: `Lista de documentos inválida: ${motivoInvalidez}` });
+  // Compatibilidade com clientes que ainda enviam apenas `concluido`.
+  // Os estados mais novos prevalecem quando vierem no payload.
+  const documentosNormalizados = documentos.map((item) => ({
+    ...item,
+    preenchido: item.preenchido ?? item.concluido,
+    emitido: item.emitido ?? item.concluido,
+  }));
   const cliente = await pool.connect();
   try {
     await cliente.query('BEGIN');
     const { rows: processos } = await cliente.query('SELECT status FROM processos WHERE id = $1 FOR UPDATE', [request.params.id]);
     if (!['rascunho', 'em_preenchimento'].includes(processos[0]?.status)) {
       await cliente.query('ROLLBACK');
-      return response.status(409).json({ error: 'O processo já foi enviado.' });
+      return response.status(409).json({ error: 'O processo jÃ¡ foi enviado.' });
     }
-    for (const item of documentos) await cliente.query(`
+    for (const item of documentosNormalizados) await cliente.query(`
       INSERT INTO processo_documentos (processo_id, nome, obrigatorio, status, preenchido, emitido) VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (processo_id, nome) DO UPDATE SET obrigatorio = EXCLUDED.obrigatorio,
         status = CASE WHEN processo_documentos.arquivo_url IS NOT NULL THEN processo_documentos.status ELSE EXCLUDED.status END,
@@ -653,7 +681,7 @@ app.put('/api/processos/:id/documentos', validarOrigem, asyncRoute(autorizarProc
         emitido = CASE WHEN processo_documentos.arquivo_url IS NOT NULL THEN TRUE ELSE EXCLUDED.emitido END
     `, [request.params.id, item.id, item.obrigatorio, item.concluido ? 'validado' : 'pendente', item.preenchido, item.emitido]);
     await cliente.query('UPDATE processo_documentos SET obrigatorio = FALSE WHERE processo_id = $1 AND NOT (nome = ANY($2::text[]))',
-      [request.params.id, documentos.map((item) => item.id)]);
+      [request.params.id, documentosNormalizados.map((item) => item.id)]);
     const { rows } = await cliente.query('SELECT nome AS id, arquivo_nome, status, preenchido, emitido, enviado_em FROM processo_documentos WHERE processo_id = $1', [request.params.id]);
     await cliente.query('COMMIT');
     return response.json(rows);
@@ -665,7 +693,7 @@ app.put('/api/processos/:id/documentos', validarOrigem, asyncRoute(autorizarProc
 const corpoArquivo = express.raw({ type: 'application/octet-stream', limit: '15mb' });
 app.post('/api/processos/:id/documentos/:codigo', validarOrigem, asyncRoute(autorizarProcesso), corpoArquivo, asyncRoute(async (request, response) => {
   if (!validarCodigoDocumento(request.params.codigo) || !Buffer.isBuffer(request.body) || !request.body.length) {
-    return response.status(400).json({ error: 'Documento inválido.' });
+    return response.status(400).json({ error: 'Documento invÃ¡lido.' });
   }
   const tipo = request.get('x-arquivo-tipo') || '';
   const extensoes = { 'application/pdf': '.pdf', 'image/png': '.png', 'image/jpeg': '.jpg' };
@@ -673,13 +701,13 @@ app.post('/api/processos/:id/documentos/:codigo', validarOrigem, asyncRoute(auto
   const assinaturaValida = tipo === 'application/pdf' ? request.body.subarray(0, 5).toString() === '%PDF-'
     : tipo === 'image/png' ? request.body.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
       : tipo === 'image/jpeg' ? request.body.subarray(0, 3).equals(Buffer.from([255, 216, 255])) : false;
-  if (!extensao || !assinaturaValida) return response.status(400).json({ error: 'Envie um PDF, PNG ou JPEG válido.' });
+  if (!extensao || !assinaturaValida) return response.status(400).json({ error: 'Envie um PDF, PNG ou JPEG vÃ¡lido.' });
   const { rows: estados } = await pool.query('SELECT status FROM processos WHERE id = $1', [request.params.id]);
-  if (!['rascunho', 'em_preenchimento'].includes(estados[0]?.status)) return response.status(409).json({ error: 'O processo já foi enviado.' });
+  if (!['rascunho', 'em_preenchimento'].includes(estados[0]?.status)) return response.status(409).json({ error: 'O processo jÃ¡ foi enviado.' });
   let nomeOriginal = '';
   try { nomeOriginal = decodeURIComponent(request.get('x-arquivo-nome') || '').replace(/[\\/\r\n]/g, '').slice(0, 255); }
-  catch { return response.status(400).json({ error: 'Nome do arquivo inválido.' }); }
-  if (!nomeOriginal) return response.status(400).json({ error: 'Nome do arquivo inválido.' });
+  catch { return response.status(400).json({ error: 'Nome do arquivo invÃ¡lido.' }); }
+  if (!nomeOriginal) return response.status(400).json({ error: 'Nome do arquivo invÃ¡lido.' });
   const destino = `${randomUUID()}${extensao}`;
   const { rows: anteriores } = await pool.query('SELECT arquivo_url FROM processo_documentos WHERE processo_id = $1 AND nome = $2', [request.params.id, request.params.codigo]);
   await mkdir(path.join(pastaAnexos, request.params.id), { recursive: true });
@@ -701,13 +729,13 @@ app.post('/api/processos/:id/documentos/:codigo', validarOrigem, asyncRoute(auto
 }));
 
 app.get('/api/processos/:id/documentos/:codigo', asyncRoute(autorizarProcesso), asyncRoute(async (request, response) => {
-  if (!validarCodigoDocumento(request.params.codigo)) return response.status(400).json({ error: 'Documento inválido.' });
+  if (!validarCodigoDocumento(request.params.codigo)) return response.status(400).json({ error: 'Documento invÃ¡lido.' });
   const { rows } = await pool.query('SELECT arquivo_nome, arquivo_url FROM processo_documentos WHERE processo_id = $1 AND nome = $2', [request.params.id, request.params.codigo]);
-  if (!rows[0]?.arquivo_url) return response.status(404).json({ error: 'Documento não encontrado.' });
+  if (!rows[0]?.arquivo_url) return response.status(404).json({ error: 'Documento nÃ£o encontrado.' });
   let bytes;
   try { bytes = await readFile(path.join(pastaAnexos, request.params.id, rows[0].arquivo_url)); }
   catch (erro) {
-    if (erro?.code === 'ENOENT') return response.status(404).json({ error: 'Arquivo não encontrado no armazenamento.' });
+    if (erro?.code === 'ENOENT') return response.status(404).json({ error: 'Arquivo nÃ£o encontrado no armazenamento.' });
     throw erro;
   }
   response.setHeader('Content-Type', rows[0].arquivo_url.endsWith('.pdf') ? 'application/pdf' : rows[0].arquivo_url.endsWith('.png') ? 'image/png' : 'image/jpeg');
@@ -717,9 +745,9 @@ app.get('/api/processos/:id/documentos/:codigo', asyncRoute(autorizarProcesso), 
 }));
 
 app.delete('/api/processos/:id/documentos/:codigo', validarOrigem, asyncRoute(autorizarProcesso), asyncRoute(async (request, response) => {
-  if (!validarCodigoDocumento(request.params.codigo)) return response.status(400).json({ error: 'Documento inválido.' });
+  if (!validarCodigoDocumento(request.params.codigo)) return response.status(400).json({ error: 'Documento invÃ¡lido.' });
   const { rows: estados } = await pool.query('SELECT status FROM processos WHERE id = $1', [request.params.id]);
-  if (!['rascunho', 'em_preenchimento'].includes(estados[0]?.status)) return response.status(409).json({ error: 'O processo já foi enviado.' });
+  if (!['rascunho', 'em_preenchimento'].includes(estados[0]?.status)) return response.status(409).json({ error: 'O processo jÃ¡ foi enviado.' });
   const { rows } = await pool.query('SELECT arquivo_url FROM processo_documentos WHERE processo_id = $1 AND nome = $2', [request.params.id, request.params.codigo]);
   await pool.query(`UPDATE processo_documentos SET arquivo_nome = NULL, arquivo_url = NULL, enviado_em = NULL, status = 'pendente', preenchido = FALSE, emitido = FALSE
     WHERE processo_id = $1 AND nome = $2`, [request.params.id, request.params.codigo]);
@@ -753,10 +781,10 @@ app.get('/api/modelos-docx', exigirAdmin, asyncRoute(async (_request, response) 
 app.post('/api/modelos-documentos', validarOrigem, exigirAdmin, express.raw({ type: '*/*', limit: '25mb' }), asyncRoute(async (request, response) => {
   const nomeInformado = request.get('x-file-name') || '';
   const nome = path.basename(decodeURIComponent(nomeInformado)).replace(/[^\p{L}\p{N}._ -]/gu, '_').trim();
-  if (!nome || !/\.(docx|pdf)$/i.test(nome) || nome.startsWith('~$')) return response.status(400).json({ error: 'Envie um arquivo DOCX ou PDF válido.' });
-  if (!Buffer.isBuffer(request.body) || request.body.length === 0) return response.status(400).json({ error: 'O arquivo enviado está vazio.' });
+  if (!nome || !/\.(docx|pdf)$/i.test(nome) || nome.startsWith('~$')) return response.status(400).json({ error: 'Envie um arquivo DOCX ou PDF vÃ¡lido.' });
+  if (!Buffer.isBuffer(request.body) || request.body.length === 0) return response.status(400).json({ error: 'O arquivo enviado estÃ¡ vazio.' });
   await writeFile(path.join(root, 'template', nome), request.body, { flag: 'wx' }).catch((erro) => {
-    if (erro?.code === 'EEXIST') throw Object.assign(new Error('Já existe um modelo com este nome.'), { status: 409 });
+    if (erro?.code === 'EEXIST') throw Object.assign(new Error('JÃ¡ existe um modelo com este nome.'), { status: 409 });
     throw erro;
   });
   return response.status(201).json({ nome, caminho: `/templates/${encodeURIComponent(nome)}`, tipo: path.extname(nome).slice(1).toLowerCase() });
@@ -769,10 +797,10 @@ app.post('/api/documentos', validarOrigem, exigirAdmin, asyncRoute(async (reques
   const registro = await pool.query('SELECT tipo_cadastro FROM cadastros_formularios WHERE id = $1', [id]);
   if (registro.rowCount && registro.rows[0].tipo_cadastro !== 'Documento') return response.status(409).json({ error: 'O ID pertence a outro tipo de cadastro.' });
   const existente = await buscarDocumentoPrincipal(id);
-  if (existente) return response.status(409).json({ error: 'Documento já cadastrado; use PUT para editar.' });
+  if (existente) return response.status(409).json({ error: 'Documento jÃ¡ cadastrado; use PUT para editar.' });
   const mesmoNome = (await buscarDocumentosPrincipais()).find((documento) =>
     documento.active && chaveComparacaoDocumento(documento.nome) === chaveComparacaoDocumento(request.body.nome));
-  if (mesmoNome) return response.status(409).json({ error: 'Já existe um documento com este nome. Edite o cadastro existente.' });
+  if (mesmoNome) return response.status(409).json({ error: 'JÃ¡ existe um documento com este nome. Edite o cadastro existente.' });
   const row = await salvarDocumentoPrincipal(id, request.body, existente);
   const doc = parseJson(row.documentos_solicitados, [])[0] || {};
   return response.status(201).json({ id: row.id, nome: row.nome, descricao: doc.info || '', template_url: doc.url_template || '', active: Boolean(row.active) });
@@ -781,22 +809,22 @@ app.post('/api/documentos', validarOrigem, exigirAdmin, asyncRoute(async (reques
 app.put('/api/documentos/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
   const error = validarDocumento(request.body);
   if (error) return response.status(400).json({ error });
-  if (!validarId(request.params.id) || (request.body.id && request.body.id !== request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  if (!validarId(request.params.id) || (request.body.id && request.body.id !== request.params.id)) return response.status(400).json({ error: 'ID invÃ¡lido.' });
   const existente = await buscarDocumentoPrincipal(request.params.id);
-  if (!existente) return response.status(404).json({ error: 'Documento não encontrado no catálogo principal.' });
+  if (!existente) return response.status(404).json({ error: 'Documento nÃ£o encontrado no catÃ¡logo principal.' });
   const chaveNome = chaveComparacaoDocumento(request.body.nome);
   const mesmoNome = (await buscarDocumentosPrincipais()).find((documento) =>
     documento.active && documento.id !== existente.id && chaveComparacaoDocumento(documento.nome) === chaveNome);
-  if (mesmoNome) return response.status(409).json({ error: 'Já existe outro documento com este nome.' });
+  if (mesmoNome) return response.status(409).json({ error: 'JÃ¡ existe outro documento com este nome.' });
   const row = await salvarDocumentoPrincipal(existente.id, request.body, existente);
   const doc = parseJson(row.documentos_solicitados, [])[0] || {};
   return response.json({ id: row.id, nome: row.nome, descricao: doc.info || '', template_url: doc.url_template || '', active: Boolean(row.active) });
 }));
 
 app.delete('/api/documentos/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
-  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID invÃ¡lido.' });
   const existente = await buscarDocumentoPrincipal(request.params.id);
-  if (!existente) return response.status(404).json({ error: 'Documento não encontrado no catálogo principal.' });
+  if (!existente) return response.status(404).json({ error: 'Documento nÃ£o encontrado no catÃ¡logo principal.' });
   await pool.query('UPDATE cadastros_formularios SET active = FALSE, atualizado_em = CURRENT_TIMESTAMP WHERE id = $1', [existente.id]);
   return response.status(204).send();
 }));
@@ -828,7 +856,7 @@ app.post('/api/formularios', validarOrigem, exigirAdmin, asyncRoute(async (reque
       request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []), JSON.stringify(documentos), request.body.habilitado !== false, Number(request.body.nSeq || 0)]);
     return response.status(201).json(serializar(rows[0]));
   } catch (erro) {
-    if (erro?.code === '23505') return response.status(409).json({ error: 'Este ID já existe; use PUT para atualizar o cadastro.' });
+    if (erro?.code === '23505') return response.status(409).json({ error: 'Este ID jÃ¡ existe; use PUT para atualizar o cadastro.' });
     throw erro;
   }
 }));
@@ -841,12 +869,12 @@ app.put('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (re
         active = COALESCE($1, active), habilitado = COALESCE($2, habilitado), nseq = COALESCE($3, nseq), atualizado_em = CURRENT_TIMESTAMP
       WHERE id = $4 RETURNING *
     `, [typeof request.body.active === 'boolean' ? request.body.active : null, typeof request.body.habilitado === 'boolean' ? request.body.habilitado : null, Number.isFinite(Number(request.body.nSeq)) ? Number(request.body.nSeq) : null, request.params.id]);
-    if (!rows[0]) return response.status(404).json({ error: 'Formulário não encontrado.' });
+    if (!rows[0]) return response.status(404).json({ error: 'FormulÃ¡rio nÃ£o encontrado.' });
     return response.json(serializar(rows[0]));
   }
   const error = validar(request.body);
   if (error) return response.status(400).json({ error });
-  if (!validarId(request.params.id) || (request.body.id && request.body.id !== request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  if (!validarId(request.params.id) || (request.body.id && request.body.id !== request.params.id)) return response.status(400).json({ error: 'ID invÃ¡lido.' });
   const { rows } = await pool.query(`
     UPDATE cadastros_formularios SET
       nome = $1, tipo = $2, tipo_cadastro = $3, linha_apoio_id = $4, status = $5, normas = $6,
@@ -857,29 +885,29 @@ app.put('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (re
   `, [request.body.nome.trim(), request.body.area, request.body.tipo, request.body.linhaApoioId || '',
     request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []),
     JSON.stringify(request.body.documentosSolicitados || []), request.body.active !== false, request.body.habilitado !== false, Number(request.body.nSeq || 0), request.params.id]);
-  if (!rows[0]) return response.status(404).json({ error: 'Formulário não encontrado.' });
+  if (!rows[0]) return response.status(404).json({ error: 'FormulÃ¡rio nÃ£o encontrado.' });
   return response.json(serializar(rows[0]));
 }));
 
 app.delete('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
-  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID invÃ¡lido.' });
   const { rowCount } = await pool.query('UPDATE cadastros_formularios SET active = FALSE, atualizado_em = CURRENT_TIMESTAMP WHERE id = $1', [request.params.id]);
-  if (!rowCount) return response.status(404).json({ error: 'Formulário não encontrado.' });
+  if (!rowCount) return response.status(404).json({ error: 'FormulÃ¡rio nÃ£o encontrado.' });
   return response.status(204).send();
 }));
 
-app.use('/api', (_request, response) => response.status(404).json({ error: 'Rota da API não encontrada.' }));
+app.use('/api', (_request, response) => response.status(404).json({ error: 'Rota da API nÃ£o encontrada.' }));
 app.use(express.static(path.join(root, 'dist')));
 app.get('*', (_request, response) => response.sendFile(path.join(root, 'dist', 'index.html')));
 app.use((erro, _request, response, _next) => {
   const status = Number.isInteger(erro?.status) && erro.status >= 400 && erro.status < 500 ? erro.status : 500;
   if (status === 500) console.error('Falha interna na API:', erro?.code || 'erro desconhecido');
-  const mensagem = status === 413 ? 'Requisição grande demais.' : status === 400 ? 'JSON inválido.' : 'Erro interno do servidor.';
+  const mensagem = status === 413 ? 'RequisiÃ§Ã£o grande demais.' : status === 400 ? 'JSON invÃ¡lido.' : 'Erro interno do servidor.';
   return response.status(status).json({ error: mensagem });
 });
 
 const port = Number(process.env.API_PORT || 3333);
-const servidor = app.listen(port, () => console.log(`FealqFlow API disponível na porta ${port} (PostgreSQL).`));
+const servidor = app.listen(port, () => console.log(`FealqFlow API disponÃ­vel na porta ${port} (PostgreSQL).`));
 const encerrar = () => servidor.close(async () => {
   await pool.end();
   process.exit(0);

@@ -4,7 +4,7 @@ import { FormSection } from '../FormSection';
 import { gerarIdLocal } from '../../../utils/id';
 
 export interface MembroEquipeProjeto { id: string; nome: string; vinculo: string; telefone: string; email: string; }
-interface EquipeTecnicaEditorProps { membros: MembroEquipeProjeto[]; aoAlterar: (membros: MembroEquipeProjeto[]) => void; }
+interface EquipeTecnicaEditorProps { membros: MembroEquipeProjeto[]; aoAlterar: (membros: MembroEquipeProjeto[]) => void; numero?: number; }
 const membroVazio = (): MembroEquipeProjeto => ({ id: '', nome: '', vinculo: '', telefone: '', email: '' });
 const camposMembro: Array<keyof Omit<MembroEquipeProjeto, 'id'>> = ['nome', 'vinculo', 'telefone', 'email'];
 const apenasDigitos = (valor: string) => valor.replace(/\D/g, '').slice(0, 11);
@@ -17,7 +17,7 @@ const formatarTelefone = (valor: string) => {
 };
 const normalizarCampo = (campo: keyof MembroEquipeProjeto, valor: string) => campo === 'telefone' ? apenasDigitos(valor) : campo === 'nome' || campo === 'vinculo' ? valor.toLocaleUpperCase('pt-BR') : valor;
 
-export const EquipeTecnicaEditor = ({ membros, aoAlterar }: EquipeTecnicaEditorProps) => {
+export const EquipeTecnicaEditor = ({ membros, aoAlterar, numero = 3 }: EquipeTecnicaEditorProps) => {
   const [novo, setNovo] = useProcessoState<MembroEquipeProjeto>('equipeTecnicaNovo', membroVazio);
   const [alterados, setAlterados] = useState<Set<string>>(new Set());
   const [mensagem, setMensagem] = useState('');
@@ -49,11 +49,11 @@ export const EquipeTecnicaEditor = ({ membros, aoAlterar }: EquipeTecnicaEditorP
     className={`min-w-0 w-full rounded border border-outline-variant px-2 py-1.5 text-xs ${nome === 'nome' || nome === 'vinculo' ? 'uppercase' : ''}`}
   />;
 
-  return <FormSection numero={3} icone="groups" titulo="Equipe Técnica e Comissão de Apoio">
+  return <FormSection numero={numero} icone="groups" titulo="Equipe Técnica e Comissão de Apoio">
     <div className="col-span-12 rounded-lg border border-outline-variant bg-surface-container-lowest p-3">
       <div className="mb-3"><h3 className="text-sm font-bold text-on-surface">Equipe Técnica e Comissão de Apoio</h3><p className="text-xs text-on-surface-variant">Pesquisadores, pós-doutorandos, alunos e apoio administrativo vinculados.</p></div>
-      <p className="mb-3 rounded bg-surface-container-low px-2 py-1.5 text-xs text-on-surface-variant">Caso algum membro não tenha cadastro na FEALQ, solicite o preenchimento do Cadastro de equipe técnica/comissão de apoio no kit de documentação.</p>
-      {mensagem && <p role="status" aria-live="polite" className="mb-2 text-xs font-semibold text-secondary">{mensagem}</p>}
+      {/* <p className="mb-3 rounded bg-surface-container-low px-2 py-1.5 text-xs text-on-surface-variant">Caso algum membro não tenha cadastro na FEALQ, solicite o preenchimento do Cadastro de equipe técnica/comissão de apoio no kit de documentação.</p>
+      {mensagem && <p role="status" aria-live="polite" className="mb-2 text-xs font-semibold text-secondary">{mensagem}</p>} */}
       <div className="overflow-x-auto rounded-lg border border-outline-variant">
         <div className={`grid min-w-[620px] ${colunas} gap-2 bg-surface-container-low px-2 py-1.5 text-xs font-bold text-on-surface-variant`}><span>Nome</span><span>Departamento / Vínculo</span><span>Telefone</span><span>E-mail</span><span className="text-center">Ação</span></div>
         <div className={`grid min-w-[620px] ${colunas} items-center gap-2 border-b border-outline-variant p-2`}>

@@ -45,11 +45,55 @@ export const CadastroFinanciadora = () => (
 
     <FormSection numero={2} icone="contact_mail" titulo="Contato Principal">
       <Field label="Nome do Contato" placeholder="Nome da pessoa responsável" />
-      <Field
+      {/* <Field
         label="Setor / Departamento"
         span={6}
         placeholder="Ex: Financeiro, P&D"
+      /> */}
+      <Field
+        label="E-mail"
+        span={6}
+        tipo="email"
+        placeholder="contato@empresa.com"
       />
+      <Field
+        label="WhatsApp / Telefone"
+        span={6}
+        tipo="tel"
+        prefixo="+55"
+        placeholder="(00) 00000-0000"
+      />
+    </FormSection>
+
+    <FormSection numero={2} icone="contact_mail" titulo="Contato Faturamento">
+      <Field label="Nome do Contato" placeholder="Nome da pessoa responsável" />
+      {/* <Field
+        label="Setor / Departamento"
+        span={6}
+        placeholder="Ex: Financeiro, P&D"
+      /> */}
+      <Field
+        label="E-mail"
+        span={6}
+        tipo="email"
+        placeholder="contato@empresa.com"
+      />
+      <Field
+        label="WhatsApp / Telefone"
+        span={6}
+        tipo="tel"
+        prefixo="+55"
+        placeholder="(00) 00000-0000"
+      />
+    </FormSection>
+
+    <FormSection numero={2} icone="contact_mail" titulo="Contato Cobrança">
+      <Field label="Nome do Contato" placeholder="Nome da pessoa responsável" />
+      {/* <Field
+        label="Setor / Departamento"
+        span={6}
+        placeholder="Ex: Financeiro, P&D"
+      /> */}
       <Field
         label="E-mail"
         span={6}

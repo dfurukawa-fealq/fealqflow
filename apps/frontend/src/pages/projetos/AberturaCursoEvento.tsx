@@ -1,5 +1,5 @@
 import { useProcessoState } from '../../contexts/ProcessoContext';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
@@ -9,12 +9,16 @@ import { KitDocumental } from '../../components/KitDocumental';
 import { DocumentoExigido } from '../../data/programasApoio';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { useProcesso } from '../../contexts/ProcessoContext';
-import { buscarEnderecoPorCep } from '../../utils/cep';
-import { formatCEP, formatCPF } from '../../utils/formatters';
+import { formatCPF } from '../../utils/formatters';
 import { gerarIdLocal } from '../../utils/id';
 import { EquipeTecnicaEditor } from '../../components/form/projetos/EquipeTecnicaEditor';
 import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSection';
 import { OrientacoesCoordenadorCard } from '../../components/form/projetos/OrientacoesCoordenadorCard';
+import { EnderecoField } from '../../components/form/EnderecoField';
+import { DelegadosEditor } from '../../components/form/projetos/DelegadosEditor';
+import { CoordenadorResponsavelSection } from '../../components/form/projetos/CoordenadorResponsavelSection';
+import { CienciaConcordanciaSection } from '../../components/form/projetos/CienciaConcordanciaSection';
+import { TIPOS_EVENTO, UNIDADES_USP } from '../../data/listas';
 
 interface MembroEquipe {
   id: string;
@@ -42,66 +46,74 @@ interface LoteInscricao {
   dataFim: string;
 }
 
+const TIPO_EVENTO_LEGADO: Record<string, string> = { 'Simp\u00c3\u00b3sio': '', 'Simpósio': '' };
+const FORMATO_LEGADO: Record<string, 'Online (Síncrono)' | 'Online (Assíncrono)' | 'Híbrido'> = {
+  'Online (S\u00c3\u00adncrono)': 'Online (Síncrono)',
+  'Online (Ass\u00c3\u00adncrono)': 'Online (Assíncrono)',
+  'H\u00c3\u00adbrido': 'Híbrido',
+};
+
 export const AberturaCursoEvento: React.FC = () => {
   const location = useLocation();
   const processoAtual = useProcesso();
   const { protocolId, gerarUrlVinculada, statusFormulario, registrarAberturaFormulario, marcarFormularioConcluido } = useRastreabilidade();
   const statusPlanoRecursos = statusFormulario('CONV-PL-01');
-  const urlPlanoRecursos = gerarUrlVinculada('/projetos/form-plano-recursos', 'CONV-PL-01', 'Plano de AplicaÃ§Ã£o de Recursos');
+  const urlPlanoRecursos = gerarUrlVinculada('/projetos/form-plano-recursos', 'CONV-PL-01', 'Plano de Aplicação de Recursos');
   const statusCadastroCoordenador = statusFormulario('CONV-FR-07-CADT');
   const urlCadastroCoordenador = gerarUrlVinculada('/projetos/form-coordenador', 'CONV-FR-07-CADT', 'Cadastro de Coordenador');
 
-  // --- SEÃ‡ÃƒO 1: INFORMAÃ‡Ã•ES SOBRE O PROJETO / CONVÃŠNIO USP ---
+  // --- SEÇÃO 1: INFORMAÇÕES SOBRE O PROJETO / CONVÊNIO USP ---
   const [possuiConvenio, setPossuiConvenio] = useProcessoState<'sim' | 'nao'>('possuiConvenio', 'nao');
   const [numConvenioUSP, setNumConvenioUSP] = useProcessoState('numConvenioUSP', '');
   const [numProtocoloUSP, setNumProtocoloUSP] = useProcessoState('numProtocoloUSP', '');
 
-  // --- SEÃ‡ÃƒO 2: DADOS DO PROJETO ---
+  // --- SEÇÃO 2: DADOS DO PROJETO ---
   const [titulo, setTitulo] = useProcessoState('titulo', '');
   const [edicao, setEdicao] = useProcessoState('edicao', '');
-  const [tipoEvento, setTipoEvento] = useProcessoState('tipoEvento', 'SimpÃ³sio');
+  const [tipoEvento, setTipoEvento] = useProcessoState('tipoEvento', '');
   const [publicoAlvo, setPublicoAlvo] = useProcessoState('publicoAlvo', '');
   const [cargaHoraria, setCargaHoraria] = useProcessoState('cargaHoraria', '');
   const [numeroVagas, setNumeroVagas] = useProcessoState('numeroVagas', '');
   const [dataInicio, setDataInicio] = useProcessoState('dataInicio', '');
   const [dataFim, setDataFim] = useProcessoState('dataFim', '');
   const [horarioRealizacao, setHorarioRealizacao] = useProcessoState('horarioRealizacao', '');
-  const [formato, setFormato] = useProcessoState<'Presencial' | 'Online (SÃ­ncrono)' | 'Online (AssÃ­ncrono)' | 'HÃ­brido'>('formato', 'Presencial');
+  const [formato, setFormato] = useProcessoState<'Presencial' | 'Online (Síncrono)' | 'Online (Assíncrono)' | 'Híbrido'>('formato', 'Presencial');
+
+  useEffect(() => {
+    const tipoEventoCorrigido = TIPO_EVENTO_LEGADO[tipoEvento];
+    if (tipoEventoCorrigido !== undefined) setTipoEvento(tipoEventoCorrigido);
+    else if (tipoEvento && !TIPOS_EVENTO.includes(tipoEvento as (typeof TIPOS_EVENTO)[number])) setTipoEvento('');
+    const formatoCorrigido = FORMATO_LEGADO[formato];
+    if (formatoCorrigido) setFormato(formatoCorrigido);
+  }, [formato, setFormato, setTipoEvento, tipoEvento]);
   
-  // EndereÃ§o / CEP (para Presencial e HÃ­brido)
-  const [cep, setCep] = useProcessoState('cep', '');
-  const [buscandoCep, setBuscandoCep] = useState(false);
-  const [logradouro, setLogradouro] = useProcessoState('logradouro', '');
-  const [numeroEndereco, setNumeroEndereco] = useProcessoState('numeroEndereco', '');
-  const [complemento, setComplemento] = useProcessoState('complemento', '');
-  const [bairro, setBairro] = useProcessoState('bairro', '');
-  const [cidade, setCidade] = useProcessoState('cidade', '');
-  const [uf, setUf] = useProcessoState('uf', '');
+  // Endereço / CEP (para Presencial e Híbrido)
   const [localAuditorio, setLocalAuditorio] = useProcessoState('localAuditorio', '');
 
-  // Plataforma Doity / FEALQ (para Online e HÃ­brido)
+  // Plataforma Doity / FEALQ (para Online e Híbrido)
   const [utilizaDoity, setUtilizaDoity] = useProcessoState<'sim' | 'nao'>('utilizaDoity', 'sim');
 
   // Objeto do Projeto
   const [objetoProjeto, setObjetoProjeto] = useProcessoState('objetoProjeto', '');
 
-  // --- SEÃ‡ÃƒO 3: EQUIPE DO PROJETO ---
+  // --- SEÇÃO 3: EQUIPE DO PROJETO ---
   const [coordNome, setCoordNome] = useProcessoState('coordNome', '');
   const [coordCpf, setCoordCpf] = useProcessoState('coordCpf', '');
   const [coordRg, setCoordRg] = useProcessoState('coordRg', '');
   const [coordEmail, setCoordEmail] = useProcessoState('coordEmail', '');
   const [coordDepto, setCoordDepto] = useProcessoState('coordDepto', '');
+  const [coordUnidade, setCoordUnidade] = useProcessoState('coordUnidade', '');
   const [coordTelefone, setCoordTelefone] = useProcessoState('coordTelefone', '');
 
-  // Delegados de GestÃ£o (Conveniar / USP)
+  // Delegados de Gestão (Conveniar / USP)
   const [delegados, setDelegados] = useProcessoState<Delegado[]>('delegados', [
     { id: 'inicial', nome: '', cpf: '', telefone: '', email: '', nivelAcesso: 'Nivel 2 - Criador' },
   ]);
 
-  // Equipe TÃ©cnica / ComissÃ£o de Apoio
+  // Equipe Técnica / Comissão de Apoio
   const [equipeTecnica, setEquipeTecnica] = useProcessoState<MembroEquipe[]>('equipeTecnica', []);
 
-  // --- SEÃ‡ÃƒO 4: INSTITUIÃ‡Ã•ES ENVOLVIDAS (IN COMPANY & PATROCÃNIO) ---
+  // --- SEÇÃO 4: INSTITUIÇÕES ENVOLVIDAS (IN COMPANY & PATROCÍNIO) ---
   const [inCompany, setInCompany] = useProcessoState<'sim' | 'nao'>('inCompany', 'nao');
   const [inCompanyValor, setInCompanyValor] = useProcessoState('inCompanyValor', '');
   const [inCompanyEmpresa, setInCompanyEmpresa] = useProcessoState('inCompanyEmpresa', '');
@@ -114,16 +126,17 @@ export const AberturaCursoEvento: React.FC = () => {
   const [patrocinio, setPatrocinio] = useProcessoState<'sim' | 'nao'>('patrocinio', 'nao');
   const [linkPatrocinadorCopiado, setLinkPatrocinadorCopiado] = useState(false);
 
-  // --- SEÃ‡ÃƒO 5: EXECUÃ‡ÃƒO DO PROJETO (VALORES & INSCRIÃ‡Ã•ES) ---
+  // --- SEÇÃO 5: EXECUÇÃO DO PROJETO (VALORES & INSCRIÇÕES) ---
   const [tipoInscricao, setTipoInscricao] = useProcessoState<'gratuito' | 'pago'>('tipoInscricao', 'pago');
   const [vagasGratuitas, setVagasGratuitas] = useProcessoState('vagasGratuitas', '');
   const [lotes, setLotes] = useProcessoState<LoteInscricao[]>('lotes', [
     { id: 'inicial', descricao: '', valor: 0, vagas: 0, dataInicio: '', dataFim: '' },
   ]);
+  const [novoLote, setNovoLote] = useProcessoState<LoteInscricao>('loteNovo', { id: '', descricao: '', valor: 0, vagas: 0, dataInicio: '', dataFim: '' });
   const [investimentoTexto, setInvestimentoTexto] = useProcessoState('investimentoTexto', '');
   const [informacoesAdicionais, setInformacoesAdicionais] = useProcessoState('informacoesAdicionais', '');
 
-  // --- SEÃ‡ÃƒO 6: CIÃŠNCIA E CONCORDÃ‚NCIA DO DEPARTAMENTO (USP) ---
+  // --- SEÇÃO 6: CIÊNCIA E CONCORDÂNCIA DO DEPARTAMENTO (USP) ---
   const [deptoNome, setDeptoNome] = useProcessoState('deptoNome', '');
   const [aprovacaoDepto, setAprovacaoDepto] = useProcessoState<'conselho' | 'ad_referendum'>('aprovacaoDepto', 'conselho');
   const [dataAprovacaoConselho, setDataAprovacaoConselho] = useProcessoState('dataAprovacaoConselho', '');
@@ -135,25 +148,7 @@ export const AberturaCursoEvento: React.FC = () => {
   const [submetidoSucesso, setSubmetidoSucesso] = useState(false);
   const [avisoValidacao, setAvisoValidacao] = useState('');
 
-  // Busca de CEP resiliente com timeout e tratamento de falhas
-  const handleBuscarCep = async () => {
-    const limpo = cep.replace(/\D/g, '');
-    if (limpo.length !== 8) return;
-    setBuscandoCep(true);
-    try {
-      const resultado = await buscarEnderecoPorCep(limpo);
-      if (resultado.sucesso) {
-        setLogradouro(resultado.logradouro);
-        setBairro(resultado.bairro);
-        setCidade(resultado.cidade);
-        setUf(resultado.uf);
-      }
-    } finally {
-      setBuscandoCep(false);
-    }
-  };
-
-  // FunÃ§Ãµes de manipulaÃ§Ã£o de delegados
+  // Funções de manipulação de delegados
   const adicionarDelegado = () => {
     setDelegados(prev => [
       ...prev,
@@ -178,9 +173,9 @@ export const AberturaCursoEvento: React.FC = () => {
     );
   };
 
-  // FunÃ§Ãµes de manipulaÃ§Ã£o de equipe tÃ©cnica
+  // Funções de manipulação de equipe técnica
   /* membro global */
-  // FunÃ§Ãµes de manipulaÃ§Ã£o de lotes
+  // Funções de manipulação de lotes
   const adicionarMembroEquipe = () => {
     const ultimo = equipeTecnica[equipeTecnica.length - 1];
     if (!ultimo?.nome.trim()) return;
@@ -190,17 +185,21 @@ export const AberturaCursoEvento: React.FC = () => {
   const atualizarMembroEquipe = (id: string, campo: keyof MembroEquipe, valor: string) => setEquipeTecnica((atuais) => atuais.map((membro) => membro.id === id ? { ...membro, [campo]: valor } : membro));
 
   const adicionarLote = () => {
+    if (!novoLote.descricao.trim()) return;
+    setLotes(prev => [...prev, { ...novoLote, id: gerarIdLocal() }]);
+    setNovoLote({ id: '', descricao: '', valor: 0, vagas: 0, dataInicio: '', dataFim: '' });
+  /*
     setLotes(prev => [
       ...prev,
       {
         id: Date.now().toString(),
-        descricao: `${prev.length + 1}Âº Lote`,
+        descricao: `${prev.length + 1}º Lote`,
         valor: 0,
         vagas: 0,
         dataInicio: '',
         dataFim: '',
       },
-    ]);
+    ]); */
   };
 
   const removerLote = (id: string) => {
@@ -248,7 +247,7 @@ export const AberturaCursoEvento: React.FC = () => {
     setTimeout(() => setEmailParceiroEnviado(false), 4000);
   };
 
-  // CertificaÃ§Ãµes e status vinculados ao protocolo
+  // Certificações e status vinculados ao protocolo
   const statusLGPD = statusFormulario('CERT-LGPD-01');
   const statusOrientacoes = statusFormulario('CERT-ORIENT-01');
   const statusDepto = statusFormulario('CERT-DEPTO-01');
@@ -262,39 +261,39 @@ export const AberturaCursoEvento: React.FC = () => {
   const urlOrientacoes = gerarUrlVinculada(
     `/projetos/orientacoes-coordenador?coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}`,
     'CERT-ORIENT-01',
-    'OrientaÃ§Ãµes ao Coordenador FEALQ'
+    'Orientações ao Coordenador FEALQ'
   );
 
   const urlDepto = gerarUrlVinculada(
     `/projetos/ciencia-departamento?depto=${encodeURIComponent(deptoNome || coordDepto || '')}&coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}`,
     'CERT-DEPTO-01',
-    'CiÃªncia e ConcordÃ¢ncia do Departamento'
+    'Ciência e Concordância do Departamento'
   );
 
-  // A conclusÃ£o deve vir exclusivamente dos documentos certificados no Kit Documental.
-  // Os campos/aceites locais sÃ£o apenas dados auxiliares do formulÃ¡rio de evento.
+  // A conclusão deve vir exclusivamente dos documentos certificados no Kit Documental.
+  // Os campos/aceites locais são apenas dados auxiliares do formulário de evento.
   const isLGPDValido = statusLGPD === 'concluido';
   const isOrientacoesValido = statusOrientacoes === 'concluido';
   const isDeptoValido = statusDepto === 'concluido';
   const isPlanoValido = statusPlanoRecursos === 'concluido';
   const equipePreenchida = equipeTecnica.some((membro) => membro.nome.trim().length > 0);
 
-  // --- CONFIGURAÃ‡ÃƒO DO KIT DE DOCUMENTAÃ‡ÃƒO (DIRETRIZ FEALQ/USP) ---
-  // Quando "SEM CONVÃŠNIO USP":
-  //   a. Termo de LGPD {formulÃ¡rio com autopreenchimento e FLAG para aceite OBRIGATÃ“RIO}
-  //   b. Cadastro do coordenador {formulÃ¡rio nÃ£o obrigatÃ³rio}
-  //   c. Cadastro de equipe envolvida {formulÃ¡rio nÃ£o obrigatÃ³rio}
-  //   d. ProgramaÃ§Ã£o do curso/evento {anexo nÃ£o obrigatÃ³rio}
-  //   e. Plano de aplicaÃ§Ã£o de recursos {formulÃ¡rio nÃ£o obrigatÃ³rio}
+  // --- CONFIGURAÇÃO DO KIT DE DOCUMENTAÇÃO (DIRETRIZ FEALQ/USP) ---
+  // Quando "SEM CONVÊNIO USP":
+  //   a. Termo de LGPD {formulário com autopreenchimento e FLAG para aceite OBRIGATÓRIO}
+  //   b. Cadastro do coordenador {formulário não obrigatório}
+  //   c. Cadastro de equipe envolvida {formulário não obrigatório}
+  //   d. Programação do curso/evento {anexo não obrigatório}
+  //   e. Plano de aplicação de recursos {formulário não obrigatório}
   //
-  // Quando "COM CONVÃŠNIO USP":
-  //   a. Termo de LGPD {formulÃ¡rio com autopreenchimento e FLAG para aceite OBRIGATÃ“RIO}
-  //   b. Cadastro do coordenador {formulÃ¡rio nÃ£o obrigatÃ³rio}
-  //   c. Cadastro de equipe envolvida {formulÃ¡rio nÃ£o obrigatÃ³rio}
-  //   d. ProgramaÃ§Ã£o do curso/evento {anexo nÃ£o obrigatÃ³rio}
-  //   e. ConvÃªnio USP assinado {anexo nÃ£o obrigatÃ³rio}
-  //   f. CaracterizaÃ§Ã£o acadÃªmica {anexo nÃ£o obrigatÃ³rio}
-  //   g. CaracterizaÃ§Ã£o financeira {anexo nÃ£o obrigatÃ³rio}
+  // Quando "COM CONVÊNIO USP":
+  //   a. Termo de LGPD {formulário com autopreenchimento e FLAG para aceite OBRIGATÓRIO}
+  //   b. Cadastro do coordenador {formulário não obrigatório}
+  //   c. Cadastro de equipe envolvida {formulário não obrigatório}
+  //   d. Programação do curso/evento {anexo não obrigatório}
+  //   e. Convênio USP assinado {anexo não obrigatório}
+  //   f. Caracterização acadêmica {anexo não obrigatório}
+  //   g. Caracterização financeira {anexo não obrigatório}
 
   const documentosBase: DocumentoExigido[] = [
     {
@@ -302,10 +301,10 @@ export const AberturaCursoEvento: React.FC = () => {
       label: 'Termo de LGPD e Confidencialidade (FR 01 - PRO)',
       descricao: isLGPDValido
         ? 'Termo assinado e certificado eletronicamente.'
-        : 'Autopreenchido com dados da coordenaÃ§Ã£o e evento. Aceite e leitura obrigatÃ³rios.',
+        : 'Autopreenchido com dados da coordenação e evento. Aceite e leitura obrigatórios.',
       tipo: 'gerado',
       obrigatorio: true,
-      condicao: 'ObrigatÃ³rio',
+      condicao: 'Obrigatório',
       url_template: urlLGPD,
       status: isLGPDValido ? 'concluido' : (statusLGPD || 'pendente'),
       onAbrirLink: () =>
@@ -318,11 +317,11 @@ export const AberturaCursoEvento: React.FC = () => {
     },
     {
       id: 'cadastro-coordenador',
-      label: 'Cadastro de Coordenador (Sem CertidÃµes)',
-      descricao: 'Caso nÃ£o possua cadastro prÃ©vio na FEALQ.',
+      label: 'Cadastro de Coordenador (Sem Certidões)',
+      descricao: 'Caso não possua cadastro prévio na FEALQ.',
       tipo: 'gerado',
       obrigatorio: false,
-      condicao: 'Condicional',
+      condicao: 'NÃO OBRIGATÓRIO',
       url_template: urlCadastroCoordenador,
       status: statusCadastroCoordenador === 'concluido' ? 'concluido' : undefined,
       onAbrirLink: () => registrarAberturaFormulario('CONV-FR-07-CADT', 'Cadastro de Coordenador', urlCadastroCoordenador),
@@ -331,10 +330,10 @@ export const AberturaCursoEvento: React.FC = () => {
     // {
     //   id: 'cadastro-equipe',
     //   label: 'Cadastro de Equipe Envolvida / Apoio',
-    //   descricao: 'Docentes, alunos, pesquisadores e comissÃ£o tÃ©cnica.',
+    //   descricao: 'Docentes, alunos, pesquisadores e comissão técnica.',
     //   tipo: 'gerado',
     //   obrigatorio: false,
-    //   condicao: 'Condicional',
+    //   condicao: 'NÃO OBRIGATÓRIO',
     //   url_template: '#equipe-tecnica',
     //   status: equipePreenchida ? 'concluido' : undefined,
     //   onAbrirLink: () =>
@@ -343,7 +342,7 @@ export const AberturaCursoEvento: React.FC = () => {
     // },
     {
       id: 'programacao-evento',
-      label: 'ProgramaÃ§Ã£o do Curso/Evento (PDF)',
+      label: 'Programação do Curso/Evento (PDF)',
       descricao: 'Cronograma, ementa, datas e palestrantes.',
       tipo: 'upload',
       obrigatorio: false,
@@ -356,24 +355,24 @@ export const AberturaCursoEvento: React.FC = () => {
       ? [
           {
             id: 'convenio-usp-assinado',
-            label: 'ConvÃªnio USP Assinado (PDF)',
-            descricao: 'CÃ³pia digitalizada do termo de convÃªnio firmado com a USP.',
+            label: 'Convênio USP Assinado (PDF)',
+            descricao: 'Cópia digitalizada do termo de convênio firmado com a USP.',
             tipo: 'upload',
             obrigatorio: false,
             condicao: 'Anexo Opcional',
           },
           {
             id: 'caracterizacao-academica',
-            label: 'CaracterizaÃ§Ã£o AcadÃªmica (USP)',
-            descricao: 'FormulÃ¡rio acadÃªmico de extensÃ£o universitÃ¡ria.',
+            label: 'Caracterização Acadêmica (USP)',
+            descricao: 'Formulário acadêmico de extensão universitária.',
             tipo: 'upload',
             obrigatorio: false,
             condicao: 'Anexo Opcional',
           },
           {
             id: 'caracterizacao-financeira',
-            label: 'CaracterizaÃ§Ã£o Financeira (USP)',
-            descricao: 'Planilha/demonstrativo de custos aprovado na instÃ¢ncia acadÃªmica.',
+            label: 'Caracterização Financeira (USP)',
+            descricao: 'Planilha/demonstrativo de custos aprovado na instância acadêmica.',
             tipo: 'upload',
             obrigatorio: false,
             condicao: 'Anexo Opcional',
@@ -382,17 +381,17 @@ export const AberturaCursoEvento: React.FC = () => {
       : [
           {
             id: 'plano-aplicacao-recursos',
-            label: 'Plano de AplicaÃ§Ã£o de Recursos (CONV-PL-01)',
+            label: 'Plano de Aplicação de Recursos (CONV-PL-01)',
             descricao: isPlanoValido
-              ? 'OrÃ§amento preenchido e vinculado com sucesso ao protocolo.'
-              : 'EstruturaÃ§Ã£o orÃ§amentÃ¡ria de receitas e despesas do evento.',
+              ? 'Orçamento preenchido e vinculado com sucesso ao protocolo.'
+              : 'Estruturação orçamentária de receitas e despesas do evento.',
             tipo: 'gerado',
             obrigatorio: false,
             condicao: 'Opcional',
             url_template: urlPlanoRecursos,
             status: isPlanoValido ? 'concluido' : undefined,
             onAbrirLink: () =>
-              registrarAberturaFormulario('CONV-PL-01', 'Plano de AplicaÃ§Ã£o de Recursos', urlPlanoRecursos),
+              registrarAberturaFormulario('CONV-PL-01', 'Plano de Aplicação de Recursos', urlPlanoRecursos),
             linkTexto: isPlanoValido ? 'Revisar' : 'Preencher',
           },
         ];
@@ -405,10 +404,10 @@ export const AberturaCursoEvento: React.FC = () => {
           {
             id: 'cadastro-parceiro-link',
             label: 'Cadastro de Parceiro (Link Direto ao Financiador)',
-            descricao: 'FormulÃ¡rio preenchido diretamente pela empresa parceira.',
+            descricao: 'Formulário preenchido diretamente pela empresa parceira.',
             tipo: 'gerado' as const,
             obrigatorio: false,
-            condicao: 'Condicional',
+            condicao: 'NÃO OBRIGATÓRIO',
             url_template: `/projetos/form-parceiro?protocolo=${protocolId}`,
           },
         ]
@@ -417,19 +416,19 @@ export const AberturaCursoEvento: React.FC = () => {
       ? [
           {
             id: 'carta-patrocinio',
-            label: 'Carta PatrocÃ­nio (Modelo FEALQ)',
+            label: 'Carta Patrocínio (Modelo FEALQ)',
             descricao: 'Termo formal de aceite de cotas de apoio financeiro.',
             tipo: 'upload' as const,
             obrigatorio: false,
-            condicao: 'Condicional',
+            condicao: 'NÃO OBRIGATÓRIO',
           },
           {
             id: 'cotas-patrocinio',
-            label: 'Cadastro de Cotas de PatrocÃ­nio',
-            descricao: 'DefiniÃ§Ã£o de cotas Ouro, Prata, Bronze e benefÃ­cios.',
+            label: 'Cadastro de Cotas de Patrocínio',
+            descricao: 'Definição de cotas Ouro, Prata, Bronze e benefícios.',
             tipo: 'gerado' as const,
             obrigatorio: false,
-            condicao: 'Condicional',
+            condicao: 'NÃO OBRIGATÓRIO',
             url_template: `/projetos/form-cotas?protocolo=${protocolId}`,
           },
           {
@@ -438,14 +437,14 @@ export const AberturaCursoEvento: React.FC = () => {
             descricao: 'Enviado por link ao patrocinador para dados cadastrais.',
             tipo: 'gerado' as const,
             obrigatorio: false,
-            condicao: 'Condicional',
+            condicao: 'NÃO OBRIGATÓRIO',
             url_template: `/projetos/form-patrocinador?protocolo=${protocolId}`,
           },
         ]
       : []),
   ];
 
-  // CÃ¡lculo de progresso de preenchimento
+  // Cálculo de progresso de preenchimento
   let preenchidos = 0;
   let totalPontos = 5;
   if (titulo.trim()) preenchidos++;
@@ -464,10 +463,10 @@ export const AberturaCursoEvento: React.FC = () => {
   const handleSubmit = () => {
     if (!podeSubmeter) {
       if (!isLGPDValido) {
-        setAvisoValidacao('A confirmaÃ§Ã£o de leitura e aceite formal do Termo de LGPD e Confidencialidade (FLAG OBRIGATÃ“RIA) Ã© indispensÃ¡vel para submeter o protocolo.');
+        setAvisoValidacao('A confirmação de leitura e aceite formal do Termo de LGPD e Confidencialidade (FLAG OBRIGATÓRIA) é indispensável para submeter o protocolo.');
         return;
       }
-      setAvisoValidacao('Por favor, preencha todos os campos obrigatÃ³rios do projeto (TÃ­tulo, Coordenador e CPF).');
+      setAvisoValidacao('Por favor, preencha todos os campos obrigatórios do projeto (Título, Coordenador e CPF).');
       return;
     }
     setAvisoValidacao('');
@@ -476,7 +475,7 @@ export const AberturaCursoEvento: React.FC = () => {
 
   return (
     <FormPageLayout
-      breadcrumb={['Ãrea do Coordenador', 'Projetos', 'Protocolo de Abertura de Curso/Evento']}
+      breadcrumb={['Área do Coordenador', 'Projetos', 'Protocolo de Abertura de Curso/Evento']}
       titulo="Protocolo de Abertura de Curso/Evento"
       codigo="CONV-FR-01-PRO"
       badge="Novo"
@@ -485,7 +484,7 @@ export const AberturaCursoEvento: React.FC = () => {
       aoSubmeter={handleSubmit}
       sidebar={
         <div className="flex flex-col gap-lg">
-          {/* Box de Rastreabilidade e Protocolo da SessÃ£o */}
+          {/* Box de Rastreabilidade e Protocolo da Sessão */}
           <div className="bg-surface-container-low border border-primary/20 rounded-lg p-sm flex items-center justify-between">
             <div className="flex items-center gap-xs">
               <span className="material-symbols-outlined text-[18px] text-primary">share_location</span>
@@ -504,32 +503,32 @@ export const AberturaCursoEvento: React.FC = () => {
             percentual={percentualConclusao}
             nota={
               podeSubmeter
-                ? 'Campos essenciais e Termo de LGPD preenchidos com sucesso. Pronto para submissÃ£o do protocolo!'
+                ? 'Campos essenciais e Termo de LGPD preenchidos com sucesso. Pronto para submissão do protocolo!'
                 : !isLGPDValido
-                  ? 'Confirme a leitura e o aceite do Termo de LGPD e Confidencialidade no Kit de DocumentaÃ§Ã£o (FLAG OBRIGATÃ“RIA).'
-                  : 'Preencha o tÃ­tulo do evento e os dados do coordenador para liberar a submissÃ£o.'
+                  ? 'Confirme a leitura e o aceite do Termo de LGPD e Confidencialidade no Kit de Documentação (FLAG OBRIGATÓRIA).'
+                  : 'Preencha o título do evento e os dados do coordenador para liberar a submissão.'
             }
           />
 
-          {/* Kit de DocumentaÃ§Ã£o */}
+          {/* Kit de Documentação */}
           <KitDocumental
             documentos={documentosKit}
-            titulo="Kit de DocumentaÃ§Ã£o"
+            titulo="Kit de Documentação"
             acaoNoCard
           />
 
-          {/* Banner de Aviso de TramitaÃ§Ã£o */}
+          {/* Banner de Aviso de Tramitação */}
           <div className="p-md bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-[12px] leading-relaxed">
             <div className="flex items-center gap-xs font-semibold mb-xs text-amber-950">
               <span className="material-symbols-outlined text-[18px]">info</span>
-              InformaÃ§Ã£o Importante
+              Informação Importante
             </div>
-            Assim que completamente preenchido, clique em submeter. Toda a documentaÃ§Ã£o serÃ¡ conferida pelo gestor responsÃ¡vel pelo seu projeto na FEALQ. Em caso de necessidade de correÃ§Ã£o, retornaremos com o link desse preenchimento para ajustes no e-mail informado do coordenador.
+            Assim que completamente preenchido, clique em submeter. Toda a documentação será conferida pelo gestor responsável pelo seu projeto na FEALQ. Em caso de necessidade de correção, retornaremos com o link desse preenchimento para ajustes no e-mail informado do coordenador.
           </div>
         </div>
       }
     >
-      {/* MENSAGEM DE AVISO DE VALIDAÃ‡ÃƒO */}
+      {/* MENSAGEM DE AVISO DE VALIDAÇÃO */}
       {avisoValidacao && (
         <div className="mb-lg p-md bg-amber-50 border border-amber-300 rounded-lg text-amber-900 flex items-center justify-between animate-fadeIn text-[13px]">
           <div className="flex items-center gap-xs">
@@ -546,7 +545,7 @@ export const AberturaCursoEvento: React.FC = () => {
         </div>
       )}
 
-      {/* MENSAGEM DE SUCESSO DE SUBMISSÃƒO */}
+      {/* MENSAGEM DE SUCESSO DE SUBMISSÃO */}
       {submetidoSucesso && (
         <div className="mb-lg p-lg bg-green-50 border-2 border-green-500 rounded-xl text-green-900 flex items-start gap-md animate-fadeIn">
           <span className="material-symbols-outlined text-[32px] text-green-600 mt-1">
@@ -557,7 +556,7 @@ export const AberturaCursoEvento: React.FC = () => {
               Protocolo de Abertura Submetido com Sucesso!
             </h3>
             <p className="text-[14px] mt-xs text-green-800">
-              O protocolo de abertura do curso/evento <strong>{titulo || 'Sem TÃ­tulo'}</strong> foi registrado. O gestor FEALQ iniciarÃ¡ a anÃ¡lise documental e enviarÃ¡ as confirmaÃ§Ãµes para o e-mail: <strong>{coordEmail || 'coordenador informado'}</strong>.
+              O protocolo de abertura do curso/evento <strong>{titulo || 'Sem Título'}</strong> foi registrado. O gestor FEALQ iniciará a análise documental e enviará as confirmações para o e-mail: <strong>{coordEmail || 'coordenador informado'}</strong>.
             </p>
             <div className="mt-md flex flex-wrap gap-sm">
               <button
@@ -565,30 +564,30 @@ export const AberturaCursoEvento: React.FC = () => {
                 onClick={() => setSubmetidoSucesso(false)}
                 className="px-md py-xs bg-white border border-green-300 text-green-800 rounded text-[13px] font-medium hover:bg-green-100"
               >
-                Voltar Ã  EdiÃ§Ã£o
+                Voltar à Edição
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 1. INFORMAÃ‡Ã•ES SOBRE O PROJETO (CONVÃŠNIO USP) */}
+      {/* 1. INFORMAÇÕES SOBRE O PROJETO (CONVÊNIO USP) */}
       <FormSection
         numero={1}
         icone="description"
-        titulo="InformaÃ§Ãµes sobre o Projeto & ConvÃªnio USP"
+        titulo="Informações sobre o Projeto & Convênio USP"
       >
         <div className="col-span-12 bg-surface-container-low p-md rounded-lg border border-outline-variant/60 flex flex-col md:flex-row md:items-center justify-between gap-md">
           <div>
             <span className="text-[13px] font-bold text-on-surface block">
-              Possui ConvÃªnio Cadastrado na USP?
+              Possui Convênio Cadastrado na USP?
             </span>
             <span className="text-[12px] text-on-surface-variant">
-              Essa definiÃ§Ã£o adapta automaticamente os anexos exigidos no Kit Documental.
+              Essa definição adapta automaticamente os anexos exigidos no Kit Documental.
             </span>
           </div>
 
-          {/* SIM = COM CONVÃŠNIO USP | NÃƒO = SEM CONVÃŠNIO USP */}
+          {/* SIM = COM CONVÊNIO USP | NÃO = SEM CONVÊNIO USP */}
           <div className="flex items-center gap-lg">
             <label className="flex items-center gap-xs cursor-pointer text-[13px] font-semibold text-on-surface">
               <input
@@ -611,7 +610,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setPossuiConvenio('nao')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              NÃƒO
+              NÃO
             </label>
           </div>
         </div>
@@ -619,69 +618,61 @@ export const AberturaCursoEvento: React.FC = () => {
         {possuiConvenio === 'sim' && (
           <>
             <Field
-              label="NÂº do ConvÃªnio USP"
+              label="Nº do Convênio USP"
               span={6}
               placeholder="Ex: 2024/00123-USP"
               valor={numConvenioUSP}
               onChange={setNumConvenioUSP}
-              hint="Preencher apenas se houver convÃªnio cadastrado na USP."
+              hint="Preencher apenas se houver convênio cadastrado na USP."
             />
             <Field
-              label="NÂº do Protocolo USP"
+              label="Nº do Protocolo USP"
               span={6}
               placeholder="Ex: 23.1.00000.11.2"
               valor={numProtocoloUSP}
               onChange={setNumProtocoloUSP}
-              hint="Preencher apenas se houver convÃªnio cadastrado na USP."
+              hint="Preencher apenas se houver convênio cadastrado na USP."
             />
           </>
         )}
       </FormSection>
 
-      {/* 2. DADOS DO PROJETO & DETALHAMENTO TÃ‰CNICO */}
+      {/* 2. DADOS DO PROJETO & DETALHAMENTO TÉCNICO */}
       <FormSection
         numero={2}
         icone="event"
-        titulo="Dados do Projeto & Detalhamento TÃ©cnico"
+        titulo="Dados do Projeto & Detalhamento Técnico"
       >
         <Field
-          label="TÃ­tulo do Curso/Evento"
+          label="Título do Curso/Evento"
           span={9}
-          placeholder="Ex: SimpÃ³sio de Tecnologia AgrÃ­cola e Sustentabilidade"
+          placeholder="Ex: Simpósio de Tecnologia Agrícola e Sustentabilidade"
           obrigatorio
           valor={titulo}
           onChange={setTitulo}
         />
         <Field
-          label="EdiÃ§Ã£o"
+          label="Edição"
           span={3}
-          placeholder="Ex: 5Âª EdiÃ§Ã£o"
+          placeholder="Ex: 5ª Edição"
           valor={edicao}
           onChange={setEdicao}
         />
 
-        {/* Tipo de Evento (Dropdown espelhando SAP / FlÃ¡via) */}
+        {/* Tipo de Evento (Dropdown espelhando SAP / Flávia) */}
         <Field
           label="Tipo de Evento"
           span={4}
           tipo="select"
-          opcoes={[
-            'SimpÃ³sio',
-            'ReuniÃ£o',
-            'Workshop',
-            'Treinamento',
-            'Curso MBA',
-            'EspecializaÃ§Ã£o',
-            'Curso DifusÃ£o',
-            'Outro',
-          ]}
+          opcoes={[...TIPOS_EVENTO]}
+          placeholder="-- nenhum --"
           valor={tipoEvento}
           onChange={setTipoEvento}
-          hint="Espelha a classificaÃ§Ã£o de eventos do SAP/FEALQ"
+          hint="Espelha a classificação de eventos do SAP/FEALQ"
         />
 
         <Field
-          label="PÃºblico-Alvo"
+          label="Público-Alvo"
           span={5}
           placeholder="Estudantes, Pesquisadores, Profissionais do Setor"
           obrigatorio
@@ -690,7 +681,7 @@ export const AberturaCursoEvento: React.FC = () => {
         />
 
         <Field
-          label="Carga HorÃ¡ria (h)"
+          label="Carga Horária (h)"
           span={3}
           tipo="number"
           placeholder="Ex: 40"
@@ -699,9 +690,9 @@ export const AberturaCursoEvento: React.FC = () => {
           onChange={setCargaHoraria}
         />
 
-        {/* Datas e HorÃ¡rio */}
+        {/* Datas e Horário */}
         <Field
-          label="Data de InÃ­cio"
+          label="Data de Início"
           span={3}
           tipo="date"
           valor={dataInicio}
@@ -709,7 +700,7 @@ export const AberturaCursoEvento: React.FC = () => {
           obrigatorio
         />
         <Field
-          label="Data de TÃ©rmino"
+          label="Data de Término"
           span={3}
           tipo="date"
           valor={dataFim}
@@ -717,9 +708,9 @@ export const AberturaCursoEvento: React.FC = () => {
           obrigatorio
         />
         <Field
-          label="HorÃ¡rio / Turno"
+          label="Horário / Turno"
           span={3}
-          placeholder="Ex: 08:00 Ã s 18:00 (Integral)"
+          placeholder="Ex: 08:00 às 18:00 (Integral)"
           valor={horarioRealizacao}
           onChange={setHorarioRealizacao}
         />
@@ -730,132 +721,46 @@ export const AberturaCursoEvento: React.FC = () => {
           placeholder="Ex: 100"
           valor={numeroVagas}
           onChange={setNumeroVagas}
-          hint="Substitui a estimativa genÃ©rica de pessoas"
+          hint="Substitui a estimativa genérica de pessoas"
         />
 
-        {/* Formato de RealizaÃ§Ã£o */}
+        {/* Formato de Realização */}
         <div className="col-span-12">
           <Field
-            label="Formato de RealizaÃ§Ã£o"
+            label="Formato de Realização"
             span={12}
             tipo="select"
             opcoes={[
               'Presencial',
-              'Online (SÃ­ncrono)',
-              'Online (AssÃ­ncrono)',
-              'HÃ­brido',
+              'Online (Síncrono)',
+              'Online (Assíncrono)',
+              'Híbrido',
             ]}
             valor={formato}
             onChange={(val) => setFormato(val as any)}
           />
         </div>
 
-        {/* Campos Condicionais para Presencial ou HÃ­brido: EndereÃ§o Completo com busca por CEP */}
-        {(formato === 'Presencial' || formato === 'HÃ­brido') && (
-          <div className="col-span-12 bg-surface-container-low/60 border border-outline-variant p-md rounded-lg grid grid-cols-12 gap-sm overflow-hidden">
-            <div className="col-span-12 flex items-center justify-between pb-xs border-b border-outline-variant/60">
-              <span className="text-[13px] font-bold text-on-surface flex items-center gap-xs">
-                <span className="material-symbols-outlined text-[18px] text-primary">pin_drop</span>
-                Local e EndereÃ§o Completo de RealizaÃ§Ã£o
-              </span>
-              <span className="text-[11px] text-on-surface-variant">
-                Preencha o CEP para autocompletar o logradouro
-              </span>
-            </div>
-
-            <Field
-              label="Local / AuditÃ³rio / Campus"
-              span={8}
-              placeholder="Ex: AuditÃ³rio da Engenharia, Campus USP Piracicaba"
-              valor={localAuditorio}
-              onChange={setLocalAuditorio}
-            />
-
-            <div className="col-span-12 md:col-span-4 flex flex-col justify-end">
-              <label className="block mb-xs text-on-surface-variant text-[11px] font-bold uppercase tracking-wide">
-                CEP (com busca automÃ¡tica)
-              </label>
-              <div className="relative flex items-center w-full">
-                <input
-                  type="text"
-                  placeholder="13418-900"
-                  value={cep}
-                  onChange={(e) => setCep(e.target.value)}
-                  onBlur={handleBuscarCep}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleBuscarCep())}
-                  className="w-full h-[36px] pl-sm pr-24 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={handleBuscarCep}
-                  disabled={buscandoCep}
-                  className="absolute right-1 top-1 bottom-1 px-3 bg-primary text-white text-[11px] font-semibold rounded hover:bg-primary-dark transition-colors flex items-center gap-1 shrink-0"
-                >
-                  <span className="material-symbols-outlined text-[15px]">
-                    {buscandoCep ? 'sync' : 'search'}
-                  </span>
-                  {buscandoCep ? 'Buscando' : 'Buscar'}
-                </button>
-              </div>
-            </div>
-
-            <Field
-              label="Logradouro"
-              span={6}
-              placeholder="Avenida PÃ¡dua Dias"
-              valor={logradouro}
-              onChange={setLogradouro}
-            />
-            <Field
-              label="NÃºmero"
-              span={2}
-              placeholder="11"
-              valor={numeroEndereco}
-              onChange={setNumeroEndereco}
-            />
-            <Field
-              label="Complemento"
-              span={4}
-              placeholder="EdifÃ­cio Central, Sala 2"
-              valor={complemento}
-              onChange={setComplemento}
-            />
-            <Field
-              label="Bairro"
-              span={4}
-              placeholder="Agronomia"
-              valor={bairro}
-              onChange={setBairro}
-            />
-            <Field
-              label="Cidade"
-              span={5}
-              placeholder="Piracicaba"
-              valor={cidade}
-              onChange={setCidade}
-            />
-            <Field
-              label="UF"
-              span={3}
-              placeholder="SP"
-              valor={uf}
-              onChange={setUf}
-            />
-          </div>
+        {/* Campos Condicionais para Presencial ou Híbrido: Endereço Completo com busca por CEP */}
+        {(formato === 'Presencial' || formato === 'Híbrido') && (
+          <>
+            <Field label="Local / Auditório / Campus" span={12} placeholder="Ex: Auditório da Engenharia, Campus USP Piracicaba" valor={localAuditorio} onChange={setLocalAuditorio} />
+            <EnderecoField prefixo="localRealizacao" />
+          </>
         )}
 
-        {/* Pergunta Condicional para Online (SÃ­ncrono/AssÃ­ncrono) ou HÃ­brido: Doity / FEALQ */}
-        {(formato === 'Online (SÃ­ncrono)' ||
-          formato === 'Online (AssÃ­ncrono)' ||
-          formato === 'HÃ­brido') && (
+        {/* Pergunta NÃO OBRIGATÓRIO para Online (Síncrono/Assíncrono) ou Híbrido: Doity / FEALQ */}
+        {(formato === 'Online (Síncrono)' ||
+          formato === 'Online (Assíncrono)' ||
+          formato === 'Híbrido') && (
           <div className="col-span-12 bg-blue-50/70 border border-blue-200 p-md rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-md">
             <div>
               <span className="text-[13px] font-bold text-blue-950 flex items-center gap-xs">
                 <span className="material-symbols-outlined text-[18px] text-blue-700">hub</span>
-                Utiliza a plataforma da Doity / FEALQ para transmissÃ£o e inscriÃ§Ãµes?
+                Utiliza a plataforma da Doity / FEALQ para transmissão e inscrições?
               </span>
               <span className="text-[12px] text-blue-800">
-                A FEALQ possui integraÃ§Ã£o direta com a plataforma Doity para emissÃ£o de certificados e checkout seguro.
+                A FEALQ possui integração direta com a plataforma Doity para emissão de certificados e checkout seguro.
               </span>
             </div>
 
@@ -869,7 +774,7 @@ export const AberturaCursoEvento: React.FC = () => {
                   onChange={() => setUtilizaDoity('sim')}
                   className="w-4 h-4 text-primary accent-primary"
                 />
-                Sim, utilizarÃ¡ Doity/FEALQ
+                Sim, utilizará Doity/FEALQ
               </label>
 
               <label className="flex items-center gap-xs cursor-pointer text-[13px] font-medium text-blue-950">
@@ -881,7 +786,7 @@ export const AberturaCursoEvento: React.FC = () => {
                   onChange={() => setUtilizaDoity('nao')}
                   className="w-4 h-4 text-primary accent-primary"
                 />
-                NÃ£o (Outra plataforma)
+                Não (Outra plataforma)
               </label>
             </div>
           </div>
@@ -891,17 +796,17 @@ export const AberturaCursoEvento: React.FC = () => {
         <div className="col-span-12">
           <div className="flex items-center justify-between mb-xs">
             <label className="block text-on-surface-variant text-[11px] font-bold uppercase tracking-wide">
-              Objeto do Projeto / Ementa Resumida <span className="text-red-500">*</span>
+              Objetivo do Projeto <span className="text-red-500">*</span>
             </label>
             <span className="text-[11px] text-on-surface-variant">
-              Descreva detalhadamente o escopo acadÃªmico/tÃ©cnico
+              Descreva detalhadamente o escopo acadêmico/técnico
             </span>
           </div>
           <textarea
             rows={4}
             value={objetoProjeto}
             onChange={(e) => setObjetoProjeto(e.target.value)}
-            placeholder="Descreva o propÃ³sito acadÃªmico, cientÃ­fico ou extensionista do curso/evento, metodologias aplicadas e resultados esperados..."
+            placeholder="Descreva o propósito acadêmico, científico ou extensionista do curso/evento, metodologias aplicadas e resultados esperados..."
             className="w-full p-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors resize-y leading-relaxed"
           />
         </div>
@@ -911,30 +816,31 @@ export const AberturaCursoEvento: React.FC = () => {
       <FormSection
         numero={3}
         icone="group"
-        titulo="Equipe do Projeto & Delegados de GestÃ£o"
+        titulo="Equipe do Projeto & Delegados de Gestão"
       >
-        {/* Coordenador ResponsÃ¡vel */}
+        {/* Coordenador Responsável */}
         <div className="col-span-12 bg-surface-container-low p-md rounded-lg border border-outline-variant/60">
           <div className="flex items-center justify-between mb-xs">
             <h4 className="font-bold text-[14px] text-on-surface flex items-center gap-xs">
               <span className="material-symbols-outlined text-[18px] text-primary">person</span>
-              Coordenador ResponsÃ¡vel
+              Coordenador Responsável
             </h4>
             <span className="text-[11px] px-xs py-0.5 rounded bg-primary/10 text-primary font-semibold">
-              Acesso NÃ­vel 1 AutomÃ¡tico
+              Acesso Nível 1 Automático
             </span>
           </div>
 
           <div className="p-xs px-sm mb-sm bg-amber-50/80 border border-amber-200 rounded text-amber-900 text-[12px]">
-            *Caso nÃ£o tenha cadastro como coordenador na FEALQ, preencher <strong>CADASTRO DE COORDENADOR</strong> no kit de documentaÃ§Ã£o (somente dados cadastrais simplificados).
+            *Caso não tenha cadastro como coordenador na FEALQ, preencher <strong>CADASTRO DE COORDENADOR</strong> no kit de documentação (somente dados cadastrais simplificados).
           </div>
 
           <div className="grid grid-cols-12 gap-sm">
             <Field
               label="Nome Completo do Coordenador"
               span={6}
-              placeholder="Ex: Prof. Dr. JoÃ£o Silva"
+              placeholder="Ex: Prof. Dr. João Silva"
               obrigatorio
+              ordem={1}
               valor={coordNome}
               onChange={setCoordNome}
             />
@@ -944,23 +850,25 @@ export const AberturaCursoEvento: React.FC = () => {
               mascara="cpf"
               placeholder="000.000.000-00"
               obrigatorio
+              ordem={2}
               valor={coordCpf}
               onChange={setCoordCpf}
             />
-            <Field
-              label="RG / Ã“rgÃ£o Emissor"
+            {/* <Field
+              label="RG / Órgão Emissor"
               span={3}
               mascara="rg"
               placeholder="00.000.000-0 SSP/SP"
               valor={coordRg}
               onChange={setCoordRg}
-            />
+            /> */}
             <Field
               label="Telefone p/ Contato"
               span={3}
               tipo="tel"
               mascara="telefone"
               placeholder="(19) 3429-0000"
+              ordem={3}
               valor={coordTelefone}
               onChange={setCoordTelefone}
             />
@@ -970,30 +878,44 @@ export const AberturaCursoEvento: React.FC = () => {
               tipo="email"
               placeholder="coordenador@usp.br"
               obrigatorio
+              ordem={4}
               valor={coordEmail}
               onChange={setCoordEmail}
               hint="Preferencialmente e-mail institucional @usp.br"
             />
             <Field
-              label="Departamento / InstituiÃ§Ã£o"
+              label="Unidade"
+              span={6}
+              tipo="select"
+              opcoes={[...UNIDADES_USP]}
+              placeholder="Selecione a unidade"
+              ordem={6}
+              inicio={7}
+              valor={coordUnidade}
+              onChange={(valor) => { setCoordUnidade(valor); setDeptoNome(valor); }}
+            />
+            <Field
+              label="Departamento / Instituição"
               span={6}
               placeholder="Ex: Engenharia de Biossistemas - FZEA/USP"
+              ordem={5}
+              inicio={1}
               valor={coordDepto}
               onChange={setCoordDepto}
             />
           </div>
         </div>
 
-        {/* Delegados de GestÃ£o (Sistema Conveniar / USP) */}
-        <div className="col-span-12 mt-sm">
+        {/* Delegados de Gestão (Sistema Conveniar / USP) */}
+        {false && <div className="col-span-12 mt-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-xs mb-xs">
             <div>
               <h4 className="font-bold text-[13px] text-on-surface flex items-center gap-xs">
                 <span className="material-symbols-outlined text-[18px] text-secondary">manage_accounts</span>
-                Delegados de GestÃ£o (Sistema Conveniar / USP)
+                Delegados de Gestão (Sistema Conveniar / USP)
               </h4>
               <p className="text-[11px] text-on-surface-variant">
-                Pessoas com permissÃ£o para criar ou movimentar pedidos financeiros no projeto
+                Pessoas com permissão para criar ou movimentar pedidos financeiros no projeto
               </p>
             </div>
             <button
@@ -1006,19 +928,19 @@ export const AberturaCursoEvento: React.FC = () => {
             </button>
           </div>
 
-          {/* Guia DidÃ¡tico dos NÃ­veis de Acesso */}
+          {/* Guia Didático dos Níveis de Acesso */}
           <div className="p-sm bg-neutral-50 border border-neutral-200 rounded-lg mb-sm text-[11px] text-neutral-700 grid grid-cols-1 md:grid-cols-2 gap-sm">
             <div className="p-xs bg-white rounded border border-neutral-200">
               <strong className="text-primary font-bold block mb-0.5">
-                NÃ­vel 1 â€“ Ordenador de Despesa:
+                Nível 1 – Ordenador de Despesa:
               </strong>
-              Coordenador ou responsÃ¡vel indicado por ele. Possui visÃ£o total do projeto (financeiro, compras, relatÃ³rios), e tem autorizaÃ§Ã£o formal para <strong>criar e enviar</strong> pedidos financeiros para a FundaÃ§Ã£o.
+              Coordenador ou responsável indicado por ele. Possui visão total do projeto (financeiro, compras, relatórios), e tem autorização formal para <strong>criar e enviar</strong> pedidos financeiros para a Fundação.
             </div>
             <div className="p-xs bg-white rounded border border-neutral-200">
               <strong className="text-secondary-dark font-bold block mb-0.5">
-                NÃ­vel 2 â€“ Criador:
+                Nível 2 – Criador:
               </strong>
-              Possui competÃªncia apenas para <strong>criar pedidos</strong> em rascunho. O envio final Ã  FundaÃ§Ã£o obrigatoriamente depende da anÃ¡lise e validaÃ§Ã£o de um delegado NÃ­vel 1.
+              Possui competência apenas para <strong>criar pedidos</strong> em rascunho. O envio final à Fundação obrigatoriamente depende da análise e validação de um delegado Nível 1.
             </div>
           </div>
 
@@ -1030,8 +952,8 @@ export const AberturaCursoEvento: React.FC = () => {
                   <th className="p-xs px-sm">CPF</th>
                   <th className="p-xs px-sm">Telefone</th>
                   <th className="p-xs px-sm">E-mail</th>
-                  <th className="p-xs px-sm">NÃ­vel de Acesso</th>
-                  <th className="p-xs px-sm text-center w-12">AÃ§Ã£o</th>
+                  <th className="p-xs px-sm">Nível de Acesso</th>
+                  <th className="p-xs px-sm text-center w-12">Ação</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/60">
@@ -1083,8 +1005,8 @@ export const AberturaCursoEvento: React.FC = () => {
                             : 'bg-blue-50 text-blue-800 border-blue-300'
                         }`}
                       >
-                        <option value="Nivel 1 - Ordenador">NÃ­vel 1 - Ordenador</option>
-                        <option value="Nivel 2 - Criador">NÃ­vel 2 - Criador</option>
+                        <option value="Nivel 1 - Ordenador">Nível 1 - Ordenador</option>
+                        <option value="Nivel 2 - Criador">Nível 2 - Criador</option>
                       </select>
                     </td>
                     <td className="p-xs px-sm text-center">
@@ -1102,18 +1024,20 @@ export const AberturaCursoEvento: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </div>}
 
-        {/* Equipe TÃ©cnica / ComissÃ£o de Apoio */}
+        {/* Equipe Técnica / Comissão de Apoio */}
+        <DelegadosEditor delegados={delegados} aoAlterar={setDelegados} />
+
         <div id="equipe-tecnica-legado" className="hidden">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-xs mb-xs">
             <div>
               <h4 className="font-bold text-[13px] text-on-surface flex items-center gap-xs">
                 <span className="material-symbols-outlined text-[18px] text-primary">diversity_3</span>
-                Equipe TÃ©cnica e ComissÃ£o de Apoio
+                Equipe Técnica e Comissão de Apoio
               </h4>
               <p className="text-[11px] text-on-surface-variant">
-                Pesquisadores, pÃ³s-doutorandos, alunos, monitores e apoio administrativo vinculados
+                Pesquisadores, pós-doutorandos, alunos, monitores e apoio administrativo vinculados
               </p>
             </div>
             <button
@@ -1127,7 +1051,7 @@ export const AberturaCursoEvento: React.FC = () => {
           </div>
 
           <div className="p-xs px-sm mb-sm bg-neutral-100 rounded text-neutral-700 text-[11px]">
-            *Caso algum membro nÃ£o tenha cadastro na FEALQ, solicitar preenchimento do <strong>Cadastro de equipe tÃ©cnica/comissÃ£o de apoio</strong> no kit de documentaÃ§Ã£o.
+            *Caso algum membro não tenha cadastro na FEALQ, solicitar preenchimento do <strong>Cadastro de equipe técnica/comissão de apoio</strong> no kit de documentação.
           </div>
 
           <div className="overflow-x-auto border border-outline-variant rounded-lg">
@@ -1135,10 +1059,10 @@ export const AberturaCursoEvento: React.FC = () => {
               <thead className="bg-surface-container-low text-on-surface-variant font-semibold border-b border-outline-variant">
                 <tr>
                   <th className="p-xs px-sm">Nome</th>
-                  <th className="p-xs px-sm">Departamento / VÃ­nculo</th>
+                  <th className="p-xs px-sm">Departamento / Vínculo</th>
                   <th className="p-xs px-sm">Telefone</th>
                   <th className="p-xs px-sm">E-mail</th>
-                  <th className="p-xs px-sm text-center w-12">AÃ§Ã£o</th>
+                  <th className="p-xs px-sm text-center w-12">Ação</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/60">
@@ -1158,7 +1082,7 @@ export const AberturaCursoEvento: React.FC = () => {
                         type="text"
                         value={membro.departamento}
                         onChange={(e) => atualizarMembroEquipe(membro.id, 'departamento', e.target.value)}
-                        placeholder="Ex: Doutorando, Engenharia AgronÃ´mica"
+                        placeholder="Ex: Doutorando, Engenharia Agronômica"
                         className="w-full p-1 border border-outline-variant rounded text-[12px]"
                       />
                     </td>
@@ -1199,22 +1123,24 @@ export const AberturaCursoEvento: React.FC = () => {
         </div>
       </FormSection>
 
-      {/* 4. INSTITUIÃ‡Ã•ES ENVOLVIDAS (IN COMPANY & PATROCÃNIO) */}
+      {/* 4. INSTITUIÇÕES ENVOLVIDAS (IN COMPANY & PATROCÍNIO) */}
+      <CoordenadorResponsavelSection numero={3} />
+      <DelegadosEditor delegados={delegados} aoAlterar={setDelegados} />
       <EquipeTecnicaEditor membros={equipeTecnica.map((membro) => ({ ...membro, vinculo: membro.departamento }))} aoAlterar={(membros) => setEquipeTecnica(membros.map((membro) => ({ ...membro, departamento: membro.vinculo })))} />
 
       <FormSection
         numero={4}
         icone="handshake"
-        titulo="InstituiÃ§Ãµes Envolvidas (Parcerias & PatrocÃ­nio)"
+        titulo="Instituições Envolvidas (Parcerias & Patrocínio)"
       >
         {/* Pergunta 1: In Company */}
         <div className="col-span-12 bg-surface-container-low p-md rounded-lg border border-outline-variant/60 flex flex-col md:flex-row md:items-center justify-between gap-md">
           <div>
             <span className="text-[13px] font-bold text-on-surface block">
-              SerÃ¡ um evento/curso In Company (Fechado para empresa/instituiÃ§Ã£o)?
+              Será um evento/curso In Company (Fechado para empresa/instituição)?
             </span>
             <span className="text-[12px] text-on-surface-variant">
-              Cursos exclusivos para funcionÃ¡rios de uma entidade ou empresa financiadora parceira.
+              Cursos exclusivos para funcionários de uma entidade ou empresa financiadora parceira.
             </span>
           </div>
 
@@ -1228,7 +1154,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setInCompany('sim')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              Sim, Ã© In Company
+              Sim, é In Company
             </label>
 
             <label className="flex items-center gap-xs cursor-pointer text-[13px] font-medium text-on-surface">
@@ -1240,7 +1166,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setInCompany('nao')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              NÃ£o
+              Não
             </label>
           </div>
         </div>
@@ -1250,21 +1176,21 @@ export const AberturaCursoEvento: React.FC = () => {
             <div className="col-span-12">
               <h5 className="font-bold text-[13px] text-primary flex items-center gap-xs">
                 <span className="material-symbols-outlined text-[18px]">business</span>
-                Dados Preliminares da Empresa Parceira
+                Instituições Envolvidas (Financiadoras)
               </h5>
             </div>
 
             <Field
-              label="Nome da Empresa / InstituiÃ§Ã£o Parceira"
+              label="Nome da Empresa / Instituição Parceira"
               span={6}
-              placeholder="RazÃ£o Social ou Nome Fantasia"
+              placeholder="Razão Social ou Nome Fantasia"
               valor={inCompanyEmpresa}
               onChange={setInCompanyEmpresa}
             />
             <Field
-              label="Ponto de Contato (Nome/Ãrea)"
+              label="Ponto de Contato (Nome/Área)"
               span={6}
-              placeholder="Ex: JoÃ£o Silva - RH / Treinamento"
+              placeholder="Ex: João Silva - RH / Treinamento"
               valor={inCompanyContato}
               onChange={setInCompanyContato}
             />
@@ -1288,21 +1214,21 @@ export const AberturaCursoEvento: React.FC = () => {
               label="Origem dos Recursos"
               span={4}
               tipo="select"
-              opcoes={['Recurso Privado Nacional', 'Recurso Privado Internacional', 'Entidade PÃºblica / Fomento', 'Misto']}
+              opcoes={['Recurso Privado Nacional', 'Recurso Privado Internacional', 'Entidade Pública / Fomento', 'Misto']}
               valor={inCompanyOrigem}
               onChange={setInCompanyOrigem}
             />
 
             {/* Recurso de link direto para a empresa parceira sem sobrecarregar o coordenador */}
-            <div className="col-span-12 mt-xs p-md bg-emerald-50 border border-emerald-300 rounded-lg">
+            {/* <div className="col-span-12 mt-xs p-md bg-emerald-50 border border-emerald-300 rounded-lg">
               <div className="flex items-start justify-between gap-md">
                 <div>
                   <h6 className="font-bold text-[13px] text-emerald-950 flex items-center gap-xs">
                     <span className="material-symbols-outlined text-[18px] text-emerald-700">forward_to_inbox</span>
-                    DesoneraÃ§Ã£o da CoordenaÃ§Ã£o: Envio de Link para a Empresa Parceira
+                    Desoneração da Coordenação: Envio de Link para a Empresa Parceira
                   </h6>
                   <p className="text-[12px] text-emerald-900 mt-1 leading-relaxed">
-                    VocÃª nÃ£o precisa coletar certidÃµes ou preencher os dados fiscais da empresa financiadora. A empresa preenche atravÃ©s do link dedicado de parceiro, e o sistema FEALQ vincula automaticamente os dados ao seu projeto!
+                    Você não precisa coletar certidões ou preencher os dados fiscais da empresa financiadora. A empresa preenche através do link dedicado de parceiro, e o sistema FEALQ vincula automaticamente os dados ao seu projeto!
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-xs shrink-0">
@@ -1328,18 +1254,18 @@ export const AberturaCursoEvento: React.FC = () => {
                   )}
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         )}
 
-        {/* Pergunta 2: CaptaÃ§Ã£o de PatrocÃ­nio */}
+        {/* Pergunta 2: Captação de Patrocínio */}
         <div className="col-span-12 bg-surface-container-low p-md rounded-lg border border-outline-variant/60 flex flex-col md:flex-row md:items-center justify-between gap-md mt-xs">
           <div>
             <span className="text-[13px] font-bold text-on-surface block">
-              SerÃ¡ feita captaÃ§Ã£o de patrocÃ­nio para o evento?
+              Será feita captação de patrocínio para o evento?
             </span>
             <span className="text-[12px] text-on-surface-variant">
-              CaptaÃ§Ã£o de cotas financeiras com empresas para custeio do evento acadÃªmico.
+              Captação de cotas financeiras com empresas para custeio do evento acadêmico.
             </span>
           </div>
 
@@ -1353,7 +1279,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setPatrocinio('sim')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              Sim, haverÃ¡ patrocÃ­nio
+              Sim, haverá patrocínio
             </label>
 
             <label className="flex items-center gap-xs cursor-pointer text-[13px] font-medium text-on-surface">
@@ -1365,7 +1291,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setPatrocinio('nao')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              NÃ£o
+              Não
             </label>
           </div>
         </div>
@@ -1373,8 +1299,8 @@ export const AberturaCursoEvento: React.FC = () => {
         {patrocinio === 'sim' && (
           <div className="col-span-12 bg-surface-container-lowest border border-outline-variant p-md rounded-lg space-y-sm">
             <div className="p-sm bg-blue-50 border border-blue-200 rounded text-blue-900 text-[12px]">
-              <strong className="block font-semibold mb-1 text-blue-950">OrientaÃ§Ãµes de PatrocÃ­nio FEALQ:</strong>
-              Para projetos com captaÃ§Ã£o de patrocÃ­nio, vocÃª pode disponibilizar cotas prÃ©-definidas (ex: Diamante, Ouro, Prata) e gerar um link direto para cada empresa patrocinadora preencher seus dados, sem responsabilidade do coordenador de coletar contratos e certidÃµes manualmente.
+              <strong className="block font-semibold mb-1 text-blue-950">Orientações de Patrocínio FEALQ:</strong>
+              Para projetos com captação de patrocínio, você pode disponibilizar cotas pré-definidas (ex: Diamante, Ouro, Prata) e gerar um link direto para cada empresa patrocinadora preencher seus dados, sem responsabilidade do coordenador de coletar contratos e certidões manualmente.
             </div>
 
             <div className="flex flex-wrap items-center gap-sm pt-xs">
@@ -1384,7 +1310,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 className="px-md py-1.5 bg-primary/10 border border-primary text-primary-dark font-medium rounded text-[12px] hover:bg-primary/20 flex items-center gap-xs"
               >
                 <span className="material-symbols-outlined text-[16px]">loyalty</span>
-                Cadastrar Cotas de PatrocÃ­nio
+                Cadastrar Cotas de Patrocínio
               </Link>
 
               <button
@@ -1395,7 +1321,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 <span className="material-symbols-outlined text-[16px]">
                   {linkPatrocinadorCopiado ? 'check' : 'link'}
                 </span>
-                {linkPatrocinadorCopiado ? 'Link Copiado!' : 'Copiar Link PÃºblico para Patrocinadores'}
+                {linkPatrocinadorCopiado ? 'Link Copiado!' : 'Copiar Link Público para Patrocinadores'}
               </button>
 
               <Link
@@ -1404,26 +1330,26 @@ export const AberturaCursoEvento: React.FC = () => {
                 className="px-md py-1.5 bg-surface-container border border-outline text-on-surface font-medium rounded text-[12px] hover:bg-surface-container-high flex items-center gap-xs"
               >
                 <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                Acessar FormulÃ¡rio de Patrocinador
+                Acessar Formulário de Patrocinador
               </Link>
             </div>
           </div>
         )}
       </FormSection>
 
-      {/* 5. EXECUÃ‡ÃƒO DO PROJETO (VALORES & INSCRIÃ‡Ã•ES) */}
+      {/* 5. EXECUÇÃO DO PROJETO (VALORES & INSCRIÇÕES) */}
       <FormSection
         numero={5}
         icone="payments"
-        titulo="ExecuÃ§Ã£o do Projeto (Valores & InscriÃ§Ãµes)"
+        titulo="Execução do Projeto (Valores & Inscrições)"
       >
         <div className="col-span-12 bg-surface-container-low p-md rounded-lg border border-outline-variant/60 flex flex-col md:flex-row md:items-center justify-between gap-md">
           <div>
             <span className="text-[13px] font-bold text-on-surface block">
-              O evento/curso serÃ¡ pago ou gratuito?
+              O evento/curso será pago ou gratuito?
             </span>
             <span className="text-[12px] text-on-surface-variant">
-              Eventos gratuitos requerem apenas especificaÃ§Ã£o do nÃºmero de vagas.
+              Eventos gratuitos requerem apenas especificação do número de vagas.
             </span>
           </div>
 
@@ -1437,7 +1363,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setTipoInscricao('pago')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              Pago (Com cobranÃ§a de inscriÃ§Ã£o)
+              Pago (Com cobrança de inscrição)
             </label>
 
             <label className="flex items-center gap-xs cursor-pointer text-[13px] font-medium text-on-surface">
@@ -1449,7 +1375,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setTipoInscricao('gratuito')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              Gratuito (Sem cobranÃ§a)
+              Gratuito (Sem cobrança)
             </label>
           </div>
         </div>
@@ -1457,53 +1383,53 @@ export const AberturaCursoEvento: React.FC = () => {
         {tipoInscricao === 'gratuito' ? (
           <div className="col-span-12">
             <Field
-              label="NÃºmero Total de Vagas Gratuitas"
+              label="Número Total de Vagas Gratuitas"
               span={4}
               tipo="number"
               placeholder="Ex: 80"
               obrigatorio
               valor={vagasGratuitas}
               onChange={setVagasGratuitas}
-              hint="Capacidade mÃ¡xima de participantes para o evento gratuito"
+              hint="Capacidade máxima de participantes para o evento gratuito"
             />
           </div>
         ) : (
           <div className="col-span-12 space-y-md">
-            {/* Tabela de Lotes DinÃ¢micos com abertura de linhas */}
+            {/* Tabela de Lotes Dinâmicos com abertura de linhas */}
             <div>
               <div className="flex items-center justify-between mb-xs">
                 <div>
                   <h4 className="font-bold text-[13px] text-on-surface flex items-center gap-xs">
                     <span className="material-symbols-outlined text-[18px] text-primary">sell</span>
-                    Tabela de Lotes de InscriÃ§Ã£o
+                    Tabela de Lotes de Inscrição
                   </h4>
                   <p className="text-[11px] text-on-surface-variant">
-                    Configure os lotes, valores por categoria e perÃ­odos de vigÃªncia
+                    Configure os lotes, valores por categoria e períodos de vigência
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={adicionarLote}
-                  className="px-sm py-1 bg-surface-container border border-outline text-on-surface text-[12px] font-medium rounded hover:bg-surface-container-high flex items-center gap-1"
-                >
-                  <span className="material-symbols-outlined text-[16px]">add</span>
-                  Adicionar Linha de Lote
-                </button>
               </div>
 
               <div className="overflow-x-auto border border-outline-variant rounded-lg">
                 <table className="min-w-[760px] w-full text-[12px] text-left">
                   <thead className="bg-surface-container-low text-on-surface-variant font-semibold border-b border-outline-variant">
                     <tr>
-                      <th className="p-xs px-sm">DescriÃ§Ã£o do Lote</th>
-                      <th className="p-xs px-sm w-36">Valor InscriÃ§Ã£o (R$)</th>
-                      <th className="p-xs px-sm w-28">NÂº Vagas</th>
-                      <th className="p-xs px-sm w-36">InÃ­cio VigÃªncia</th>
-                      <th className="p-xs px-sm w-36">Fim VigÃªncia</th>
-                      <th className="p-xs px-sm text-center w-12">AÃ§Ã£o</th>
+                      <th className="p-xs px-sm">Descrição do Lote</th>
+                      <th className="p-xs px-sm w-36">Valor Inscrição (R$)</th>
+                      <th className="p-xs px-sm w-28">Nº Vagas</th>
+                      <th className="p-xs px-sm w-36">Início Vigência</th>
+                      <th className="p-xs px-sm w-36">Fim Vigência</th>
+                      <th className="p-xs px-sm text-center w-12">Ação</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant/60">
+                    <tr className="bg-surface-container-lowest">
+                      <td className="p-xs px-sm"><input type="text" value={novoLote.descricao} onChange={(e) => setNovoLote((atual) => ({ ...atual, descricao: e.target.value }))} placeholder="Ex: 1º Lote - Estudantes" className="w-full rounded border border-outline-variant p-1 text-[12px]" /></td>
+                      <td className="p-xs px-sm"><div className="flex items-center"><span className="mr-1 text-[11px] text-on-surface-variant">R$</span><input type="number" value={novoLote.valor || ''} onChange={(e) => setNovoLote((atual) => ({ ...atual, valor: parseFloat(e.target.value) || 0 }))} placeholder="0,00" className="w-full rounded border border-outline-variant p-1 text-[12px]" /></div></td>
+                      <td className="p-xs px-sm"><input type="number" value={novoLote.vagas || ''} onChange={(e) => setNovoLote((atual) => ({ ...atual, vagas: parseInt(e.target.value, 10) || 0 }))} placeholder="0" className="w-full rounded border border-outline-variant p-1 text-[12px]" /></td>
+                      <td className="p-xs px-sm"><input type="date" value={novoLote.dataInicio} onChange={(e) => setNovoLote((atual) => ({ ...atual, dataInicio: e.target.value }))} className="w-full rounded border border-outline-variant p-1 text-[11px]" /></td>
+                      <td className="p-xs px-sm"><input type="date" value={novoLote.dataFim} onChange={(e) => setNovoLote((atual) => ({ ...atual, dataFim: e.target.value }))} className="w-full rounded border border-outline-variant p-1 text-[11px]" /></td>
+                      <td className="p-xs px-sm text-center"><button type="button" onClick={adicionarLote} disabled={!novoLote.descricao.trim()} className="inline-flex h-8 w-8 items-center justify-center text-primary disabled:cursor-not-allowed disabled:opacity-35" title="Salvar lote e adicionar outro" aria-label="Salvar lote e adicionar outro"><span className="material-symbols-outlined text-[22px]">save</span></button></td>
+                    </tr>
                     {lotes.map((lote) => (
                       <tr key={lote.id} className="hover:bg-surface-container-lowest">
                         <td className="p-xs px-sm">
@@ -1511,7 +1437,7 @@ export const AberturaCursoEvento: React.FC = () => {
                             type="text"
                             value={lote.descricao}
                             onChange={(e) => atualizarLote(lote.id, 'descricao', e.target.value)}
-                            placeholder="Ex: 1Âº Lote - Estudantes"
+                            placeholder="Ex: 1º Lote - Estudantes"
                             className="w-full p-1 border border-outline-variant rounded text-[12px]"
                           />
                         </td>
@@ -1569,13 +1495,13 @@ export const AberturaCursoEvento: React.FC = () => {
                     <tr>
                       <td className="p-xs px-sm">Total Estimado</td>
                       <td className="p-xs px-sm text-primary">
-                        ArrecadaÃ§Ã£o MÃ¡xima: R$ {totalArrecadacaoPrevista.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        Arrecadação: R$ {totalArrecadacaoPrevista.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="p-xs px-sm text-on-surface">
                         {totalVagasLotes} vagas
                       </td>
                       <td colSpan={3} className="p-xs px-sm text-on-surface-variant text-[11px] font-normal">
-                        PrevisÃ£o total estimada nos lotes
+                        Previsão total estimada nos lotes
                       </td>
                     </tr>
                   </tfoot>
@@ -1589,9 +1515,9 @@ export const AberturaCursoEvento: React.FC = () => {
                 Investimento do Curso e Evento
               </label>
               <p className="text-[11px] text-on-surface-variant mb-2 leading-relaxed">
-                Preencher com valores e condiÃ§Ãµes do seu evento, como: taxa de inscriÃ§Ã£o, mensalidade, opÃ§Ãµes de parcelamentos, descontos, lotes, cupons de desconto, etc, em reais (R$):
+                Preencher com valores e condições do seu evento, como: taxa de inscrição, mensalidade, opções de parcelamentos, descontos, lotes, cupons de desconto, etc, em reais (R$):
                 <br />
-                <em className="text-neutral-500">*Para curso fechado/in company e projetos exclusivos para captaÃ§Ã£o de patrocÃ­nio nÃ£o Ã© necessÃ¡rio o preenchimento.</em>
+                <em className="text-neutral-500">*Para curso fechado/in company e projetos exclusivos para captação de patrocínio não é necessário o preenchimento.</em>
               </p>
               <textarea
                 rows={3}
@@ -1604,43 +1530,45 @@ export const AberturaCursoEvento: React.FC = () => {
           </div>
         )}
 
-        {/* InformaÃ§Ãµes Adicionais */}
+        {/* Informações Adicionais */}
         <div className="col-span-12">
           <label className="text-[13px] font-bold text-on-surface block mb-1">
-            InformaÃ§Ãµes Adicionais (Opcional)
+            Informações Adicionais (Opcional)
           </label>
           <textarea
             rows={2}
             value={informacoesAdicionais}
             onChange={(e) => setInformacoesAdicionais(e.target.value)}
-            placeholder="Insira observaÃ§Ãµes relevantes para a anÃ¡lise institucional da FEALQ..."
+            placeholder="Insira observações relevantes para a análise institucional da FEALQ..."
             className="w-full p-sm text-[13px] border border-outline rounded bg-surface focus:outline-none focus:border-primary"
           />
         </div>
       </FormSection>
 
-      {/* 6. CIÃŠNCIA E CONCORDÃ‚NCIA DO DEPARTAMENTO (USP) */}
-      <FormSection
+      {/* 6. CIÊNCIA E CONCORDÂNCIA DO DEPARTAMENTO (USP) */}
+      {false && <FormSection
         numero={6}
         icone="account_balance"
-        titulo="CiÃªncia e ConcordÃ¢ncia do Departamento (USP)"
+        titulo="Ciência e Concordância do Departamento (USP)"
       >
         <div className="col-span-12 p-sm bg-neutral-100 rounded text-neutral-800 text-[11px] font-medium">
-          INCLUÃDO EM TODOS OS PROJETOS DE CURSOS E EVENTOS COM DOCENTES USP
+          INCLUÍDO EM TODOS OS PROJETOS DE CURSOS E EVENTOS COM DOCENTES USP
         </div>
 
         <Field
-          label="Inserir respectivo Departamento / Unidade"
+          label="Departamento / Unidade"
           span={12}
-          placeholder="Ex: Departamento de Engenharia de Alimentos - FZEA/USP"
+          tipo="select"
+          opcoes={[...UNIDADES_USP]}
+          placeholder="Selecione a unidade"
           obrigatorio
-          valor={deptoNome}
-          onChange={setDeptoNome}
+          valor={coordUnidade}
+          onChange={(valor) => { setCoordUnidade(valor); setDeptoNome(valor); }}
         />
 
         <div className="col-span-12 space-y-sm bg-surface-container-low p-md rounded-lg border border-outline-variant/60">
           <span className="text-[13px] font-bold text-on-surface block">
-            Modalidade de AprovaÃ§Ã£o do Departamento:
+            Modalidade de Aprovação do Departamento:
           </span>
 
           <label className="flex items-start gap-sm cursor-pointer p-xs rounded hover:bg-surface-container transition-colors">
@@ -1653,7 +1581,7 @@ export const AberturaCursoEvento: React.FC = () => {
               className="w-4 h-4 mt-0.5 text-primary accent-primary shrink-0"
             />
             <span className="text-[12px] text-on-surface leading-relaxed">
-              Este Projeto, inclusive a participaÃ§Ã£o do Coordenador e/ou Docentes deste Departamento, foi <strong>aprovado pelo Conselho do Departamento</strong>. Ao Departamento compete a verificaÃ§Ã£o das normas legais vigentes na USP e no Brasil, relacionadas com o objeto deste evento.
+              Este Projeto, inclusive a participação do Coordenador e/ou Docentes deste Departamento, foi <strong>aprovado pelo Conselho do Departamento</strong>. Ao Departamento compete a verificação das normas legais vigentes na USP e no Brasil, relacionadas com o objeto deste evento.
             </span>
           </label>
 
@@ -1661,7 +1589,7 @@ export const AberturaCursoEvento: React.FC = () => {
             <div className="ml-6 pl-sm border-l-2 border-primary/40 my-2">
               <div className="flex flex-col sm:flex-row sm:items-center gap-xs sm:gap-md">
                 <label className="text-[11px] font-bold uppercase tracking-wide text-on-surface-variant whitespace-nowrap">
-                  Data da ReuniÃ£o do Conselho:
+                  Data da Reunião do Conselho:
                 </label>
                 <input
                   type="date"
@@ -1683,12 +1611,12 @@ export const AberturaCursoEvento: React.FC = () => {
               className="w-4 h-4 mt-0.5 text-primary accent-primary shrink-0"
             />
             <span className="text-[12px] text-on-surface leading-relaxed">
-              Aprovo este Evento, inclusive a participaÃ§Ã£o do Coordenador e demais Docentes deste Departamento, <strong>"ad referendum"</strong> do Conselho de Departamento, para inÃ­cio de sua tramitaÃ§Ã£o.
+              Aprovo este Evento, inclusive a participação do Coordenador e demais Docentes deste Departamento, <strong>"ad referendum"</strong> do Conselho de Departamento, para início de sua tramitação.
             </span>
           </label>
         </div>
 
-        {/* IsenÃ§Ã£o de Taxa do Departamento */}
+        {/* Isenção de Taxa do Departamento */}
         <div className="col-span-12 bg-surface-container-low p-md rounded-lg border border-outline-variant/60 flex flex-col sm:flex-row sm:items-center justify-between gap-md">
           <span className="text-[13px] font-bold text-on-surface">
             O Departamento referido isenta da taxa que lhe cabe em prol do evento?
@@ -1716,20 +1644,21 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => setIsencaoTaxaDepto('nao')}
                 className="w-4 h-4 text-primary accent-primary"
               />
-              NÃƒO
+              NÃO
             </label>
           </div>
         </div>
-      </FormSection>
+      </FormSection>}
+      <CienciaConcordanciaSection numero={6} />
 
-      {/* 7. TERMOS, LGPD E DECLARAÃ‡Ã•ES FINAIS */}
+      {/* 7. TERMOS, LGPD E DECLARAÇÕES FINAIS */}
       <TermosLGPDSection aceito={isLGPDValido} urlTermo={urlLGPD} aoAbrirTermo={() => { registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD); void processoAtual?.save_state().finally(() => window.location.assign(urlLGPD)); }} />
-      <OrientacoesCoordenadorCard aceito={isOrientacoesValido} urlOrientacoes={urlOrientacoes} aoAbrirOrientacoes={() => { registrarAberturaFormulario('CERT-ORIENT-01', 'OrientaÃ§Ãµes ao Coordenador FEALQ', urlOrientacoes); void processoAtual?.save_state().finally(() => window.location.assign(urlOrientacoes)); }} />
+      <OrientacoesCoordenadorCard aceito={isOrientacoesValido} urlOrientacoes={urlOrientacoes} aoAbrirOrientacoes={() => { registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); void processoAtual?.save_state().finally(() => window.location.assign(urlOrientacoes)); }} />
       <div className="hidden">
       <FormSection
         numero={7}
         icone="verified_user"
-        titulo="Termos de LGPD, Confidencialidade & OrientaÃ§Ãµes"
+        titulo="Termos de LGPD, Confidencialidade & Orientações"
       >
         <div className="col-span-12 space-y-md">
           {/* Card de Aceite do Termo de LGPD */}
@@ -1757,13 +1686,13 @@ export const AberturaCursoEvento: React.FC = () => {
                   className="text-[12px] text-primary hover:underline font-medium flex items-center gap-0.5"
                 >
                   <span className="material-symbols-outlined text-[15px]">open_in_new</span>
-                  PÃ¡gina Exclusiva
+                  Página Exclusiva
                 </Link>
               </div>
             </div>
 
             <p className="text-[12px] text-on-surface-variant leading-relaxed">
-              O presente termo regulamenta o sigilo e a adequada proteÃ§Ã£o e tratamento de dados pessoais de alunos, palestrantes, comissÃ£o e parceiros do curso/evento <strong>{titulo || '[TÃ­tulo do Evento]'}</strong>, sob coordenaÃ§Ã£o de <strong>{coordNome || '[Nome do Coordenador]'}</strong>, nos estritos termos da Lei nÂº 13.709/2018 (LGPD).
+              O presente termo regulamenta o sigilo e a adequada proteção e tratamento de dados pessoais de alunos, palestrantes, comissão e parceiros do curso/evento <strong>{titulo || '[Título do Evento]'}</strong>, sob coordenação de <strong>{coordNome || '[Nome do Coordenador]'}</strong>, nos estritos termos da Lei nº 13.709/2018 (LGPD).
             </p>
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-sm pt-xs border-t border-primary/20">
@@ -1780,28 +1709,28 @@ export const AberturaCursoEvento: React.FC = () => {
                   className="w-5 h-5 rounded text-primary accent-primary cursor-pointer"
                 />
                 <Link to={urlLGPD} onClick={() => { void processoAtual?.save_state(); registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD); }} className="text-[13px] font-bold text-primary underline hover:text-primary-dark">
-                  Declaro ter lido e aceito integralmente o Termo de LGPD e Confidencialidade (FLAG OBRIGATÃ“RIA) *
+                  Declaro ter lido e aceito integralmente o Termo de LGPD e Confidencialidade (FLAG OBRIGATÓRIA) *
                 </Link>
               </label>
 
             </div>
           </div>
 
-          {/* Card de Aceite das OrientaÃ§Ãµes ao Coordenador */}
+          {/* Card de Aceite das Orientações ao Coordenador */}
           <div className="p-md rounded-lg border border-outline-variant bg-surface-container-low flex flex-col gap-sm">
             <div className="flex items-center gap-xs text-on-surface font-bold text-[14px]">
               <span className="material-symbols-outlined text-[20px] text-secondary">menu_book</span>
               <div className="ml-auto flex items-center gap-sm text-[12px] font-medium">
-                <Link to={urlOrientacoes} onClick={() => { void processoAtual?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'OrientaÃƒÂ§ÃƒÂµes ao Coordenador FEALQ', urlOrientacoes); }} className="flex items-center gap-0.5 text-primary hover:underline">
+                <Link to={urlOrientacoes} onClick={() => { void processoAtual?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); }} className="flex items-center gap-0.5 text-primary hover:underline">
                   <span className="material-symbols-outlined text-[15px]">open_in_new</span>
-                  PÃƒÂ¡gina Exclusiva
+                  Página Exclusiva
                 </Link>
               </div>
-              OrientaÃ§Ãµes ao Coordenador FEALQ
+              Orientações ao Coordenador FEALQ
             </div>
 
             <p className="text-[12px] text-on-surface-variant leading-relaxed">
-              OrientaÃ§Ãµes sobre prazos para prestaÃ§Ã£o de contas, regras de ressarcimento, contrataÃ§Ã£o de fornecedores e relatÃ³rios tÃ©cnicos exigidos pela FundaÃ§Ã£o e pela Universidade de SÃ£o Paulo.
+              Orientações sobre prazos para prestação de contas, regras de ressarcimento, contratação de fornecedores e relatórios técnicos exigidos pela Fundação e pela Universidade de São Paulo.
             </p>
 
             <label className="flex items-center gap-sm cursor-pointer pt-xs border-t border-outline-variant/60">
@@ -1811,13 +1740,13 @@ export const AberturaCursoEvento: React.FC = () => {
                 onChange={() => {
                   if (!isOrientacoesValido) {
                     void processoAtual?.save_state();
-                    registrarAberturaFormulario('CERT-ORIENT-01', 'OrientaÃƒÂ§ÃƒÂµes ao Coordenador FEALQ', urlOrientacoes);
+                    registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes);
                   }
                 }}
                 className="w-5 h-5 rounded text-primary accent-primary cursor-pointer"
               />
-              <Link to={urlOrientacoes} onClick={() => { void processoAtual?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'OrientaÃ§Ãµes ao Coordenador FEALQ', urlOrientacoes); }} className="text-[13px] font-bold text-primary underline hover:text-primary-dark">
-                Declaro estar ciente e de acordo com as OrientaÃ§Ãµes ao Coordenador da FEALQ *
+              <Link to={urlOrientacoes} onClick={() => { void processoAtual?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); }} className="text-[13px] font-bold text-primary underline hover:text-primary-dark">
+                Declaro estar ciente e de acordo com as Orientações ao Coordenador da FEALQ *
               </Link>
             </label>
           </div>
@@ -1852,36 +1781,36 @@ export const AberturaCursoEvento: React.FC = () => {
                     Protocolo: {protocolId}
                   </span>
                 </div>
-                <p><strong>Evento/Curso:</strong> {titulo || 'Nome do Curso/Evento NÃ£o Informado'}</p>
-                <p><strong>EdiÃ§Ã£o / Tipo:</strong> {edicao || 'EdiÃ§Ã£o PadrÃ£o'} ({tipoEvento})</p>
-                <p><strong>Coordenador ResponsÃ¡vel:</strong> {coordNome || 'Nome NÃ£o Informado'} - CPF: {coordCpf || 'NÃ£o informado'}</p>
-                <p><strong>Departamento/InstituiÃ§Ã£o:</strong> {coordDepto || deptoNome || 'NÃ£o informado'}</p>
-                <p><strong>E-mail Institucional:</strong> {coordEmail || 'NÃ£o informado'}</p>
+                <p><strong>Evento/Curso:</strong> {titulo || 'Nome do Curso/Evento Não Informado'}</p>
+                <p><strong>Edição / Tipo:</strong> {edicao || 'Edição Padrão'} ({tipoEvento})</p>
+                <p><strong>Coordenador Responsável:</strong> {coordNome || 'Nome Não Informado'} - CPF: {coordCpf || 'Não informado'}</p>
+                <p><strong>Departamento/Instituição:</strong> {coordDepto || deptoNome || 'Não informado'}</p>
+                <p><strong>E-mail Institucional:</strong> {coordEmail || 'Não informado'}</p>
               </div>
 
-              <h5 className="font-bold text-[14px] text-primary">ClÃ¡usula 1Âª - Do Objeto e Compromisso</h5>
+              <h5 className="font-bold text-[14px] text-primary">Cláusula 1ª - Do Objeto e Compromisso</h5>
               <p>
-                Pelo presente instrumento, a CoordenaÃ§Ã£o do Projeto compromete-se a tratar com o mais absoluto sigilo e confidencialidade quaisquer dados pessoais e dados pessoais sensÃ­veis coletados de discentes, palestrantes, colaboradores ou parceiros durante a execuÃ§Ã£o deste curso/evento.
+                Pelo presente instrumento, a Coordenação do Projeto compromete-se a tratar com o mais absoluto sigilo e confidencialidade quaisquer dados pessoais e dados pessoais sensíveis coletados de discentes, palestrantes, colaboradores ou parceiros durante a execução deste curso/evento.
               </p>
 
-              <h5 className="font-bold text-[14px] text-primary">ClÃ¡usula 2Âª - Do Tratamento e Finalidade</h5>
+              <h5 className="font-bold text-[14px] text-primary">Cláusula 2ª - Do Tratamento e Finalidade</h5>
               <p>
-                Os dados serÃ£o tratados Ãºnica e exclusivamente para fins de inscriÃ§Ã£o, emissÃ£o de certificados, controle de frequÃªncia e prestaÃ§Ã£o de contas institucional perante a FEALQ e a Universidade de SÃ£o Paulo, sendo vedado o compartilhamento com terceiros nÃ£o autorizados ou uso comercial nÃ£o expressamente consentido pelo titular.
+                Os dados serão tratados única e exclusivamente para fins de inscrição, emissão de certificados, controle de frequência e prestação de contas institucional perante a FEALQ e a Universidade de São Paulo, sendo vedado o compartilhamento com terceiros não autorizados ou uso comercial não expressamente consentido pelo titular.
               </p>
 
-              <h5 className="font-bold text-[14px] text-primary">ClÃ¡usula 3Âª - Das Medidas de SeguranÃ§a</h5>
+              <h5 className="font-bold text-[14px] text-primary">Cláusula 3ª - Das Medidas de Segurança</h5>
               <p>
-                SerÃ£o empregadas medidas tÃ©cnicas e administrativas aptas a proteger os dados pessoais contra acessos nÃ£o autorizados e situaÃ§Ãµes acidentais ou ilÃ­citas de destruiÃ§Ã£o, perda, alteraÃ§Ã£o ou comunicaÃ§Ã£o.
+                Serão empregadas medidas técnicas e administrativas aptas a proteger os dados pessoais contra acessos não autorizados e situações acidentais ou ilícitas de destruição, perda, alteração ou comunicação.
               </p>
 
-              <h5 className="font-bold text-[14px] text-primary">ClÃ¡usula 4Âª - NotificaÃ§Ã£o de Incidentes</h5>
+              <h5 className="font-bold text-[14px] text-primary">Cláusula 4ª - Notificação de Incidentes</h5>
               <p>
-                Qualquer evento de seguranÃ§a envolvendo dados de titulares vinculados ao projeto serÃ¡ prontamente reportado ao DPO e Ã  Diretoria da FEALQ para adoÃ§Ã£o imediata das medidas cabÃ­veis.
+                Qualquer evento de segurança envolvendo dados de titulares vinculados ao projeto será prontamente reportado ao DPO e à Diretoria da FEALQ para adoção imediata das medidas cabíveis.
               </p>
 
-              <h5 className="font-bold text-[14px] text-primary">ClÃ¡usula 5Âª - EliminaÃ§Ã£o Segura dos Dados</h5>
+              <h5 className="font-bold text-[14px] text-primary">Cláusula 5ª - Eliminação Segura dos Dados</h5>
               <p>
-                ApÃ³s a prestaÃ§Ã£o de contas e expiraÃ§Ã£o dos prazos regulatÃ³rios, os dados deverÃ£o ser eliminados com padrÃµes seguros de descarte digital.
+                Após a prestação de contas e expiração dos prazos regulatórios, os dados deverão ser eliminados com padrões seguros de descarte digital.
               </p>
             </div>
 
@@ -1895,7 +1824,7 @@ export const AberturaCursoEvento: React.FC = () => {
                   className="w-4 h-4 mt-0.5 rounded text-primary accent-primary"
                 />
                 <span>
-                  Declaro sob as penas da lei que li e concordo com os termos de LGPD (FLAG OBRIGATÃ“RIO) *
+                  Declaro sob as penas da lei que li e concordo com os termos de LGPD (FLAG OBRIGATÓRIO) *
                 </span>
               </label>
 
@@ -1906,7 +1835,7 @@ export const AberturaCursoEvento: React.FC = () => {
                     disabled={!modalAceiteLGPD}
                     onClick={() => {
                       marcarFormularioConcluido('CERT-LGPD-01', {
-                        termo: 'FR 01 â€“ PRO - Rev. 05',
+                        termo: 'FR 01 – PRO - Rev. 05',
                         nomeCoordenador: coordNome,
                         cpf: coordCpf,
                         rg: coordRg,
@@ -1931,7 +1860,7 @@ export const AberturaCursoEvento: React.FC = () => {
                 ) : (
                   <span className="text-[12px] font-semibold text-green-700 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                    Termo JÃ¡ Certificado
+                    Termo Já Certificado
                   </span>
                 )}
                 <button
