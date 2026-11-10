@@ -815,8 +815,8 @@ export const AberturaCursoEvento: React.FC = () => {
         </div>
       </FormSection>
 
-      {/* 3. EQUIPE DO PROJETO */}
-      <FormSection
+      {/* O bloco legado foi substituído pelos componentes compartilhados abaixo. */}
+      {false && <FormSection
         numero={3}
         icone="group"
         titulo="Equipe do Projeto & Delegados de Gestão"
@@ -1124,7 +1124,7 @@ export const AberturaCursoEvento: React.FC = () => {
             </table>
           </div>
         </div>
-      </FormSection>
+      </FormSection>}
 
       {/* 4. INSTITUIÇÕES ENVOLVIDAS (IN COMPANY & PATROCÍNIO) */}
       <CoordenadorResponsavelSection numero={3} />
