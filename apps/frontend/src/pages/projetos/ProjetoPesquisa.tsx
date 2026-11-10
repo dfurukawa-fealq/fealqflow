@@ -19,6 +19,8 @@ import { CronogramaExecucaoSection } from '../../components/form/projetos/Cronog
 import { CoordenadorResponsavelSection } from '../../components/form/projetos/CoordenadorResponsavelSection';
 import { DelegadosEditor, DelegadoEditorItem } from '../../components/form/projetos/DelegadosEditor';
 import { CienciaConcordanciaSection } from '../../components/form/projetos/CienciaConcordanciaSection';
+import { OrientacoesProjetoSection } from '../../components/form/projetos/OrientacoesProjetoSection';
+import { TermoAnuenciaProjetoSection } from '../../components/form/projetos/TermoAnuenciaProjetoSection';
 
 export const ProjetoPesquisa = () => {
   const location = useLocation();
@@ -59,6 +61,7 @@ export const ProjetoPesquisa = () => {
   const [regimeTrabalho, setRegimeTrabalho] = useProcessoState<'RTP' | 'RTC' | 'RDIDP'>('regimeTrabalho', 'RTP');
   const [numeroCert, setNumeroCert] = useProcessoState('numeroCert', '');
   const [validadeCert, setValidadeCert] = useProcessoState('validadeCert', '');
+  const [sigiloAceito, setSigiloAceito] = useProcessoState('aceiteTermoSigilo', false);
   const documentos = useMemo<DocumentoExigido[]>(() => [
     { id: 'processo-pesquisa', label: 'Processo de Abertura de Projeto de Pesquisa', descricao: 'Gerado pelo sistema.', tipo: 'gerado', obrigatorio: true },
     // { id: 'termo-sigilo', label: 'Termo de Sigilo e Confidencialidade', descricao: 'Autopreenchido e aceite obrigatório.', tipo: 'aceite', obrigatorio: true },
@@ -155,7 +158,7 @@ export const ProjetoPesquisa = () => {
         },
         linkTexto: statusOrientacoes === 'concluido' ? 'Revisar' : 'Ler',
       },
-    ];
+    ].filter((documento) => !['termo-lgpd', 'orientacoes-coordenador'].includes(documento.id)) as DocumentoExigido[];
   }, [documentos, formularios, processo, registrarAberturaFormulario, statusCadastroCoordenador, statusLGPD, statusOrientacoes, statusPlanoRecursos, urlCadastroCoordenador, urlOrientacoes, urlPlanoRecursos, urlTermoLGPD]);
 
   return (
@@ -166,6 +169,8 @@ export const ProjetoPesquisa = () => {
       acaoPrincipal="Submeter Projeto para FEALQ"
       sidebar={<KitDocumental acaoNoCard documentos={documentosKit} />}
     >
+      <OrientacoesProjetoSection />
+      <TermoAnuenciaProjetoSection />
       <ConvenioUSPSection possuiConvenio={possuiConvenio} aoAlterar={setPossuiConvenio} numeroConvenio={numeroConvenio} numeroProtocolo={numeroProcesso} aoAlterarNumeroConvenio={setNumeroConvenio} aoAlterarNumeroProtocolo={setNumeroProcesso} />
       {possuiConvenio && (
         <CertRegimeTrabalhoSection regime={regimeTrabalho} numeroCert={numeroCert} validadeCert={validadeCert} aoAlterarRegime={setRegimeTrabalho} aoAlterarNumeroCert={setNumeroCert} aoAlterarValidadeCert={setValidadeCert} />
@@ -208,7 +213,7 @@ export const ProjetoPesquisa = () => {
       </FormSection>
 
       <CienciaConcordanciaSection numero={8} />
-      <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD)} />
+      <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD)} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
       <OrientacoesCoordenadorCard aceito={statusOrientacoes === 'concluido'} urlOrientacoes={urlOrientacoes} aoAbrirOrientacoes={() => { void processo?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); }} />
     </FormPageLayout>
   );

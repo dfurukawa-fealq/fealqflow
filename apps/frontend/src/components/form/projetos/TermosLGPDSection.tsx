@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { FormSection } from '../FormSection';
+import { TermoSigiloCard } from './TermoSigiloCard';
 
-interface TermosLGPDSectionProps { aceito: boolean; urlTermo: string; aoAbrirTermo: () => void; }
+interface TermosLGPDSectionProps { aceito: boolean; urlTermo: string; aoAbrirTermo: () => void; sigiloAceito?: boolean; aoAceitarSigilo?: () => void; }
 
-export const TermosLGPDSection = ({ aceito, urlTermo, aoAbrirTermo }: TermosLGPDSectionProps) => (
+export const TermosLGPDSection = ({ aceito, urlTermo, aoAbrirTermo, sigiloAceito = false, aoAceitarSigilo }: TermosLGPDSectionProps) => (
   <FormSection numero={7} icone="verified_user" titulo="Termos de LGPD e Confidencialidade">
     <div className="col-span-12 rounded-lg border border-outline-variant bg-surface-container-low p-sm">
       <div className="flex items-start gap-sm border-b border-outline-variant pb-sm">
@@ -18,5 +19,6 @@ export const TermosLGPDSection = ({ aceito, urlTermo, aoAbrirTermo }: TermosLGPD
         <Link to={urlTermo} target="_blank" rel="noopener noreferrer" onClick={aoAbrirTermo} className="min-w-0 flex-1 text-primary underline underline-offset-2 hover:text-primary-container">Declaro ter lido e aceito integralmente o Termo de LGPD e Confidencialidade (FLAG OBRIGATÓRIA)</Link>
       </label>
     </div>
+    {aoAceitarSigilo && <TermoSigiloCard aceito={sigiloAceito} aoAceitar={aoAceitarSigilo} />}
   </FormSection>
 );

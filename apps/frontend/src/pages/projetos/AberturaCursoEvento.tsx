@@ -18,6 +18,7 @@ import { EnderecoField } from '../../components/form/EnderecoField';
 import { DelegadosEditor } from '../../components/form/projetos/DelegadosEditor';
 import { CoordenadorResponsavelSection } from '../../components/form/projetos/CoordenadorResponsavelSection';
 import { CienciaConcordanciaSection } from '../../components/form/projetos/CienciaConcordanciaSection';
+import { OrientacoesProjetoSection } from '../../components/form/projetos/OrientacoesProjetoSection';
 import { TIPOS_EVENTO, UNIDADES_USP } from '../../data/listas';
 
 interface MembroEquipe {
@@ -147,6 +148,7 @@ export const AberturaCursoEvento: React.FC = () => {
   const [modalAceiteLGPD, setModalAceiteLGPD] = useState(false);
   const [submetidoSucesso, setSubmetidoSucesso] = useState(false);
   const [avisoValidacao, setAvisoValidacao] = useState('');
+  const [sigiloAceito, setSigiloAceito] = useProcessoState('aceiteTermoSigilo', false);
 
   // Funções de manipulação de delegados
   const adicionarDelegado = () => {
@@ -442,7 +444,7 @@ export const AberturaCursoEvento: React.FC = () => {
           },
         ]
       : []),
-  ];
+  ].filter((documento) => !['termo-lgpd', 'orientacoes-coordenador'].includes(documento.id));
 
   // Cálculo de progresso de preenchimento
   let preenchidos = 0;
@@ -572,6 +574,7 @@ export const AberturaCursoEvento: React.FC = () => {
       )}
 
       {/* 1. INFORMAÇÕES SOBRE O PROJETO (CONVÊNIO USP) */}
+      <OrientacoesProjetoSection />
       <FormSection
         numero={1}
         icone="description"
@@ -1652,7 +1655,7 @@ export const AberturaCursoEvento: React.FC = () => {
       <CienciaConcordanciaSection numero={6} />
 
       {/* 7. TERMOS, LGPD E DECLARAÇÕES FINAIS */}
-      <TermosLGPDSection aceito={isLGPDValido} urlTermo={urlLGPD} aoAbrirTermo={() => { registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD); void processoAtual?.save_state().finally(() => window.location.assign(urlLGPD)); }} />
+      <TermosLGPDSection aceito={isLGPDValido} urlTermo={urlLGPD} aoAbrirTermo={() => { registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD); void processoAtual?.save_state().finally(() => window.location.assign(urlLGPD)); }} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
       <OrientacoesCoordenadorCard aceito={isOrientacoesValido} urlOrientacoes={urlOrientacoes} aoAbrirOrientacoes={() => { registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); void processoAtual?.save_state().finally(() => window.location.assign(urlOrientacoes)); }} />
       <div className="hidden">
       <FormSection
