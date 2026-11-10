@@ -21,6 +21,7 @@ import { CienciaConcordanciaSection } from '../../components/form/projetos/Cienc
 import { OrientacoesProjetoSection } from '../../components/form/projetos/OrientacoesProjetoSection';
 import { TermoAnuenciaProjetoSection } from '../../components/form/projetos/TermoAnuenciaProjetoSection';
 import { CronogramaDesembolsoSection } from '../../components/form/projetos/CronogramaDesembolsoSection';
+import { InstituicoesFinanciadorasSection } from '../../components/form/projetos/InstituicoesFinanciadorasSection';
 
 export const ProjetoPesquisa = () => {
   const location = useLocation();
@@ -210,14 +211,7 @@ export const ProjetoPesquisa = () => {
       <CronogramaExecucaoSection />
 
       <FormSection numero={6} icone="account_balance" titulo="Instituições Envolvidas (Financiadoras)">
-        <Field label="Nome da Instituição / Empresa Parceira" span={6} placeholder="Nome da instituição" />
-        <Field label="Ponto de Contato (Nome / Área)" span={6} placeholder="Responsável pelo contato" />
-        <Field label="E-mail de Contato" span={6} tipo="email" placeholder="contato@instituicao.br" />
-        <Field label="Papel no Projeto" span={6} placeholder="Parceira, financiadora, executora..." />
-        <Field label="Valor Total Previsto (R$)" span={6} prefixo="R$" placeholder="0,00" />
-        <Field label="Origem dos Recursos" span={6} tipo="select" opcoes={['Privado Nacional', 'Privado Internacional', 'Público', 'USP']} placeholder="Selecione..." />
-        <Field label="Instituições ou Parceiros Adicionais" tipo="textarea" placeholder="Informe outros envolvidos. Pode haver mais de uma instituição." />
-        <Field label="Preenchimento pelo Financiador" tipo="checkbox" placeholder="Enviar link para o financiador preencher seus dados" />
+        <InstituicoesFinanciadorasSection />
       </FormSection>
 
       <CronogramaDesembolsoSection />

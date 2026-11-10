@@ -17,6 +17,7 @@ import { EnderecoField } from '../../components/form/EnderecoField';
 import { DelegadosEditor } from '../../components/form/projetos/DelegadosEditor';
 import { CoordenadorResponsavelSection } from '../../components/form/projetos/CoordenadorResponsavelSection';
 import { CienciaConcordanciaSection } from '../../components/form/projetos/CienciaConcordanciaSection';
+import { InstituicoesFinanciadorasSection } from '../../components/form/projetos/InstituicoesFinanciadorasSection';
 import { OrientacoesProjetoSection } from '../../components/form/projetos/OrientacoesProjetoSection';
 import { TIPOS_EVENTO, UNIDADES_USP } from '../../data/listas';
 
@@ -1173,7 +1174,8 @@ export const AberturaCursoEvento: React.FC = () => {
           </div>
         </div>
 
-        {inCompany === 'sim' && (
+        {inCompany === 'sim' && <InstituicoesFinanciadorasSection />}
+        {false && inCompany === 'sim' && (
           <div className="col-span-12 bg-surface-container-lowest border-2 border-primary/30 p-md rounded-lg grid grid-cols-12 gap-sm">
             <div className="col-span-12">
               <h5 className="font-bold text-[13px] text-primary flex items-center gap-xs">
