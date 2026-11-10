@@ -20,6 +20,7 @@ import { DelegadosEditor, DelegadoEditorItem } from '../../components/form/proje
 import { CienciaConcordanciaSection } from '../../components/form/projetos/CienciaConcordanciaSection';
 import { OrientacoesProjetoSection } from '../../components/form/projetos/OrientacoesProjetoSection';
 import { TermoAnuenciaProjetoSection } from '../../components/form/projetos/TermoAnuenciaProjetoSection';
+import { CronogramaDesembolsoSection } from '../../components/form/projetos/CronogramaDesembolsoSection';
 
 export const ProjetoPesquisa = () => {
   const location = useLocation();
@@ -219,13 +220,7 @@ export const ProjetoPesquisa = () => {
         <Field label="Preenchimento pelo Financiador" tipo="checkbox" placeholder="Enviar link para o financiador preencher seus dados" />
       </FormSection>
 
-      <FormSection numero={7} icone="payments" titulo="Execução do Projeto (Recursos & Desembolso)">
-        <Field label="Plano de Aplicação / Desembolso" tipo="textarea" placeholder={possuiConvenio ? 'Consulte a Planilha de Aplicação de Recursos USP anexada.' : 'Descreva a aplicação dos recursos e o desembolso previsto.'} obrigatorio />
-        <Field label="Informações Adicionais" tipo="textarea" placeholder="Inclua informações complementares sobre a execução" />
-        <div className="col-span-12 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-on-surface-variant">
-          {possuiConvenio ? 'Com convênio USP: a Planilha de Aplicação de Recursos USP é obrigatória.' : 'Sem convênio USP: o Plano de Aplicação de Recursos é obrigatório.'}
-        </div>
-      </FormSection>
+      <CronogramaDesembolsoSection />
 
       <CienciaConcordanciaSection numero={8} />
       <TermoAnuenciaProjetoSection />

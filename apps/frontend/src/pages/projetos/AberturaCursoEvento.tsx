@@ -628,7 +628,7 @@ export const AberturaCursoEvento: React.FC = () => {
               hint="Preencher apenas se houver convênio cadastrado na USP."
             />
             <Field
-              label="Nº do Protocolo USP"
+              label="Nº do Processo USP"
               span={6}
               placeholder="Ex: 23.1.00000.11.2"
               valor={numProtocoloUSP}

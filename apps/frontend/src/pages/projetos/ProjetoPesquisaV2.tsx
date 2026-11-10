@@ -258,7 +258,7 @@ export const ProjetoPesquisaV2 = () => (
         hint="Preencher apenas se houver convênio cadastrado na USP."
       />
       <Field
-        label="Nº do Protocolo USP"
+        label="Nº do Processo USP"
         span={6}
         placeholder="Ex: PRT-26-10492"
         hint="Preencher apenas se houver convênio cadastrado na USP."
