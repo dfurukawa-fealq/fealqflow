@@ -13,7 +13,6 @@ import { formatCPF } from '../../utils/formatters';
 import { gerarIdLocal } from '../../utils/id';
 import { EquipeTecnicaEditor } from '../../components/form/projetos/EquipeTecnicaEditor';
 import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSection';
-import { OrientacoesCoordenadorCard } from '../../components/form/projetos/OrientacoesCoordenadorCard';
 import { EnderecoField } from '../../components/form/EnderecoField';
 import { DelegadosEditor } from '../../components/form/projetos/DelegadosEditor';
 import { CoordenadorResponsavelSection } from '../../components/form/projetos/CoordenadorResponsavelSection';
@@ -1656,7 +1655,6 @@ export const AberturaCursoEvento: React.FC = () => {
 
       {/* 7. TERMOS, LGPD E DECLARAÇÕES FINAIS */}
       <TermosLGPDSection aceito={isLGPDValido} urlTermo={urlLGPD} aoAbrirTermo={() => { registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD); void processoAtual?.save_state().finally(() => window.location.assign(urlLGPD)); }} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
-      <OrientacoesCoordenadorCard aceito={isOrientacoesValido} urlOrientacoes={urlOrientacoes} aoAbrirOrientacoes={() => { registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); void processoAtual?.save_state().finally(() => window.location.assign(urlOrientacoes)); }} />
       <div className="hidden">
       <FormSection
         numero={7}

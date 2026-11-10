@@ -12,7 +12,6 @@ import { EquipeProjetoSection } from '../../components/form/projetos/EquipeProje
 import { PropriedadeIntelectualSection } from '../../components/form/projetos/PropriedadeIntelectualSection';
 import { CertRegimeTrabalhoSection } from '../../components/form/projetos/CertRegimeTrabalhoSection';
 import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSection';
-import { OrientacoesCoordenadorCard } from '../../components/form/projetos/OrientacoesCoordenadorCard';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { useAdmin } from '../../contexts/AdminContext';
 import { CronogramaExecucaoSection } from '../../components/form/projetos/CronogramaExecucaoSection';
@@ -231,7 +230,6 @@ export const ProjetoPesquisa = () => {
       <CienciaConcordanciaSection numero={8} />
       <TermoAnuenciaProjetoSection />
       <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD)} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
-      <OrientacoesCoordenadorCard aceito={statusOrientacoes === 'concluido'} urlOrientacoes={urlOrientacoes} aoAbrirOrientacoes={() => { void processo?.save_state(); registrarAberturaFormulario('CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ', urlOrientacoes); }} />
     </FormPageLayout>
   );
 };
