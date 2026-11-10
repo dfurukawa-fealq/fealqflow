@@ -68,7 +68,7 @@ export const ProjetoPesquisa = () => {
     // { id: 'cadastro-parceiro', label: 'Cadastro de Parceiro / Financiador', descricao: 'Pode ser preenchido por link externo.', tipo: 'externo', obrigatorio: false },
       ...(possuiConvenio
       ? [{ id: 'planilha-recursos-usp', label: 'Planilha de Aplicação de Recursos USP', descricao: 'Anexo obrigatório para projeto com convênio USP.', tipo: 'upload' as const, obrigatorio: true }]
-      : [{ id: 'plano-aplicacao-recursos', label: 'Plano de Aplicação dos Recursos', descricao: 'Anexe o plano de aplicação dos recursos do projeto.', tipo: 'upload' as const, obrigatorio: true, url_template: '' }]),
+      : [{ id: 'plano-aplicacao-recursos', label: 'Plano de Aplicação dos Recursos', descricao: 'Anexe o plano de aplicação dos recursos do projeto.', tipo: 'upload' as const, obrigatorio: true, url_template: 'https://docs.google.com/document/d/16Bofe2pVGsMDUi73H-dbRMphl2U12VEQrD5PvaSZGwc/export?format=pdf' }]),
     // { id: 'informacoes-complementares', label: 'Informações Complementares', descricao: 'Anexo opcional.', tipo: 'upload', obrigatorio: false },
   ], [possuiConvenio]);
 
@@ -96,7 +96,7 @@ export const ProjetoPesquisa = () => {
       if (documento.id === 'plano-aplicacao-recursos') {
         return {
           ...documento,
-          url_template: '',
+          url_template: documento.url_template,
           status: undefined,
           onAbrirLink: async () => {
             await processo?.save_state();
