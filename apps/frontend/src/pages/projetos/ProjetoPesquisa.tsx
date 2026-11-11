@@ -201,7 +201,7 @@ export const ProjetoPesquisa = () => {
         <Field label="Prazo de Execução (meses)" span={4} tipo="number" placeholder="Ex.: 24" />
         <Field label="Objeto do Projeto" tipo="textarea" placeholder="Descreva o objetivo principal da pesquisa" obrigatorio />
         <Field label="Objetivo Geral" tipo="textarea" placeholder="Descreva o problema, a metodologia e as etapas da pesquisa" obrigatorio />
-        <Field label="Justificativa" tipo="textarea" placeholder="Descreva o problema, a metodologia e as etapas da pesquisa" obrigatorio />
+        <Field label="Justificativa" tipo="textarea" placeholder="Descreva a justificativa da pesquisa" obrigatorio />
         <Field label="Resultados Esperados" tipo="textarea" placeholder="Descreva os resultados esperados" />
       </FormSection>
 
