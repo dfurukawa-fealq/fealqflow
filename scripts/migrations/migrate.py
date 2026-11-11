@@ -6,8 +6,8 @@ Executa na sequência:
   1. Valida se o banco existe (ou cria a estrutura básica)
   2. Executa as migrations:
      a. Criação de Tabelas (sessoes, rastreabilidade_formularios, calendario_submissao, config_formularios)
-     b. Mapeamento de Calendário (mapeamento_calendario_de_submissao.json -> SQL)
-     c. Mapeamento de Formulários (mapeamento_formularios.json -> SQL)
+     b. Calendário de submissão (calendario_de_submissao.json -> SQL)
+     c. Cadastros de formulários (cadastros_formularios.json -> SQL)
 """
 
 import os
@@ -130,14 +130,14 @@ def run_step_1_create_tables(conn, db_type):
     print(" ✓ Tabelas criadas com sucesso (sessoes, rastreabilidade_formularios, config_formularios, calendario_submissao)")
 
 def run_step_2_seed_calendario(conn, db_type):
-    print("\n[MIGRATION 2.b] Convertendo mapeamento_calendario_de_submissao.json em SQL...")
-    json_path = os.path.join(DATA_DIR, 'mapeamento_calendario_de_submissao.json')
+    print("\n[MIGRATION 2.b] Convertendo cadastros_formularios.json em SQL...")
+    json_path = os.path.join(DATA_DIR, 'cadastros_formularios.json')
     if not os.path.exists(json_path):
         print(f" [ERRO] Arquivo não encontrado: {json_path}")
         return
 
     with open(json_path, 'r', encoding='utf-8') as f:
-        items = json.load(f)
+        items = [item for item in json.load(f) if item.get('tipo') == 'Programa de Apoio']
 
     cursor = conn.cursor()
     sql_statements = []
@@ -190,20 +190,21 @@ def run_step_2_seed_calendario(conn, db_type):
     print(f" ✓ {len(items)} registros de calendário de submissão sincronizados no banco e salvos em 002_seed_calendario.sql")
 
 def run_step_3_seed_formularios(conn, db_type):
-    print("\n[MIGRATION 2.c] Convertendo mapeamento_formularios.json em SQL...")
-    json_path = os.path.join(DATA_DIR, 'mapeamento_formularios.json')
+    print("\n[MIGRATION 2.c] Convertendo cadastros_formularios.json em SQL...")
+    json_path = os.path.join(DATA_DIR, 'cadastros_formularios.json')
     if not os.path.exists(json_path):
         print(f" [ERRO] Arquivo não encontrado: {json_path}")
         return
 
     with open(json_path, 'r', encoding='utf-8') as f:
-        items = json.load(f)
+        catalogo = json.load(f)
+        items = catalogo
 
     cursor = conn.cursor()
     sql_statements = []
 
     for item in items:
-        formulario = item.get('formulario')
+        formulario = item.get('nome')
         normas = item.get('normas', '')
         docs_json = json.dumps(item.get('documentos_solicitados', []), ensure_ascii=False)
 

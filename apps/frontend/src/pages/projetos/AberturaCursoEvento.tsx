@@ -1,5 +1,5 @@
 import { useProcessoState } from '../../contexts/ProcessoContext';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
@@ -20,6 +20,8 @@ import { CienciaConcordanciaSection } from '../../components/form/projetos/Cienc
 import { InstituicoesFinanciadorasSection } from '../../components/form/projetos/InstituicoesFinanciadorasSection';
 import { OrientacoesProjetoSection } from '../../components/form/projetos/OrientacoesProjetoSection';
 import { TIPOS_EVENTO, UNIDADES_USP } from '../../data/listas';
+import kitsDocumentais from '../../../../../data/kits_documentais.json';
+import itensKitDocumental from '../../../../../data/itens_kit_documental.json';
 
 interface MembroEquipe {
   id: string;
@@ -297,154 +299,63 @@ export const AberturaCursoEvento: React.FC = () => {
   //   f. Caracterização acadêmica {anexo não obrigatório}
   //   g. Caracterização financeira {anexo não obrigatório}
 
-  const documentosBase: DocumentoExigido[] = [
-    {
-      id: 'termo-lgpd',
-      label: 'Termo de LGPD e Confidencialidade (FR 01 - PRO)',
-      descricao: isLGPDValido
-        ? 'Termo assinado e certificado eletronicamente.'
-        : 'Autopreenchido com dados da coordenação e evento. Aceite e leitura obrigatórios.',
-      tipo: 'gerado',
-      obrigatorio: true,
-      condicao: 'Obrigatório',
-      url_template: urlLGPD,
-      status: isLGPDValido ? 'concluido' : (statusLGPD || 'pendente'),
-      onAbrirLink: () =>
-        registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD),
-      linkTexto: isLGPDValido ? 'Revisar' : 'Ler e Assinar',
-      acaoEmail: {
-        email: coordEmail || 'coordenador@usp.br',
-        label: 'Enviar Termo por E-mail',
-      },
-    },
-    {
-      id: 'cadastro-coordenador',
-      label: 'Cadastro de Coordenador (Sem Certidões)',
-      descricao: 'Caso não possua cadastro prévio na FEALQ.',
-      tipo: 'gerado',
-      obrigatorio: false,
-      condicao: 'NÃO OBRIGATÓRIO',
-      url_template: urlCadastroCoordenador,
-      status: statusCadastroCoordenador === 'concluido' ? 'concluido' : undefined,
-      onAbrirLink: () => registrarAberturaFormulario('CONV-FR-07-CADT', 'Cadastro de Coordenador', urlCadastroCoordenador),
-      linkTexto: 'Preencher',
-    },
-    // {
-    //   id: 'cadastro-equipe',
-    //   label: 'Cadastro de Equipe Envolvida / Apoio',
-    //   descricao: 'Docentes, alunos, pesquisadores e comissão técnica.',
-    //   tipo: 'gerado',
-    //   obrigatorio: false,
-    //   condicao: 'NÃO OBRIGATÓRIO',
-    //   url_template: '#equipe-tecnica',
-    //   status: equipePreenchida ? 'concluido' : undefined,
-    //   onAbrirLink: () =>
-    //     document.getElementById('equipe-tecnica')?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
-    //   linkTexto: equipePreenchida ? 'Revisar' : 'Preencher',
-    // },
-    {
-      id: 'programacao-evento',
-      label: 'Programação do Curso/Evento (PDF)',
-      descricao: 'Cronograma, ementa, datas e palestrantes.',
-      tipo: 'upload',
-      obrigatorio: false,
-      condicao: 'Anexo Opcional',
-    },
-  ];
+  const kitSelecionado = kitsDocumentais.find((kit) => kit.formulario_id === 'projeto-abertura-curso-evento'
+    && kit.ativo
+    && kit.campo_condicional === 'possuiConvenio'
+    && kit.operador_condicional === 'equals'
+    && kit.valor_condicional === possuiConvenio);
 
-  const documentosDinamicos: DocumentoExigido[] =
-    possuiConvenio === 'sim'
-      ? [
-          {
-            id: 'convenio-usp-assinado',
-            label: 'Convênio USP Assinado (PDF)',
-            descricao: 'Cópia digitalizada do termo de convênio firmado com a USP.',
-            tipo: 'upload',
-            obrigatorio: false,
-            condicao: 'Anexo Opcional',
-          },
-          {
-            id: 'caracterizacao-academica',
-            label: 'Caracterização Acadêmica (USP)',
-            descricao: 'Formulário acadêmico de extensão universitária.',
-            tipo: 'upload',
-            obrigatorio: false,
-            condicao: 'Anexo Opcional',
-          },
-          {
-            id: 'caracterizacao-financeira',
-            label: 'Caracterização Financeira (USP)',
-            descricao: 'Planilha/demonstrativo de custos aprovado na instância acadêmica.',
-            tipo: 'upload',
-            obrigatorio: false,
-            condicao: 'Anexo Opcional',
-          },
-        ]
-      : [
-          {
-            id: 'plano-aplicacao-recursos',
-            label: 'Plano de Aplicação de Recursos (CONV-PL-01)',
+  const documentosKit = useMemo<DocumentoExigido[]>(() => {
+    if (!kitSelecionado) return [];
+    const respostasCondicionais: Record<string, string> = { inCompany, patrocinio };
+    return itensKitDocumental
+      .filter((item) => item.kit_id === kitSelecionado.id && item.ativo)
+      .filter((item) => !('campo_condicional' in item) || !item.campo_condicional
+        || (item.operador_condicional === 'equals'
+          && respostasCondicionais[item.campo_condicional] === item.valor_condicional))
+      .sort((a, b) => a.ordem - b.ordem)
+      .map((item): DocumentoExigido => {
+        const documento: DocumentoExigido = {
+          id: item.identificador,
+          label: item.titulo,
+          descricao: item.descricao,
+          tipo: item.tipo,
+          obrigatorio: item.obrigatorio,
+          condicao: item.obrigatorio ? 'Obrigatório' : (item.tipo === 'upload' ? 'Anexo Opcional' : 'NÃO OBRIGATÓRIO'),
+        };
+        if (item.identificador === 'cadastro-coordenador') {
+          return {
+            ...documento,
+            url_template: urlCadastroCoordenador,
+            status: statusCadastroCoordenador === 'concluido' ? 'concluido' : undefined,
+            onAbrirLink: () => registrarAberturaFormulario('CONV-FR-07-CADT', documento.label, urlCadastroCoordenador),
+            linkTexto: statusCadastroCoordenador === 'concluido' ? 'Revisar' : 'Preencher',
+          };
+        }
+        if (item.identificador === 'plano-aplicacao-recursos') {
+          return {
+            ...documento,
             descricao: isPlanoValido
               ? 'Orçamento preenchido e vinculado com sucesso ao protocolo.'
-              : 'Estruturação orçamentária de receitas e despesas do evento.',
-            tipo: 'gerado',
-            obrigatorio: false,
-            condicao: 'Opcional',
+              : documento.descricao,
             url_template: urlPlanoRecursos,
             status: isPlanoValido ? 'concluido' : undefined,
-            onAbrirLink: () =>
-              registrarAberturaFormulario('CONV-PL-01', 'Plano de Aplicação de Recursos', urlPlanoRecursos),
+            onAbrirLink: () => registrarAberturaFormulario('CONV-PL-01', documento.label, urlPlanoRecursos),
             linkTexto: isPlanoValido ? 'Revisar' : 'Preencher',
-          },
-        ];
-
-  const documentosKit: DocumentoExigido[] = [
-    ...documentosBase,
-    ...documentosDinamicos,
-    ...(inCompany === 'sim'
-      ? [
-          {
-            id: 'cadastro-parceiro-link',
-            label: 'Cadastro de Parceiro (Link Direto ao Financiador)',
-            descricao: 'Formulário preenchido diretamente pela empresa parceira.',
-            tipo: 'gerado' as const,
-            obrigatorio: false,
-            condicao: 'NÃO OBRIGATÓRIO',
-            url_template: `/projetos/form-parceiro?protocolo=${protocolId}`,
-          },
-        ]
-      : []),
-    ...(patrocinio === 'sim'
-      ? [
-          {
-            id: 'carta-patrocinio',
-            label: 'Carta Patrocínio (Modelo FEALQ)',
-            descricao: 'Termo formal de aceite de cotas de apoio financeiro.',
-            tipo: 'upload' as const,
-            obrigatorio: false,
-            condicao: 'NÃO OBRIGATÓRIO',
-          },
-          {
-            id: 'cotas-patrocinio',
-            label: 'Cadastro de Cotas de Patrocínio',
-            descricao: 'Definição de cotas Ouro, Prata, Bronze e benefícios.',
-            tipo: 'gerado' as const,
-            obrigatorio: false,
-            condicao: 'NÃO OBRIGATÓRIO',
-            url_template: `/projetos/form-cotas?protocolo=${protocolId}`,
-          },
-          {
-            id: 'cadastro-patrocinador-link',
-            label: 'Cadastro de Patrocinador (Link ao Patrocinador)',
-            descricao: 'Enviado por link ao patrocinador para dados cadastrais.',
-            tipo: 'gerado' as const,
-            obrigatorio: false,
-            condicao: 'NÃO OBRIGATÓRIO',
-            url_template: `/projetos/form-patrocinador?protocolo=${protocolId}`,
-          },
-        ]
-      : []),
-  ].filter((documento) => !['termo-lgpd', 'orientacoes-coordenador'].includes(documento.id));
+          };
+        }
+        if (item.identificador === 'cadastro-parceiro-link') {
+          return { ...documento, url_template: `/projetos/form-parceiro?protocolo=${protocolId}` };
+        }
+        if (item.identificador === 'cotas-patrocinio') {
+          return { ...documento, url_template: `/projetos/form-cotas?protocolo=${protocolId}` };
+        }
+        if (item.identificador === 'cadastro-patrocinador-link') {
+          return { ...documento, url_template: `/projetos/form-patrocinador?protocolo=${protocolId}` };
+        }
+        return documento;
+      });
+  }, [inCompany, isPlanoValido, kitSelecionado, patrocinio, protocolId, registrarAberturaFormulario, statusCadastroCoordenador, urlCadastroCoordenador, urlPlanoRecursos]);
 
   // Cálculo de progresso de preenchimento
   let preenchidos = 0;

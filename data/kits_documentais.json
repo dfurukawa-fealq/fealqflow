@@ -1,0 +1,118 @@
+[
+  {
+    "id": "kit-projeto-pesquisa-com-convenio",
+    "formulario_id": "projeto-pesquisa",
+    "nome": "Kit de Projeto de Pesquisa com Convênio USP",
+    "descricao": "Documentos para projeto com convênio cadastrado na USP.",
+    "campo_condicional": "possuiConvenio",
+    "operador_condicional": "equals",
+    "valor_condicional": "true",
+    "ordem": 1,
+    "ativo": true
+  },
+  {
+    "id": "kit-projeto-pesquisa-sem-convenio",
+    "formulario_id": "projeto-pesquisa",
+    "nome": "Kit de Projeto de Pesquisa sem Convênio USP",
+    "descricao": "Documentos para projeto sem convênio cadastrado na USP.",
+    "campo_condicional": "possuiConvenio",
+    "operador_condicional": "equals",
+    "valor_condicional": "false",
+    "ordem": 2,
+    "ativo": true
+  },
+  {
+    "id": "kit-curso-evento-com-convenio",
+    "formulario_id": "projeto-abertura-curso-evento",
+    "nome": "Kit de Curso ou Evento com Convênio USP",
+    "descricao": "Documentos para curso ou evento com convênio cadastrado na USP.",
+    "campo_condicional": "possuiConvenio",
+    "operador_condicional": "equals",
+    "valor_condicional": "sim",
+    "ordem": 1,
+    "ativo": true
+  },
+  {
+    "id": "kit-curso-evento-sem-convenio",
+    "formulario_id": "projeto-abertura-curso-evento",
+    "nome": "Kit de Curso ou Evento sem Convênio USP",
+    "descricao": "Documentos para curso ou evento sem convênio cadastrado na USP.",
+    "campo_condicional": "possuiConvenio",
+    "operador_condicional": "equals",
+    "valor_condicional": "nao",
+    "ordem": 2,
+    "ativo": true
+  },
+  {
+    "id": "kit-programa-apoio-bolsa-pos",
+    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-4",
+    "nome": "Kit Documental - Bolsa Acadêmica - Pós-graduação",
+    "descricao": "Documentos exigidos para o programa Bolsa Acadêmica - Pós-graduação.",
+    "ordem": 1,
+    "ativo": true
+  },
+  {
+    "id": "kit-programa-apoio-bolsa-graduacao",
+    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-8",
+    "nome": "Kit Documental - Bolsa Acadêmica - Graduação",
+    "descricao": "Documentos exigidos para o programa Bolsa Acadêmica - Graduação.",
+    "ordem": 2,
+    "ativo": true
+  },
+  {
+    "id": "kit-programa-apoio-infraestrutura",
+    "formulario_id": "apoio-edital-infraestrutura-e-melhorias-2026-1",
+    "nome": "Kit Documental - Apoio Infraestrutura e Melhorias",
+    "descricao": "Documentos exigidos para o programa Apoio Infraestrutura e Melhorias.",
+    "ordem": 3,
+    "ativo": true
+  },
+  {
+    "id": "kit-programa-apoio-apresentacao-evento",
+    "formulario_id": "apoio-formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-7",
+    "nome": "Kit Documental - Apresentação de Trabalho em Evento",
+    "descricao": "Documentos exigidos para o programa Apresentação de Trabalho em Evento.",
+    "ordem": 4,
+    "ativo": true
+  },
+  {
+    "id": "kit-programa-apoio-auxilio-viagem",
+    "formulario_id": "apoio-formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-0",
+    "nome": "Kit Documental - Auxílio Viagem",
+    "descricao": "Documentos exigidos para o programa Auxílio Viagem.",
+    "ordem": 5,
+    "ativo": true
+  },
+  {
+    "id": "kit-programa-apoio-auxilio-publicacao",
+    "formulario_id": "apoio-formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-5",
+    "nome": "Kit Documental - Auxílio para publicação de artigo",
+    "descricao": "Documentos exigidos para o programa Auxílio para publicação de artigo.",
+    "ordem": 6,
+    "ativo": true
+  },
+  {
+    "id": "kit-programa-apoio-interesse-comunidade",
+    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-interesse-da-comunidade-3",
+    "nome": "Kit Documental - Apoio de Interesse da Comunidade",
+    "descricao": "Documentos exigidos para o programa Apoio de Interesse da Comunidade.",
+    "ordem": 7,
+    "ativo": true
+  },
+  {
+    "id": "kit-programa-apoio-material-eventos",
+    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-6",
+    "nome": "Kit Documental - Apoio Material para Eventos",
+    "descricao": "Documentos exigidos para o programa Apoio Material para Eventos.",
+    "ordem": 8,
+    "ativo": true
+  },
+  {
+    "id": "kit-programa-apoio-cultura-extensao",
+    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-universita-ria-2",
+    "nome": "Kit Documental - Cultura e Extensão Universitária",
+    "descricao": "Documentos exigidos para o programa Cultura e Extensão Universitária.",
+    "ordem": 9,
+    "ativo": true
+  }
+]

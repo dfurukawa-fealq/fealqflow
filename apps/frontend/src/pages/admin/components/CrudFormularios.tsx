@@ -41,7 +41,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   const [nome, setNome] = useState('');
   const [nSeq, setNSeq] = useState(0);
   const [area, setArea] = useState<'Projetos' | 'Programa de Apoio'>('Programa de Apoio');
-  const [tipo, setTipo] = useState<'Formulário' | 'FormulÃ¡rio' | 'Documento'>('Formulário');
+  const [tipo, setTipo] = useState<'formulario' | 'documento'>('formulario');
   const [descricaoDocumento, setDescricaoDocumento] = useState('');
   const [templateUrl, setTemplateUrl] = useState('');
   const [documentoSelecionadoId, setDocumentoSelecionadoId] = useState('');
@@ -54,7 +54,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   const [pesquisa, setPesquisa] = useState('');
   const [filtroArea, setFiltroArea] = useState<'Todos' | 'Projetos' | 'Programa de Apoio'>('Todos');
   const [filtroHabilitado, setFiltroHabilitado] = useState<'Todos' | 'Habilitados' | 'Desabilitados'>('Todos');
-  const [filtroTipo, setFiltroTipo] = useState<'Todos' | 'Formulário' | 'Documento'>(modo === 'formularios' ? 'Formulário' : modo === 'documentos' ? 'Documento' : 'Todos');
+  const [filtroTipo, setFiltroTipo] = useState<'Todos' | 'formulario' | 'documento'>(modo === 'formularios' ? 'formulario' : modo === 'documentos' ? 'documento' : 'Todos');
   const [pagina, setPagina] = useState(1);
   const itensPorPagina = 10;
 
@@ -80,8 +80,8 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   };
 
   useEffect(() => {
-    if (modo === 'documentos') setTipo('Documento');
-    if (modo === 'formularios') setTipo('Formulário');
+    if (modo === 'documentos') setTipo('documento');
+    if (modo === 'formularios') setTipo('formulario');
   }, [modo]);
 
   useEffect(() => {
@@ -135,10 +135,10 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     setLinhaApoioId(form.linhaApoioId);
     setStatus(form.status);
     setNormas(limparReferenciasCitacao(form.normas || ''));
-    setDescricaoDocumento(form.tipo === 'Documento' ? form.documentosSolicitados[0]?.info || '' : '');
-    setTemplateUrl(form.tipo === 'Documento' ? normalizarCaminhoModelo(form.documentosSolicitados[0]?.url_template || '') || modelosDocx[0]?.caminho || '' : '');
+    setDescricaoDocumento(form.tipo === 'documento' ? form.documentosSolicitados[0]?.info || '' : '');
+    setTemplateUrl(form.tipo === 'documento' ? normalizarCaminhoModelo(form.documentosSolicitados[0]?.url_template || '') || modelosDocx[0]?.caminho || '' : '');
     
-    setDocumentosSolicitados((form.documentosSolicitados || []).map((documento) => ({ ...documento, nome: limparReferenciasCitacao(documento.nome), info: limparReferenciasCitacao(documento.info || ''), tipo: documento.tipo || 'Documento', referenciaTipo: documento.referenciaTipo || (documento.documentoId ? 'documento' : 'url'), obrigatorio: documento.obrigatorio !== false })));
+    setDocumentosSolicitados((form.documentosSolicitados || []).map((documento) => ({ ...documento, nome: limparReferenciasCitacao(documento.nome), info: limparReferenciasCitacao(documento.info || ''), tipo: documento.tipo || 'documento', referenciaTipo: documento.referenciaTipo || (documento.documentoId ? 'documento' : 'url'), obrigatorio: documento.obrigatorio !== false })));
     setPeriodosSubmissao(form.periodosSubmissao || []);
     setEditingDocs({});
     setEditingPeriodos({});
@@ -151,24 +151,24 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
       setErroSalvar('Informe o nome do cadastro antes de salvar.');
       return;
     }
-    if (!linhaApoioId && tipo === 'Formulário') {
+    if (!linhaApoioId && tipo === 'formulario') {
       setErroSalvar('Selecione uma linha de apoio antes de salvar o formulário.');
       return;
     }
-    if (tipo === 'Documento' && !modelosDocx.some((modelo) => modelo.caminho === templateUrl)) {
+    if (tipo === 'documento' && !modelosDocx.some((modelo) => modelo.caminho === templateUrl)) {
       setErroSalvar('Selecione um modelo DOCX ou PDF disponível na pasta de templates.');
       return;
     }
 
     setSalvando(true);
     try {
-      if (tipo === 'Documento') {
+      if (tipo === 'documento') {
         const documento = { id: editingId || undefined, nome: nome.trim(), descricao: descricaoDocumento, template_url: templateUrl, active: true };
         if (editingId) {
           await persistirFormulario(editingId, {
             nome: nome.trim(),
             area,
-            tipo: 'Documento',
+            tipo: 'documento',
             linhaApoioId: '',
             status,
             normas,
@@ -187,7 +187,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
         nome,
         nSeq,
         area,
-        tipo: 'Formulário' as const,
+        tipo: 'formulario' as const,
         linhaApoioId,
         status,
         normas,
@@ -213,7 +213,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     setNome('');
     setNSeq(0);
     setArea(modo === 'documentos' ? 'Projetos' : 'Programa de Apoio');
-    setTipo(modo === 'documentos' ? 'Documento' : 'Formulário');
+    setTipo(modo === 'documentos' ? 'documento' : 'formulario');
     setDescricaoDocumento('');
     setTemplateUrl(modelosDocx[0]?.caminho || '');
     setLinhaApoioId('');
@@ -310,7 +310,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     setNome('');
     setNSeq(0);
     setArea('Programa de Apoio');
-    setTipo('Formulário');
+    setTipo('formulario');
     setLinhaApoioId('');
     setStatus('Fechado');
     setNormas('');
@@ -324,20 +324,20 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
 
   const handleAddDocumento = () => {
     const id = Math.random().toString(36).substring(7);
-    setDocumentosSolicitados([{ id, nome: '', tipo: 'Documento', obrigatorio: true, info: '', url_template: '' }, ...documentosSolicitados]);
+    setDocumentosSolicitados([{ id, nome: '', tipo: 'documento', obrigatorio: true, info: '', url_template: '' }, ...documentosSolicitados]);
     setEditingDocs({ ...Object.fromEntries(Object.keys(editingDocs).map((chave) => [chave, false])), [id]: true });
   };
 
   const handleVincularDocumentoLegado = () => {
     const [tipoSelecionado, idSelecionado] = documentoSelecionadoId.split(':');
-    const documento = documentos.find((item) => tipoSelecionado === 'Documento' && item.id === idSelecionado && item.active !== false);
-    const formulario = formularios.find((item) => tipoSelecionado === 'Formulário' && item.id === idSelecionado && item.active !== false && (item.tipo === 'FormulÃ¡rio' || item.tipo === 'Formulário'));
+    const documento = documentos.find((item) => tipoSelecionado === 'documento' && item.id === idSelecionado && item.active !== false);
+    const formulario = formularios.find((item) => tipoSelecionado === 'formulario' && item.id === idSelecionado && item.active !== false && item.tipo === 'formulario');
     const itemSelecionado = documento || formulario;
     if (!itemSelecionado || documentosSolicitados.some((item) => item.id === itemSelecionado.id)) return;
     setDocumentosSolicitados([...documentosSolicitados, {
       id: itemSelecionado.id,
       nome: itemSelecionado.nome,
-      tipo: formulario ? 'Formulário' : 'Documento',
+      tipo: formulario ? 'formulario' : 'documento',
       documentoId: documento?.id,
       referenciaTipo: documento ? 'documento' : 'url',
       obrigatorio: true,
@@ -349,11 +349,11 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
 
   const handleVincularItem = () => {
     const [tipoSelecionado, idSelecionado] = documentoSelecionadoId.split(':');
-    const documento = documentos.find((item) => tipoSelecionado === 'Documento' && item.id === idSelecionado && item.active !== false);
-    const formulario = formularios.find((item) => tipoSelecionado === 'Formulario' && item.id === idSelecionado && item.active !== false && item.tipo !== 'Documento');
+    const documento = documentos.find((item) => tipoSelecionado === 'documento' && item.id === idSelecionado && item.active !== false);
+    const formulario = formularios.find((item) => tipoSelecionado === 'formulario' && item.id === idSelecionado && item.active !== false && item.tipo !== 'documento');
     const itemSelecionado = documento || formulario;
     if (!itemSelecionado || documentosSolicitados.some((item) => item.id === itemSelecionado.id)) return;
-    setDocumentosSolicitados([...documentosSolicitados, { id: itemSelecionado.id, nome: itemSelecionado.nome, tipo: formulario ? 'Formulário' : 'Documento', documentoId: documento?.id, referenciaTipo: documento ? 'documento' : 'url', obrigatorio: true, info: formulario ? formulario.normas : documento?.descricao, url_template: documento?.template_url }]);
+    setDocumentosSolicitados([...documentosSolicitados, { id: itemSelecionado.id, nome: itemSelecionado.nome, tipo: formulario ? 'formulario' : 'documento', documentoId: documento?.id, referenciaTipo: documento ? 'documento' : 'url', obrigatorio: true, info: formulario ? formulario.normas : documento?.descricao, url_template: documento?.template_url }]);
     setDocumentoSelecionadoId('');
     setDocumentoSelecionadoBusca('');
   };
@@ -373,7 +373,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
       documentoId: documento.id,
       referenciaTipo: 'documento',
       nome: documento.nome,
-      tipo: 'Documento',
+      tipo: 'documento',
       info: documento.descricao,
       url_template: documento.template_url,
     } : item));
@@ -452,8 +452,8 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   const modeloPreviewDisponivel = modelosDocx.some((modelo) => modelo.caminho === caminhoSolicitadoPreview);
   const caminhoModeloPreview = modeloPreviewDisponivel ? caminhoSolicitadoPreview : '';
   const itensKitDisponiveis = [
-    ...documentos.filter((documento) => documento.active !== false && (!documento.area || documento.area === area)).map((documento) => ({ chave: `Documento:${documento.id}`, rotulo: `${documento.nome} — Documento` })),
-    ...formularios.filter((formulario) => formulario.active !== false && formulario.area === area && formulario.tipo !== 'Documento' && formulario.id !== editingId).map((formulario) => ({ chave: `Formulario:${formulario.id}`, rotulo: `${formulario.nome} — Formulário` })),
+    ...documentos.filter((documento) => documento.active !== false && (!documento.area || documento.area === area)).map((documento) => ({ chave: `documento:${documento.id}`, rotulo: `${documento.nome} — Documento` })),
+    ...formularios.filter((formulario) => formulario.active !== false && formulario.area === area && formulario.tipo !== 'documento' && formulario.id !== editingId).map((formulario) => ({ chave: `formulario:${formulario.id}`, rotulo: `${formulario.nome} — Formulário` })),
   ];
 
   return (
@@ -498,12 +498,12 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
       {isFormVisible ? (
       <div>
         <h2 className="text-xl font-bold mb-4 text-on-surface">
-          {editingId ? `Editar ${tipo === 'Documento' ? 'Documento' : 'Formulário'}` : `Novo ${tipo === 'Documento' ? 'Documento' : 'Formulário'}`}
+          {editingId ? `Editar ${tipo === 'documento' ? 'Documento' : 'Formulário'}` : `Novo ${tipo === 'documento' ? 'Documento' : 'Formulário'}`}
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="md:col-span-2">
-            <label className="block text-[13px] font-semibold text-on-surface mb-1">Nome do {tipo === 'Documento' ? 'Documento' : 'Formulário'}</label>
+            <label className="block text-[13px] font-semibold text-on-surface mb-1">Nome do {tipo === 'documento' ? 'Documento' : 'Formulário'}</label>
             <input
               type="text"
               className="w-full p-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-primary"
@@ -532,16 +532,16 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
               className="w-full p-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-primary"
               value={tipo}
               onChange={(e) => {
-                const novoTipo = e.target.value as 'Formulário' | 'Documento';
+                const novoTipo = e.target.value as 'formulario' | 'documento';
                 setTipo(novoTipo);
-                if (novoTipo === 'Documento' && !templateUrl) setTemplateUrl(modelosDocx[0]?.caminho || '');
+                if (novoTipo === 'documento' && !templateUrl) setTemplateUrl(modelosDocx[0]?.caminho || '');
               }}
             >
-              <option value="Formulário">Formulário</option>
-              <option value="Documento">Documento</option>
+              <option value="formulario">Formulário</option>
+              <option value="documento">Documento</option>
             </select>
           </div>
-          {tipo === 'Formulário' && <div>
+          {tipo === 'formulario' && <div>
             <label className="block text-[13px] font-semibold text-on-surface mb-1">Linha de Apoio</label>
             <select
               className="w-full p-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-primary"
@@ -556,7 +556,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
               ))}
             </select>
           </div>}
-          {tipo === 'Formulário' && <div>
+          {tipo === 'formulario' && <div>
             <label className="block text-[13px] font-semibold text-on-surface mb-1">Status de Abertura</label>
             <select
               className="w-full p-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-primary"
@@ -569,7 +569,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
           </div>}
         </div>
 
-        {tipo === 'Documento' ? <div className="grid grid-cols-1 gap-4 mb-4">
+        {tipo === 'documento' ? <div className="grid grid-cols-1 gap-4 mb-4">
           <div>
             <label htmlFor="modelo-docx-documento" className="block text-[13px] font-semibold text-on-surface mb-1">Modelo DOCX ou PDF do documento</label>
             <select id="modelo-docx-documento" className="w-full p-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-primary" value={templateUrl} onChange={(e) => setTemplateUrl(e.target.value)}>
@@ -601,7 +601,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
           />
         </div>}
 
-        {tipo === 'Formulário' && <>
+        {tipo === 'formulario' && <>
         {/* Documentos Solicitados */}
         <div className="mb-6 p-4 border border-outline-variant rounded-xl bg-surface-container-lowest">
           <div className="flex justify-between items-center mb-4">
@@ -614,17 +614,17 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
               Adicionar item
             </button>
           </div>
-          {tipo === 'Formulário' && documentos.some((documento) => documento.active !== false) && (
+          {tipo === 'formulario' && documentos.some((documento) => documento.active !== false) && (
             <div className="flex flex-col sm:flex-row gap-2 mb-4">
               <input list="kit-itens-disponiveis" className="flex-1 p-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface" value={documentoSelecionadoBusca} placeholder="Digite para pesquisar documento ou formulário..." onChange={(event) => { const valor = event.target.value; setDocumentoSelecionadoBusca(valor); setDocumentoSelecionadoId(itensKitDisponiveis.find((item) => item.rotulo === valor)?.chave || ''); }} />
               <datalist id="kit-itens-disponiveis">{itensKitDisponiveis.map((item) => <option key={item.chave} value={item.rotulo} />)}</datalist>
               <select className="hidden" value={documentoSelecionadoId} onChange={(event) => setDocumentoSelecionadoId(event.target.value)}>
                 <option value="">Selecionar documento ou formulário...</option>
                 <optgroup label="Documentos">
-                  {documentos.filter((documento) => documento.active !== false).map((documento) => <option key={`Documento:${documento.id}`} value={`Documento:${documento.id}`}>{documento.nome}</option>)}
+                  {documentos.filter((documento) => documento.active !== false).map((documento) => <option key={`documento:${documento.id}`} value={`documento:${documento.id}`}>{documento.nome}</option>)}
                 </optgroup>
                 <optgroup label="Formulários">
-                  {formularios.filter((formulario) => formulario.active !== false && (formulario.tipo === 'FormulÃ¡rio' || formulario.tipo === 'Formulário') && formulario.id !== editingId).map((formulario) => <option key={`Formulário:${formulario.id}`} value={`Formulário:${formulario.id}`}>{formulario.nome}</option>)}
+                  {formularios.filter((formulario) => formulario.active !== false && formulario.tipo === 'formulario' && formulario.id !== editingId).map((formulario) => <option key={`formulario:${formulario.id}`} value={`formulario:${formulario.id}`}>{formulario.nome}</option>)}
                 </optgroup>
               </select>
               <button type="button" onClick={handleVincularItem} className="px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold text-sm">Vincular item</button>
@@ -639,7 +639,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
                   {editingDocs[doc.id] ? (
                     <div className="flex flex-col gap-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-on-surface-variant text-[13px] font-bold uppercase tracking-wider">{doc.tipo || 'Documento'} {idx + 1} (Editando)</span>
+                        <span className="text-on-surface-variant text-[13px] font-bold uppercase tracking-wider">{doc.tipo === 'formulario' ? 'Formulário' : 'Documento'} {idx + 1} (Editando)</span>
                         <div className="flex gap-2">
                           <button
                             type="button"
@@ -719,7 +719,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex flex-col gap-1 flex-1">
                         <span className="font-bold text-on-surface text-[14px]">
-                          {idx + 1}. {doc.nome || 'Item sem nome'} <span className="ml-2 rounded bg-surface-variant px-2 py-0.5 text-[10px] uppercase">{doc.tipo || 'Documento'}</span>
+                          {idx + 1}. {doc.nome || 'Item sem nome'} <span className="ml-2 rounded bg-surface-variant px-2 py-0.5 text-[10px] uppercase">{doc.tipo === 'formulario' ? 'Formulário' : 'Documento'}</span>
                         </span>
                         <span className={`text-xs font-semibold ${doc.obrigatorio === false ? 'text-on-surface-variant' : 'text-primary'}`}>{doc.obrigatorio === false ? 'Opcional' : 'Obrigatório'}</span>
                         {(doc.info || doc.url_template) && (
@@ -899,7 +899,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
             onClick={() => void handleSave()}
             className="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:cursor-wait disabled:opacity-60"
           >
-            {salvando ? 'Salvando no banco...' : tipo === 'Documento' ? editingId ? 'Salvar Documento' : 'Adicionar Documento' : editingId ? 'Salvar Tudo (Formulário e Subitens)' : 'Adicionar Formulário'}
+            {salvando ? 'Salvando no banco...' : tipo === 'documento' ? editingId ? 'Salvar Documento' : 'Adicionar Documento' : editingId ? 'Salvar Tudo (Formulário e Subitens)' : 'Adicionar Formulário'}
           </button>
         </div>
       </div>
@@ -965,7 +965,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
           <tbody className="bg-surface-container-lowest divide-y divide-outline-variant">
             {formulariosPagina.map((form) => {
               const linha = linhasApoio.find((l) => l.id === form.linhaApoioId);
-              const resumo = form.tipo === 'Documento'
+              const resumo = form.tipo === 'documento'
                 ? form.documentosSolicitados[0]?.info?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || 'Documento oficial.'
                 : form.normas || 'Sem normas.';
               return (

@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const lerJson = (root, nome) => JSON.parse(fs.readFileSync(path.join(root, 'data', nome), 'utf8'));
-const slug = (valor) => valor.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 export async function executar(pool, root) {
   await pool.query(`
@@ -15,7 +14,7 @@ export async function executar(pool, root) {
       id TEXT PRIMARY KEY,
       nome TEXT NOT NULL,
       tipo TEXT NOT NULL CHECK (tipo IN ('Projetos', 'Programa de Apoio')),
-      tipo_cadastro TEXT NOT NULL DEFAULT 'Formulário' CHECK (tipo_cadastro IN ('Formulário', 'Documento')),
+      tipo_cadastro TEXT NOT NULL DEFAULT 'formulario' CHECK (tipo_cadastro IN ('formulario', 'documento')),
       linha_apoio_id TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL CHECK (status IN ('Aberto', 'Fechado')),
       normas TEXT NOT NULL DEFAULT '',
@@ -44,7 +43,7 @@ export async function executar(pool, root) {
   await pool.query('ALTER TABLE cadastros_formularios ADD COLUMN IF NOT EXISTS habilitado BOOLEAN NOT NULL DEFAULT TRUE');
 
   await pool.query(`ALTER TABLE cadastros_formularios
-    ADD COLUMN IF NOT EXISTS tipo_cadastro TEXT NOT NULL DEFAULT 'Formulário'`);
+    ADD COLUMN IF NOT EXISTS tipo_cadastro TEXT NOT NULL DEFAULT 'formulario'`);
 
   const versaoImportacao = '008_importacao_sqlite_catalogo';
   const importacaoAplicada = await pool.query('SELECT 1 FROM schema_migrations WHERE version = $1', [versaoImportacao]);
@@ -66,7 +65,7 @@ export async function executar(pool, root) {
                 (id, nome, tipo, tipo_cadastro, linha_apoio_id, status, normas, periodos_submissao, documentos_solicitados, active)
               VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10)
               ON CONFLICT (id) DO NOTHING
-            `, [registro.id, registro.nome, registro.tipo, registro.tipo_cadastro || 'Formulário',
+            `, [registro.id, registro.nome, registro.tipo, normalizarTipoCadastro(registro.tipo_cadastro),
               registro.linha_apoio_id || '', registro.status, registro.normas || '', JSON.stringify(periodos),
               JSON.stringify(documentos), registro.active !== 0]);
           }
@@ -92,44 +91,17 @@ export async function executar(pool, root) {
   const aplicada = await pool.query('SELECT 1 FROM schema_migrations WHERE version = $1', [versao]);
   if (aplicada.rowCount) return;
 
-  const catalogo = lerJson(root, 'mapeamento_formularios.json');
-  const calendario = lerJson(root, 'mapeamento_calendario_de_submissao.json');
-  const projetos = lerJson(root, 'formularios_projetos.json');
-  const calendarioPorNome = new Map(calendario.map((item) => [item.formulario, item]));
-  const registros = [
-    ...catalogo.map((item, index) => ({
-      id: `apoio-${slug(item.formulario)}-${index}`,
-      nome: item.formulario,
-      tipo: 'Programa de Apoio',
-      tipoCadastro: 'Formulário',
-      linhaApoioId: `linha-${slug(item.linha_de_incentivo || 'sem-linha')}`,
-      status: item.status_de_abertura || calendarioPorNome.get(item.formulario)?.status_de_abertura || 'Fechado',
-      normas: item.normas || '',
-      periodos: item.periodos_de_submissao || calendarioPorNome.get(item.formulario)?.periodos_de_submissao || [],
-      documentos: (item.documentos_solicitados || []).map((nome, docIndex) => ({
-        id: `${slug(item.formulario)}-doc-${docIndex + 1}`,
-        nome,
-        info: '',
-        url_template: '',
-      })),
-    })),
-    ...projetos.map((item) => ({
-      id: item.id,
-      nome: item.formulario,
-      tipo: 'Projetos',
-      tipoCadastro: item.id.startsWith('documento-') ? 'Documento' : 'Formulário',
-      linhaApoioId: '',
-      status: item.status_de_abertura || 'Aberto',
-      normas: item.normas || '',
-      periodos: [],
-      documentos: (item.documentos_solicitados || []).map((nome, docIndex) => ({
-        id: `${item.id}-doc-${docIndex + 1}`,
-        nome,
-        info: '',
-        url_template: '',
-      })),
-    })),
-  ];
+  const registros = lerJson(root, 'cadastros_formularios.json').map((item) => ({
+    id: item.id,
+    nome: item.nome,
+    tipo: item.tipo,
+    tipoCadastro: normalizarTipoCadastro(item.tipo_cadastro),
+    linhaApoioId: item.linha_apoio_id,
+    status: item.status,
+    normas: item.normas,
+    periodos: item.periodos_submissao || [],
+    documentos: item.documentos_solicitados || [],
+  }));
 
   const client = await pool.connect();
   try {
@@ -156,4 +128,9 @@ export async function executar(pool, root) {
 const parseJsonSeguro = (valor, fallback) => {
   if (typeof valor !== 'string') return valor ?? fallback;
   try { return JSON.parse(valor); } catch { return fallback; }
+};
+
+const normalizarTipoCadastro = (valor) => {
+  const tipo = String(valor || 'formulario').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  return tipo === 'documento' ? 'documento' : 'formulario';
 };

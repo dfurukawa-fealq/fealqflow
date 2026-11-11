@@ -42,7 +42,9 @@ for (const formulario of formularios) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(processo) });
     });
 
-    await page.goto(`${formulario.rota}?inicio=00000000-0000-4000-8000-000000000001`);
+    await page.goto(formulario.rota);
+    await expect(page).not.toHaveURL(/\?processo=/);
+    await page.getByRole('button', { name: 'Salvar Rascunho' }).click();
     await expect(page).toHaveURL(new RegExp(`${formulario.rota}\\?processo=${processoId}`));
     await expect(page.locator('body')).toContainText(/Salvar Rascunho|Salvar/);
     await expect(page.locator('input, textarea, select').first()).toBeVisible();

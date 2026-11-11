@@ -23,8 +23,16 @@ interface ContextoProcesso {
   registrarDocumentos: (itens: Array<{ id: string; obrigatorio: boolean; concluido: boolean; preenchido: boolean; emitido: boolean }>) => Promise<void>;
 }
 
+interface ContextoProcessoNovo {
+  dados: DadosProcesso;
+  erro: string;
+  salvando: boolean;
+  atualizarCampo: (campo: string, valor: unknown) => void;
+  salvar: () => Promise<void>;
+}
+
 const ProcessoContext = createContext<ContextoProcesso | null>(null);
-const requisicoesCriacao = new Map<string, Promise<ProcessoComToken>>();
+const ProcessoNovoContext = createContext<ContextoProcessoNovo | null>(null);
 const gerarBytes = (tamanho: number) => crypto.getRandomValues(new Uint8Array(tamanho));
 const gerarUuid = () => {
   const bytes = gerarBytes(16);
@@ -87,7 +95,6 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
   const parametros = new URLSearchParams(location.search);
   const id = parametros.get('processo');
   const somenteLeituraSolicitada = parametros.get('modo') === 'consulta';
-  const inicio = parametros.get('inicio');
   const [processo, setProcesso] = useState<Processo | null>(null);
   const [erro, setErro] = useState('');
   const [tentativa, setTentativa] = useState(0);
@@ -98,38 +105,7 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
     setProcesso(null);
     setErro('');
     if (!id) {
-      if (!inicio) {
-        const chave = gerarUuid();
-        safeSetItem(`@Fealq:inicio:${chave}`, gerarToken());
-        const busca = new URLSearchParams(location.search);
-        busca.set('inicio', chave);
-        navigate(`${location.pathname}?${busca.toString()}`, { replace: true });
-        return () => { ativo = false; };
-      }
-      if (!/^[0-9a-f-]{36}$/i.test(inicio)) {
-        setErro('Identificador de início inválido. Abra o formulário novamente pela lista.');
-        return () => { ativo = false; };
-      }
-      let tokenCriacao = safeGetItem(`@Fealq:inicio:${inicio}`);
-      if (!tokenCriacao) {
-        tokenCriacao = gerarToken();
-        safeSetItem(`@Fealq:inicio:${inicio}`, tokenCriacao);
-      }
-      let requisicao = requisicoesCriacao.get(inicio);
-      if (!requisicao) {
-        requisicao = criarProcesso(location.pathname, inicio, tokenCriacao, parametros.get('processo_pai'));
-        requisicoesCriacao.set(inicio, requisicao);
-        void requisicao.finally(() => requisicoesCriacao.delete(inicio)).catch(() => undefined);
-      }
-      requisicao.then((novo) => {
-        if (!ativo) return;
-        registrarProcessoLocal(novo, parametros.get('processo_pai'));
-        safeRemoveItem(`@Fealq:inicio:${inicio}`);
-        const busca = new URLSearchParams(location.search);
-        busca.delete('inicio');
-        busca.set('processo', novo.id);
-        navigate(`${location.pathname}?${busca.toString()}`, { replace: true });
-      }).catch((falha: unknown) => { if (ativo) setErro(falha instanceof Error ? falha.message : 'Não foi possível iniciar o processo.'); });
+      setToken('');
     } else {
       const chaveToken = safeGetItem(`@Fealq:processo:${id}`) || '';
       setToken(chaveToken);
@@ -148,18 +124,17 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
       }).catch((falha: unknown) => { if (ativo) setErro(falha instanceof Error ? falha.message : 'Não foi possível abrir o processo.'); });
     }
     return () => { ativo = false; };
-  }, [id, inicio, location.key, location.pathname, location.search, navigate, tentativa]);
+  }, [id, location.key, location.pathname, location.search, tentativa]);
 
   const novaTentativa = useCallback(async () => {
-    const chave = gerarUuid();
-    safeSetItem(`@Fealq:inicio:${chave}`, gerarToken());
     const busca = new URLSearchParams(location.search);
     busca.delete('processo');
+    busca.delete('inicio');
     if (!busca.has('processo_pai')) {
       for (const chave of ['protocolo', 'sessao', 'origem', 'form_codigo']) busca.delete(chave);
     }
-    busca.set('inicio', chave);
-    navigate(`${location.pathname}?${busca.toString()}`);
+    const consulta = busca.toString();
+    navigate(`${location.pathname}${consulta ? `?${consulta}` : ''}`);
   }, [location.pathname, location.search, navigate]);
 
   const area = location.pathname.startsWith('/projetos/') ? 'projeto' : 'apoio';
@@ -175,7 +150,12 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
       </div>
     </main>
   );
-  if (!processo || !id) return <div className="p-lg text-on-surface" role="status">Preparando processo...</div>;
+  if (!id) return (
+    <ProcessoNovoProvider rota={location.pathname} processoPaiId={parametros.get('processo_pai')}>
+      {children}
+    </ProcessoNovoProvider>
+  );
+  if (!processo) return <div className="p-lg text-on-surface" role="status">Carregando processo...</div>;
   const processoEditavel = ['rascunho', 'em_preenchimento'].includes(processo.status);
   if (!processoEditavel && !somenteLeituraSolicitada) return (
     <main className="mx-auto flex w-full max-w-[600px] flex-col gap-md p-lg">
@@ -185,6 +165,88 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
     </main>
   );
   return <ProcessoProvider key={processo.id} processoInicial={processo} token={token} novaTentativa={novaTentativa} somenteLeitura={!processoEditavel || somenteLeituraSolicitada}>{children}</ProcessoProvider>;
+};
+
+const resumoDosCampos = (dados: DadosProcesso) => {
+  const campos = dados.campos;
+  const lerCampo = (...nomes: string[]) => {
+    for (const nome of nomes) {
+      const chave = Object.keys(campos).find((item) => item === nome || item.startsWith(`campo:${nome}:`));
+      const valor = chave ? campos[chave] : undefined;
+      if (typeof valor === 'string' && valor.trim()) return valor.trim();
+    }
+    return '';
+  };
+  return {
+    titulo: lerCampo('titulo', 'tituloPesquisa', 'nomeProjeto', 'nomeEvento', 'Título do Projeto', 'Título do Curso/Evento'),
+    solicitanteNome: lerCampo('coordNome', 'nome', 'Nome Completo do Coordenador'),
+    solicitanteEmail: lerCampo('coordEmail', 'email', 'E-mail Institucional'),
+  };
+};
+
+const ProcessoNovoProvider = ({ children, rota, processoPaiId }: {
+  children: ReactNode;
+  rota: string;
+  processoPaiId: string | null;
+}) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [dados, setDados] = useState<DadosProcesso>({ campos: {} });
+  const [erro, setErro] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const dadosRef = useRef(dados);
+  const criacaoRef = useRef<Promise<void> | null>(null);
+  const credenciaisRef = useRef({ chaveCriacao: gerarUuid(), token: gerarToken() });
+
+  const atualizarCampo = useCallback((campo: string, valor: unknown) => {
+    setDados((atual) => {
+      if (JSON.stringify(atual.campos[campo]) === JSON.stringify(valor)) return atual;
+      const proximo = { campos: { ...atual.campos, [campo]: valor } };
+      dadosRef.current = proximo;
+      return proximo;
+    });
+  }, []);
+
+  const salvar = useCallback((): Promise<void> => {
+    if (criacaoRef.current) return criacaoRef.current;
+    const tarefa = (async () => {
+      setSalvando(true);
+      setErro('');
+      const { chaveCriacao, token: tokenCriacao } = credenciaisRef.current;
+      try {
+        const novo = await criarProcesso(rota, chaveCriacao, tokenCriacao, processoPaiId);
+        registrarProcessoLocal(novo, processoPaiId);
+        const resposta = await fetch(`/api/processos/${novo.id}`, {
+          method: 'PATCH',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json', 'x-processo-token': tokenCriacao },
+          body: JSON.stringify({
+            dados: dadosRef.current,
+            versao: novo.versao,
+            ...resumoDosCampos(dadosRef.current),
+          }),
+        });
+        if (!resposta.ok) throw new Error(await mensagemErro(resposta));
+        const busca = new URLSearchParams(location.search);
+        busca.delete('inicio');
+        busca.set('processo', novo.id);
+        navigate(`${rota}?${busca.toString()}`, { replace: true });
+      } catch (falha) {
+        const mensagem = falha instanceof Error ? falha.message : 'Não foi possível criar e salvar o rascunho.';
+        setErro(mensagem);
+        criacaoRef.current = null;
+        throw falha;
+      } finally {
+        setSalvando(false);
+      }
+    })();
+    criacaoRef.current = tarefa;
+    return tarefa;
+  }, [location.search, navigate, processoPaiId, rota]);
+
+  const valor = useMemo<ContextoProcessoNovo>(() => ({ dados, erro, salvando, atualizarCampo, salvar }),
+    [dados, erro, salvando, atualizarCampo, salvar]);
+  return <ProcessoNovoContext.Provider value={valor}>{children}</ProcessoNovoContext.Provider>;
 };
 
 const ProcessoProvider = ({ children, processoInicial, token, novaTentativa, somenteLeitura }: {
@@ -366,13 +428,19 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa, som
 };
 
 export const useProcesso = () => useContext(ProcessoContext);
+export const useProcessoNovo = () => useContext(ProcessoNovoContext);
 
 export function useProcessoState<T>(campo: string, inicial: T | (() => T), aliases: string[] = []): [T, Dispatch<SetStateAction<T>>] {
   const processo = useProcesso();
+  const processoNovo = useProcessoNovo();
   const [valor, setValor] = useState<T>(() => {
-    const salvo = processo?.dados.campos[campo] ?? aliases.map((alias) => processo?.dados.campos[alias]).find((item) => item !== undefined);
+    const campos = processo?.dados.campos ?? processoNovo?.dados.campos;
+    const salvo = campos?.[campo] ?? aliases.map((alias) => campos?.[alias]).find((item) => item !== undefined);
     return salvo !== undefined ? salvo as T : typeof inicial === 'function' ? (inicial as () => T)() : inicial;
   });
-  useEffect(() => { processo?.atualizarCampo(campo, valor); }, [campo, valor, processo?.atualizarCampo]);
+  useEffect(() => {
+    if (processo) processo.atualizarCampo(campo, valor);
+    else processoNovo?.atualizarCampo(campo, valor);
+  }, [campo, valor, processo, processoNovo]);
   return [valor, setValor];
 }

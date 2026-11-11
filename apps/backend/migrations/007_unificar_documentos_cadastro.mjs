@@ -19,23 +19,23 @@ export function executar(db) {
   const documentos = db.prepare('SELECT * FROM documentos_cadastro ORDER BY atualizado_em, criado_em, id').all();
   const formularios = db.prepare('SELECT * FROM cadastros_formularios').all();
   const atualizar = db.prepare(`UPDATE cadastros_formularios SET
-    nome = ?, tipo_cadastro = 'Documento', linha_apoio_id = '',
+    nome = ?, tipo_cadastro = 'documento', linha_apoio_id = '',
     documentos_solicitados = ?, active = ?, atualizado_em = CURRENT_TIMESTAMP
     WHERE id = ?`);
   const inserir = db.prepare(`INSERT INTO cadastros_formularios
     (id, nome, tipo, tipo_cadastro, linha_apoio_id, status, normas,
      periodos_submissao, documentos_solicitados, active)
-    VALUES (?, ?, 'Projetos', 'Documento', '', 'Fechado', '', '[]', ?, ?)`);
+    VALUES (?, ?, 'Projetos', 'documento', '', 'Fechado', '', '[]', ?, ?)`);
 
   db.exec('BEGIN');
   try {
     for (const documento of documentos) {
       const existentePorId = formularios.find((formulario) => formulario.id === documento.id);
       const existente = existentePorId || formularios.find((formulario) =>
-        formulario.tipo_cadastro === 'Documento'
+        formulario.tipo_cadastro === 'documento'
         && normalizarNome(formulario.nome) === normalizarNome(documento.nome));
       const id = existente?.id || documento.id;
-      const conteudoAtual = existente?.tipo_cadastro === 'Documento'
+      const conteudoAtual = existente?.tipo_cadastro === 'documento'
         ? parseJson(existente.documentos_solicitados, [])
         : [];
       const documentoAtual = conteudoAtual[0] || {};
@@ -49,12 +49,12 @@ export function executar(db) {
       if (existente) {
         const ativos = Boolean(existente.active) || Boolean(documento.active);
         atualizar.run(existente.nome || documento.nome, conteudo, ativos ? 1 : 0, id);
-        existente.tipo_cadastro = 'Documento';
+        existente.tipo_cadastro = 'documento';
         existente.documentos_solicitados = conteudo;
         existente.active = ativos ? 1 : 0;
       } else {
         inserir.run(id, documento.nome, conteudo, documento.active === 0 ? 0 : 1);
-        formularios.push({ id, nome: documento.nome, tipo_cadastro: 'Documento', documentos_solicitados: conteudo });
+        formularios.push({ id, nome: documento.nome, tipo_cadastro: 'documento', documentos_solicitados: conteudo });
       }
     }
 

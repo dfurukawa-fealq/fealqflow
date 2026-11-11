@@ -152,7 +152,7 @@ export const KitDocumental = ({
             arquivoSalvo={processo?.documentos.find((item) => item.id === doc.id)?.arquivo_nome || undefined}
             preenchido={processo?.documentos.find((item) => item.id === doc.id)?.preenchido ?? false}
             emitido={processo?.documentos.find((item) => item.id === doc.id)?.emitido ?? false}
-            somenteLeitura={processo?.somenteLeitura ?? false}
+            somenteLeitura={!processo || processo.somenteLeitura}
             enviando={enviando === doc.id}
             onBaixar={arquivoSalvo => { if (processo) void processo.baixarDocumento(doc.id, arquivoSalvo).catch((falha: unknown) => setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível baixar o anexo.')); }}
             onSelecionar={(a) => { void selecionar(doc.id, a); }}
@@ -162,7 +162,7 @@ export const KitDocumental = ({
       </div>
 
       <p className="text-[10px] text-on-surface-variant mt-sm leading-tight">
-        {nota} {documentos.length} documentos previstos.
+        {!processo ? 'Salve o rascunho para habilitar os anexos. ' : nota} {documentos.length} documentos previstos.
       </p>
     </section>
   );

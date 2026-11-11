@@ -123,8 +123,10 @@ const validarEstadoCompletoDoKit = async (page: Page, programa: ProgramaApoio) =
 const preencherEEnviar = async (page: Page, programa: ProgramaApoio) => {
   const marcador = `E2E ${programa.id} ${Date.now()}`;
   await page.goto(programa.path);
-  await expect(page).toHaveURL(new RegExp(`${programa.path.replaceAll('/', '\\/')}\\?processo=`));
+  await expect(page).not.toHaveURL(/\?processo=/);
   await preencherCamposDoFormulario(page, marcador);
+  await page.getByRole('button', { name: 'Salvar Rascunho' }).click();
+  await expect(page).toHaveURL(new RegExp(`${programa.path.replaceAll('/', '\\/')}\\?processo=`));
   await anexarKitCompleto(page, programa, marcador);
   await validarEstadoCompletoDoKit(page, programa);
 

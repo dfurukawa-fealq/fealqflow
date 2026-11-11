@@ -10,7 +10,9 @@ import { executar as executarCatalogoPostgreSQL } from '../migrations/008_catalo
 import { executar as executarAutenticacao } from '../migrations/010_autenticacao_admin.mjs';
 import { executarProcessos } from '../migrations/011_processos.mjs';
 import { executar as executarPerfisTenants } from '../migrations/012_perfis_tenants.mjs';
+import { executar as executarTipoCadastroCanonico } from '../migrations/013_tipo_cadastro_canonico.mjs';
 import { hashPassword, verifyPassword } from './passwords.mjs';
+import { carregarFormulariosArquivo, erroFonteSomenteLeitura, fonteDaArea, fontesDados } from './fontesDados.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../../..');
@@ -34,6 +36,7 @@ try {
   await executarCatalogoPostgreSQL(pool, root);
   await executarAutenticacao(pool);
   await executarPerfisTenants(pool);
+  await executarTipoCadastroCanonico(pool);
   await executarProcessos(pool);
 } catch (erro) {
   await pool.end();
@@ -132,12 +135,16 @@ const parseJson = (value, fallback) => {
 const normalizarCaminhoTemplate = (caminho) => typeof caminho === 'string'
   ? caminho.trim().replace(/^\/?template\//i, '/templates/')
   : '';
+const normalizarTipoCadastro = (valor) => String(valor || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase() === 'formulario' ? 'formulario' : 'documento';
 const normalizarDocumentosSolicitados = (valor) => {
   const documentos = parseJson(valor, []);
   if (!Array.isArray(documentos)) return [];
   return documentos.filter((documento) => documento && typeof documento === 'object').map((documento) => ({
     ...documento,
-    tipo: documento.tipo === 'FormulÃƒÂ¡rio' || documento.tipo === 'FormulÃ¡rio' ? 'FormulÃ¡rio' : 'Documento',
+    tipo: normalizarTipoCadastro(documento.tipo),
     obrigatorio: documento.obrigatorio !== false,
     url_template: normalizarCaminhoTemplate(documento.url_template),
   }));
@@ -147,14 +154,14 @@ const serializar = (row) => ({
   id: row.id,
   nome: row.nome,
   area: row.area || row.tipo,
-  tipo: row.tipo_cadastro || 'FormulÃ¡rio',
+  tipo: row.tipo_cadastro || 'formulario',
   linhaApoioId: row.linha_apoio_id,
   status: row.status,
   normas: row.normas,
   periodosSubmissao: parseJson(row.periodos_submissao, []),
   documentosSolicitados: normalizarDocumentosSolicitados(row.documentos_solicitados),
   active: Boolean(row.active),
-  habilitado: row.habilitado !== false,
+  habilitado: row.habilitado === true,
   nSeq: Number(row.nseq || 0),
 });
 
@@ -166,8 +173,8 @@ const validar = (body) => {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corpo JSON invÃ¡lido.';
   if (typeof body.nome !== 'string' || !body.nome.trim() || body.nome.length > 200) return 'Nome invÃ¡lido (mÃ¡ximo 200 caracteres).';
   if (!['Projetos', 'Programa de Apoio'].includes(body.area)) return 'Ãrea invÃ¡lida.';
-  if (!['FormulÃ¡rio', 'Documento'].includes(body.tipo)) return 'Tipo invÃ¡lido.';
-  if (body.tipo === 'FormulÃ¡rio' && (typeof body.linhaApoioId !== 'string' || !body.linhaApoioId.trim() || body.linhaApoioId.length > 120)) return 'Linha de apoio invÃ¡lida.';
+  if (!['formulario', 'documento'].includes(body.tipo)) return 'Tipo inválido.';
+  if (body.tipo === 'formulario' && (typeof body.linhaApoioId !== 'string' || !body.linhaApoioId.trim() || body.linhaApoioId.length > 120)) return 'Linha de apoio inválida.';
   if (!['Aberto', 'Fechado'].includes(body.status)) return 'Status invÃ¡lido.';
   if (body.id !== undefined && !validarId(body.id)) return 'ID invÃ¡lido.';
   if (body.normas !== undefined && (typeof body.normas !== 'string' || body.normas.length > 500000)) return 'Texto de regras invÃ¡lido ou grande demais.';
@@ -183,7 +190,7 @@ const validar = (body) => {
   for (const documento of body.documentosSolicitados || []) {
     if (!documento || typeof documento !== 'object' || !validarId(documento.id)
       || typeof documento.nome !== 'string' || documento.nome.length > 200
-      || (documento.tipo !== undefined && !['Documento', 'FormulÃƒÂ¡rio', 'FormulÃ¡rio'].includes(documento.tipo))
+      || (documento.tipo !== undefined && !['documento', 'formulario'].includes(documento.tipo))
       || (documento.obrigatorio !== undefined && typeof documento.obrigatorio !== 'boolean')
       || (documento.documentoId !== undefined && !validarId(documento.documentoId))
       || (documento.info !== undefined && (typeof documento.info !== 'string' || documento.info.length > 500000))
@@ -393,7 +400,7 @@ app.post('/api/auth/change-password', validarOrigem, exigirSessao, asyncRoute(as
 }));
 
 const buscarDocumentosPrincipais = async () => {
-  const { rows } = await pool.query("SELECT * FROM cadastros_formularios WHERE tipo_cadastro = 'Documento'");
+  const { rows } = await pool.query("SELECT * FROM cadastros_formularios WHERE tipo_cadastro = 'documento'");
   return rows;
 };
 
@@ -417,9 +424,9 @@ const salvarDocumentoPrincipal = async (id, documento, existente) => {
   const { rows } = await pool.query(`
     INSERT INTO cadastros_formularios
       (id, nome, tipo, tipo_cadastro, linha_apoio_id, status, normas, periodos_submissao, documentos_solicitados, active)
-    VALUES ($1, $2, $3, 'Documento', '', 'Fechado', '', '[]'::jsonb, $4::jsonb, TRUE)
+    VALUES ($1, $2, $3, 'documento', '', 'Fechado', '', '[]'::jsonb, $4::jsonb, TRUE)
     ON CONFLICT (id) DO UPDATE SET
-      nome = EXCLUDED.nome, tipo_cadastro = 'Documento', documentos_solicitados = EXCLUDED.documentos_solicitados,
+      nome = EXCLUDED.nome, tipo_cadastro = 'documento', documentos_solicitados = EXCLUDED.documentos_solicitados,
       active = TRUE, atualizado_em = CURRENT_TIMESTAMP
     RETURNING *
   `, [idPrincipal, nome, existente?.tipo || 'Projetos', JSON.stringify(conteudo)]);
@@ -428,7 +435,7 @@ const salvarDocumentoPrincipal = async (id, documento, existente) => {
 
 app.get('/api/health', asyncRoute(async (_request, response) => {
   await pool.query('SELECT 1');
-  return response.json({ ok: true, database: 'available', engine: 'postgresql' });
+  return response.json({ ok: true, database: 'available', engine: 'postgresql', dataSources: fontesDados });
 }));
 
 app.get('/api/processos', exigirSessao, asyncRoute(async (request, response) => {
@@ -761,7 +768,7 @@ app.get('/api/documentos', asyncRoute(async (request, response) => {
   const area = escopo === 'projeto' ? 'Projetos' : escopo === 'prog_apoio' ? 'Programa de Apoio' : null;
   const valores = area ? [area] : [];
   const { rows } = await pool.query(`SELECT * FROM cadastros_formularios
-    WHERE tipo_cadastro = 'Documento' AND active = TRUE AND habilitado = TRUE
+    WHERE tipo_cadastro = 'documento' AND active = TRUE AND habilitado = TRUE
     ${area ? 'AND tipo = $1' : ''} ORDER BY nome`, valores);
   return response.json(rows.map((row) => {
     const doc = parseJson(row.documentos_solicitados, [])[0] || {};
@@ -795,7 +802,7 @@ app.post('/api/documentos', validarOrigem, exigirAdmin, asyncRoute(async (reques
   if (error) return response.status(400).json({ error });
   const id = request.body.id || randomUUID();
   const registro = await pool.query('SELECT tipo_cadastro FROM cadastros_formularios WHERE id = $1', [id]);
-  if (registro.rowCount && registro.rows[0].tipo_cadastro !== 'Documento') return response.status(409).json({ error: 'O ID pertence a outro tipo de cadastro.' });
+  if (registro.rowCount && registro.rows[0].tipo_cadastro !== 'documento') return response.status(409).json({ error: 'O ID pertence a outro tipo de cadastro.' });
   const existente = await buscarDocumentoPrincipal(id);
   if (existente) return response.status(409).json({ error: 'Documento jÃ¡ cadastrado; use PUT para editar.' });
   const mesmoNome = (await buscarDocumentosPrincipais()).find((documento) =>
@@ -833,15 +840,19 @@ app.get('/api/formularios', asyncRoute(async (request, response) => {
   const usuario = await buscarSessao(request);
   const escopo = escopoDoUsuario(usuario);
   const area = escopo === 'projeto' ? 'Projetos' : escopo === 'prog_apoio' ? 'Programa de Apoio' : null;
-  const valores = area ? [area] : [];
-  const { rows } = await pool.query(`SELECT * FROM cadastros_formularios
-    ${area ? 'WHERE tipo = $1' : ''} ORDER BY nseq ASC, nome ASC`, valores);
-  return response.json(rows.map(serializar));
+  const areas = area ? [area] : ['Projetos', 'Programa de Apoio'];
+  const resultados = await Promise.all(areas.map(async (areaAtual) => {
+    if (fonteDaArea(areaAtual) === 'file') return carregarFormulariosArquivo(root, areaAtual);
+    const { rows } = await pool.query('SELECT * FROM cadastros_formularios WHERE tipo = $1 ORDER BY nseq ASC, nome ASC', [areaAtual]);
+    return rows.map(serializar);
+  }));
+  return response.json(resultados.flat());
 }));
 
 app.post('/api/formularios', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
   const error = validar(request.body);
   if (error) return response.status(400).json({ error });
+  if (fonteDaArea(request.body.area) === 'file') return response.status(409).json(erroFonteSomenteLeitura(request.body.area));
   const id = request.body.id || randomUUID();
   const documentos = request.body.documentosSolicitados || [{
     id, nome: request.body.nome, info: request.body.descricao || '', url_template: request.body.template_url || '',
@@ -862,6 +873,9 @@ app.post('/api/formularios', validarOrigem, exigirAdmin, asyncRoute(async (reque
 }));
 
 app.put('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  const areaExistente = await pool.query('SELECT tipo FROM cadastros_formularios WHERE id = $1', [request.params.id]);
+  const areaAtualizacao = request.body?.area || areaExistente.rows[0]?.tipo;
+  if (areaAtualizacao && fonteDaArea(areaAtualizacao) === 'file') return response.status(409).json(erroFonteSomenteLeitura(areaAtualizacao));
   const chavesAtualizacaoParcial = Object.keys(request.body || {});
   if (chavesAtualizacaoParcial.length > 0 && chavesAtualizacaoParcial.every((chave) => chave === 'active' || chave === 'habilitado' || chave === 'nSeq')) {
     const { rows } = await pool.query(`
@@ -869,7 +883,7 @@ app.put('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (re
         active = COALESCE($1, active), habilitado = COALESCE($2, habilitado), nseq = COALESCE($3, nseq), atualizado_em = CURRENT_TIMESTAMP
       WHERE id = $4 RETURNING *
     `, [typeof request.body.active === 'boolean' ? request.body.active : null, typeof request.body.habilitado === 'boolean' ? request.body.habilitado : null, Number.isFinite(Number(request.body.nSeq)) ? Number(request.body.nSeq) : null, request.params.id]);
-    if (!rows[0]) return response.status(404).json({ error: 'FormulÃ¡rio nÃ£o encontrado.' });
+    if (!rows[0]) return response.status(404).json({ error: 'Formulário não encontrado.' });
     return response.json(serializar(rows[0]));
   }
   const error = validar(request.body);
@@ -885,14 +899,16 @@ app.put('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (re
   `, [request.body.nome.trim(), request.body.area, request.body.tipo, request.body.linhaApoioId || '',
     request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []),
     JSON.stringify(request.body.documentosSolicitados || []), request.body.active !== false, request.body.habilitado !== false, Number(request.body.nSeq || 0), request.params.id]);
-  if (!rows[0]) return response.status(404).json({ error: 'FormulÃ¡rio nÃ£o encontrado.' });
+  if (!rows[0]) return response.status(404).json({ error: 'Formulário não encontrado.' });
   return response.json(serializar(rows[0]));
 }));
 
 app.delete('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
   if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID invÃ¡lido.' });
+  const existente = await pool.query('SELECT tipo FROM cadastros_formularios WHERE id = $1', [request.params.id]);
+  if (existente.rows[0] && fonteDaArea(existente.rows[0].tipo) === 'file') return response.status(409).json(erroFonteSomenteLeitura(existente.rows[0].tipo));
   const { rowCount } = await pool.query('UPDATE cadastros_formularios SET active = FALSE, atualizado_em = CURRENT_TIMESTAMP WHERE id = $1', [request.params.id]);
-  if (!rowCount) return response.status(404).json({ error: 'FormulÃ¡rio nÃ£o encontrado.' });
+  if (!rowCount) return response.status(404).json({ error: 'Formulário não encontrado.' });
   return response.status(204).send();
 }));
 

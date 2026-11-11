@@ -129,7 +129,7 @@ export const ProjetosPage = () => {
     path: `/projetos/${formulario.slug}`,
   }));
   const forms = formularios
-    .filter((formulario) => formulario.area === 'Projetos' && formulario.tipo === 'Formulário' && formulario.active !== false && formulario.habilitado !== false)
+    .filter((formulario) => formulario.area === 'Projetos' && formulario.tipo === 'formulario' && formulario.active !== false && formulario.habilitado === true)
     .map((formulario) => {
       const rota = rotasDoCatalogo.find((item) => item.id === formulario.id) || rotas.find((item) => item.id === formulario.id) ||
         (formulario.nome.includes('Coordenador') ? rotas.find((item) => item.id === 'COORD') : undefined) ||

@@ -35,11 +35,11 @@ const login = async (page: Page) => {
 
 const criarProtocolo = async (page: Page, possuiConvenio: 'sim' | 'nao') => {
   await page.goto('/projetos/form-curso-evento');
-  await expect(page).toHaveURL(/\/projetos\/form-curso-evento\?processo=/);
+  await expect(page).not.toHaveURL(/\?processo=/);
   await page.locator(`input[name="possuiConvenio"][value="${possuiConvenio}"]`).check();
   await preencherCampos(page, `E2E Curso Evento ${possuiConvenio.toUpperCase()}`);
   await page.getByRole('button', { name: 'Salvar Rascunho' }).click();
-  await expect(page.getByRole('status').filter({ hasText: /Rascunho salvo/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/projetos\/form-curso-evento\?processo=/);
   return page.url();
 };
 

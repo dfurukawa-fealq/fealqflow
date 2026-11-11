@@ -16,7 +16,7 @@ export interface PeriodoSubmissao {
 export interface DocumentoSolicitadoAdmin {
   id: string;
   nome: string;
-  tipo?: 'Documento' | 'FormulÃ¡rio' | 'Formulário';
+  tipo?: 'documento' | 'formulario';
   documentoId?: string;
   referenciaTipo?: 'url' | 'documento';
   obrigatorio?: boolean;
@@ -38,7 +38,7 @@ export interface FormularioApoio {
   id: string;
   nome: string;
   area: 'Projetos' | 'Programa de Apoio';
-  tipo: 'Formulário' | 'FormulÃ¡rio' | 'Documento';
+  tipo: 'formulario' | 'documento';
   linhaApoioId: string;
   status: 'Aberto' | 'Fechado';
   periodosSubmissao: PeriodoSubmissao[];

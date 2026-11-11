@@ -52,7 +52,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [erroCarregarFormularios, setErroCarregarFormularios] = useState('');
 
   const documentos: DocumentoCadastro[] = formularios
-    .filter((formulario) => formulario.tipo === 'Documento')
+    .filter((formulario) => formulario.tipo === 'documento')
     .map((formulario) => ({
       id: formulario.id,
       nome: formulario.nome,
@@ -140,7 +140,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     setLinhasApoio((prev) => prev.map((l) => l.id === id ? { ...l, active: false } : l));
   };
 
-  // FormulÃ¡rios
+  // Formulários
   const addFormulario = async (form: Omit<FormularioApoio, 'id'> & { id?: string }) => {
     const novo = { ...form, id: form.id || Math.random().toString(36).substring(7) };
     const response = await fetch('/api/formularios', {
@@ -190,7 +190,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const addDocumento = async (documento: Omit<DocumentoCadastro, 'id'> & { id?: string }) => {
     const id = documento.id || Math.random().toString(36).substring(7);
     const novoFormulario: FormularioApoio = {
-      id, nome: documento.nome, area: 'Projetos', tipo: 'Documento', linhaApoioId: '',
+      id, nome: documento.nome, area: 'Projetos', tipo: 'documento', linhaApoioId: '',
       status: 'Fechado', periodosSubmissao: [], normas: '',
       documentosSolicitados: [{ id, nome: documento.nome, info: documento.descricao, url_template: documento.template_url }],
       active: documento.active !== false,
@@ -205,7 +205,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   };
   const updateDocumento = async (id: string, updates: Partial<DocumentoCadastro>) => {
     const documentoAtual = documentos.find((documento) => documento.id === id);
-    const formularioAtual = formularios.find((formulario) => formulario.id === id && formulario.tipo === 'Documento');
+    const formularioAtual = formularios.find((formulario) => formulario.id === id && formulario.tipo === 'documento');
     if (!documentoAtual || !formularioAtual) throw new Error('Documento não encontrado no cadastro atual. Atualize a lista e tente novamente.');
     const nome = updates.nome || documentoAtual.nome;
     const atualizado: FormularioApoio = {
@@ -272,7 +272,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         id: p.id,
         nome: p.titulo,
         area: 'Programa de Apoio' as const,
-        tipo: 'FormulÃ¡rio' as const,
+        tipo: 'formulario' as const,
         linhaApoioId: linhasMap.get(p.linha)?.id || '',
         status: 'Aberto',
         periodosSubmissao: [],

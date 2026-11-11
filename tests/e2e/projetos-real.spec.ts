@@ -65,11 +65,11 @@ test('preenche e salva os três formulários de Projetos no banco real', async (
 
   for (const formulario of formularios) {
     await page.goto(formulario.rota);
-    await expect(page).toHaveURL(new RegExp(`${formulario.rota}\\?processo=`));
+    await expect(page).not.toHaveURL(/\?processo=/);
     await preencherCamposVisiveis(page, formulario.marcador);
-    await preencherUploadsDoKit(page, formulario.marcador);
     await page.getByRole('button', { name: 'Salvar Rascunho' }).click();
-    await expect(page.getByRole('status')).toContainText(/salvo/i);
+    await expect(page).toHaveURL(new RegExp(`${formulario.rota}\\?processo=`));
+    await preencherUploadsDoKit(page, formulario.marcador);
     await validarKitCompleto(page);
   }
 

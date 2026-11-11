@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { TopBar } from '../TopBar';
 import { EnvioContext } from './EnvioContext';
 import { FormActionButton } from './FormActionButton';
-import { useProcesso } from '../../contexts/ProcessoContext';
+import { useProcesso, useProcessoNovo } from '../../contexts/ProcessoContext';
 import { armazenamentoPersistenteDisponivel } from '../../utils/safeStorage';
 import { RelatorioFormulario } from './RelatorioFormulario';
 
@@ -55,6 +55,7 @@ export const FormPageLayout = ({
 }: FormPageLayoutProps) => {
   const navigate = useNavigate();
   const processo = useProcesso();
+  const processoNovo = useProcessoNovo();
   const somenteLeitura = processo?.somenteLeitura ?? false;
   const mainRef = useRef<HTMLElement>(null);
   const ocupadoRef = useRef(false);
@@ -85,7 +86,7 @@ export const FormPageLayout = ({
   );
   const envio = useMemo(() => ({ registrarPendencias }), [registrarPendencias]);
   const liberado = (podeEnviar ?? true) && (pendencias === null || pendencias === 0)
-    && Boolean(processo || aoSubmeter) && !executando && !somenteLeitura;
+    && Boolean(processo || (aoSubmeter && !processoNovo)) && !executando && !somenteLeitura;
 
   useEffect(() => {
     // Os campos do formulário são controlados pelo React/ProcessoContext.
@@ -131,10 +132,11 @@ export const FormPageLayout = ({
   };
 
   const salvarRascunho = () => {
-    if (!processo) return;
+    const salvar = processo?.salvar ?? processoNovo?.salvar;
+    if (!salvar) return;
     void executar(async () => {
       try {
-        await processo.salvar();
+        await salvar();
         mostrarToast('sucesso', 'Rascunho salvo com sucesso!');
       } catch (falha) {
         mostrarToast('erro', falha instanceof Error ? falha.message : 'Não foi possível salvar o rascunho.');
@@ -191,7 +193,8 @@ export const FormPageLayout = ({
           <div className="print:hidden">
             {alerta}
           </div>
-          {(erroAcao || processo?.erro) && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAcao || processo?.erro}</p>}
+          {(erroAcao || processo?.erro || processoNovo?.erro) && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAcao || processo?.erro || processoNovo?.erro}</p>}
+          {processoNovo && <p className="mb-md rounded border border-primary/25 bg-primary/5 p-sm text-xs text-primary">Este formulário ainda não criou um processo. Preencha os dados e clique em <strong>Salvar Rascunho</strong> para gerar o protocolo e habilitar anexos e envio.</p>}
           {processo && <p className="mb-md text-xs text-on-surface-variant">Processo {processo.processo.protocolo} · {processo.salvando ? 'Salvando rascunho...' : armazenamentoPersistenteDisponivel ? 'Rascunho disponível para retomada neste navegador' : 'O navegador bloqueia o armazenamento local; a retomada após fechá-lo pode não funcionar.'}</p>}
           {somenteLeitura && <p role="status" className="mb-md rounded border border-primary/30 bg-primary/5 p-sm text-sm text-primary">Protocolo enviado — visualização somente leitura.</p>}
 
@@ -352,7 +355,7 @@ export const FormPageLayout = ({
               {processo && !somenteLeitura && <FormActionButton texto="Reiniciar" icone="restart_alt" type="button" disabled={executando} onClick={() => {
                 if (window.confirm('Iniciar uma nova tentativa? O processo atual será preservado.')) void executar(async () => { await processo.salvar(); await processo.novaTentativa(); });
               }} />}
-              {mostrarRascunho && !somenteLeitura && <FormActionButton texto="Salvar Rascunho" icone="save" type="button" disabled={!processo || executando} onClick={salvarRascunho} />}
+              {mostrarRascunho && !somenteLeitura && <FormActionButton texto="Salvar Rascunho" icone="save" destaque={Boolean(processoNovo)} type="button" disabled={(!processo && !processoNovo) || executando || processoNovo?.salvando} onClick={salvarRascunho} />}
               {somenteLeitura && <span className="px-sm py-xs text-xs font-semibold text-on-surface-variant">Somente leitura</span>}
               {!somenteLeitura && <FormActionButton
                 texto={acaoPrincipal}

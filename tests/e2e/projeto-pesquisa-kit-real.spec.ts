@@ -34,11 +34,11 @@ const login = async (page: Page) => {
 
 const criarProtocoloPesquisa = async (page: Page, possuiConvenio: boolean) => {
   await page.goto('/projetos/form-pesquisa-v2');
-  await expect(page).toHaveURL(/\/projetos\/form-pesquisa-v2\?processo=/);
+  await expect(page).not.toHaveURL(/\?processo=/);
   await page.locator('input[name="possuiConvenioPesquisa"]').nth(possuiConvenio ? 0 : 1).check();
   await preencherCampos(page, `E2E Pesquisa ${possuiConvenio ? 'COM' : 'SEM'} CONVENIO`);
   await page.getByRole('button', { name: 'Salvar Rascunho' }).click();
-  await expect(page.getByRole('status').filter({ hasText: /Rascunho salvo/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/projetos\/form-pesquisa-v2\?processo=/);
   return page.url();
 };
 
