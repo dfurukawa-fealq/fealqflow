@@ -114,5 +114,38 @@
     "descricao": "Documentos exigidos para o programa Cultura e Extensão Universitária.",
     "ordem": 9,
     "ativo": true
+  },
+  {
+    "id": "kit-financiadora-pessoa-juridica",
+    "formulario_id": "projeto-financiadora",
+    "nome": "Kit de Cadastro de Financiadora - Pessoa Jurídica",
+    "descricao": "Documentos para o cadastro de uma financiadora pessoa jurídica.",
+    "campo_condicional": "tipoFinanciadora",
+    "operador_condicional": "equals",
+    "valor_condicional": "PJ - Pessoa Jurídica",
+    "ordem": 1,
+    "ativo": true
+  },
+  {
+    "id": "kit-financiadora-pessoa-fisica",
+    "formulario_id": "projeto-financiadora",
+    "nome": "Kit de Cadastro de Financiadora - Pessoa Física",
+    "descricao": "Documentos para o cadastro de uma financiadora pessoa física.",
+    "campo_condicional": "tipoFinanciadora",
+    "operador_condicional": "equals",
+    "valor_condicional": "PF - Pessoa Física",
+    "ordem": 2,
+    "ativo": true
+  },
+  {
+    "id": "kit-financiadora-pessoa-estrangeira",
+    "formulario_id": "projeto-financiadora",
+    "nome": "Kit de Cadastro de Financiadora - Pessoa Estrangeira",
+    "descricao": "Documentos para o cadastro de uma financiadora estrangeira.",
+    "campo_condicional": "tipoFinanciadora",
+    "operador_condicional": "equals",
+    "valor_condicional": "PE - Pessoa Estrangeira",
+    "ordem": 3,
+    "ativo": true
   }
 ]

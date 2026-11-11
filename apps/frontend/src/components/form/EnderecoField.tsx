@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { buscarEnderecoPorCep } from '../../utils/cep';
 import { formatCEP } from '../../utils/formatters';
 import { useProcessoState } from '../../contexts/ProcessoContext';
@@ -10,6 +10,7 @@ export interface EnderecoFieldProps {
   prefixo?: string;
   obrigatorio?: boolean;
   aliases?: Partial<Record<'Cep' | 'Logradouro' | 'Numero' | 'Complemento' | 'Bairro' | 'Cidade' | 'Uf', string[]>>;
+  onValidadeChange?: (completo: boolean) => void;
 }
 
 /** Endereço reutilizável com preenchimento dos dados pelo serviço ViaCEP. */
@@ -19,6 +20,7 @@ export const EnderecoField = ({
   prefixo = 'endereco',
   obrigatorio = false,
   aliases = {},
+  onValidadeChange,
 }: EnderecoFieldProps) => {
   const chave = (nome: string) => prefixo ? `${prefixo}${nome}` : nome.toLocaleLowerCase('pt-BR');
   const [cep, setCep] = useProcessoState(chave('Cep'), '', aliases.Cep);
@@ -30,6 +32,11 @@ export const EnderecoField = ({
   const [uf, setUf] = useProcessoState(chave('Uf'), '', aliases.Uf);
   const [buscando, setBuscando] = useState(false);
   const [mensagem, setMensagem] = useState('');
+
+  useEffect(() => {
+    onValidadeChange?.(cep.replace(/\D/g, '').length === 8
+      && Boolean(logradouro.trim() && numero.trim() && bairro.trim() && cidade.trim() && uf.trim()));
+  }, [bairro, cep, cidade, logradouro, numero, onValidadeChange, uf]);
 
   const buscarCep = async () => {
     const valor = cep.replace(/\D/g, '');
