@@ -1,4 +1,4 @@
-/** Esquema conforme migrations/008_catalogo_postgresql.mjs. */
+/** Esquema normalizado conforme migrations/014_normalizar_kits_documentais.mjs. */
 export const CADASTROS_FORMULARIOS_TABLE = 'cadastros_formularios' as const;
 
 export type AreaFormulario = 'Projetos' | 'Programa de Apoio';
@@ -17,13 +17,12 @@ export interface CadastroFormularioRow {
   status: StatusFormulario;
   normas: string;
   periodos_submissao: JsonValue[];
-  documentos_solicitados: JsonValue[];
   active: boolean;
   habilitado: boolean;
   nseq: number;
   criado_em: string;
   atualizado_em: string;
-  dados_legados?: { fallback_projetos?: JsonValue };
+  dados_legados: { [key: string]: JsonValue };
 }
 
 export const CADASTROS_FORMULARIOS_COLUMNS = [
@@ -35,10 +34,10 @@ export const CADASTROS_FORMULARIOS_COLUMNS = [
   'status',
   'normas',
   'periodos_submissao',
-  'documentos_solicitados',
   'active',
   'habilitado',
   'nseq',
   'criado_em',
   'atualizado_em',
+  'dados_legados',
 ] as const satisfies readonly (keyof CadastroFormularioRow)[];

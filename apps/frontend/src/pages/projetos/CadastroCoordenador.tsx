@@ -5,6 +5,7 @@ import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
 import { KitDocumental } from '../../components/KitDocumental';
 import { DocumentoExigido } from '../../data/programasApoio';
+import { EnderecoField } from '../../components/form/EnderecoField';
 
 const DOCUMENTOS: DocumentoExigido[] = [
   {
@@ -113,33 +114,29 @@ export const CadastroCoordenador = () => {
       />
     </FormSection>
 
-    {/* <FormSection numero={3} icone="location_on" titulo="Endereço Comercial">
-      <Field label="CEP" span={3} placeholder="00000-000" />
-      <Field label="Logradouro" span={6} placeholder="Avenida Pádua Dias" />
-      <Field label="Número" span={3} placeholder="11" />
-      <Field label="Bairro" span={4} placeholder="Agronomia" />
-      <Field label="Cidade" span={5} placeholder="Piracicaba" />
-      <Field
-        label="Estado (UF)"
-        span={3}
-        tipo="select"
-        placeholder="UF"
-        opcoes={['SP']}
+    <FormSection numero={3} icone="location_on" titulo="Endereço Principal, Fatura e Cobrança">
+      <EnderecoField
+        titulo="Endereço Principal"
+        descricao="Endereço principal do coordenador"
+        prefixo="coordenadorEnderecoPrincipal"
+        aliases={{
+          Cep: ['campo:CEP'],
+          Logradouro: ['campo:Logradouro'],
+          Numero: ['campo:Número'],
+          Bairro: ['campo:Bairro'],
+          Cidade: ['campo:Cidade'],
+          Uf: ['campo:Estado (UF)'],
+        }}
       />
-    </FormSection> */}
-
-    <FormSection numero={3} icone="location_on" titulo="Endereço Residencial">
-      <Field label="CEP" span={3} placeholder="00000-000" />
-      <Field label="Logradouro" span={6} placeholder="Avenida Pádua Dias" />
-      <Field label="Número" span={3} placeholder="11" />
-      <Field label="Bairro" span={4} placeholder="Agronomia" />
-      <Field label="Cidade" span={5} placeholder="Piracicaba" />
-      <Field
-        label="Estado (UF)"
-        span={3}
-        tipo="select"
-        placeholder="UF"
-        opcoes={['SP']}
+      <EnderecoField
+        titulo="Endereço para Fatura"
+        descricao="Endereço utilizado na emissão de faturas"
+        prefixo="coordenadorEnderecoFatura"
+      />
+      <EnderecoField
+        titulo="Endereço para Cobrança"
+        descricao="Endereço utilizado para correspondências de cobrança"
+        prefixo="coordenadorEnderecoCobranca"
       />
     </FormSection>
 

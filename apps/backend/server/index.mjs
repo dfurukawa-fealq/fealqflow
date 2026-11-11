@@ -11,6 +11,8 @@ import { executar as executarAutenticacao } from '../migrations/010_autenticacao
 import { executarProcessos } from '../migrations/011_processos.mjs';
 import { executar as executarPerfisTenants } from '../migrations/012_perfis_tenants.mjs';
 import { executar as executarTipoCadastroCanonico } from '../migrations/013_tipo_cadastro_canonico.mjs';
+import { executar as executarKitsDocumentais } from '../migrations/014_normalizar_kits_documentais.mjs';
+import { executar as executarAcoesItensKit } from '../migrations/015_acoes_itens_kit_documental.mjs';
 import { hashPassword, verifyPassword } from './passwords.mjs';
 import { carregarFormulariosArquivo, erroFonteSomenteLeitura, fonteDaArea, fontesDados } from './fontesDados.mjs';
 
@@ -37,6 +39,8 @@ try {
   await executarAutenticacao(pool);
   await executarPerfisTenants(pool);
   await executarTipoCadastroCanonico(pool);
+  await executarKitsDocumentais(pool, root);
+  await executarAcoesItensKit(pool, root);
   await executarProcessos(pool);
 } catch (erro) {
   await pool.end();
@@ -135,22 +139,27 @@ const parseJson = (value, fallback) => {
 const normalizarCaminhoTemplate = (caminho) => typeof caminho === 'string'
   ? caminho.trim().replace(/^\/?template\//i, '/templates/')
   : '';
-const normalizarTipoCadastro = (valor) => String(valor || '')
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '')
-  .toLowerCase() === 'formulario' ? 'formulario' : 'documento';
-const normalizarDocumentosSolicitados = (valor) => {
-  const documentos = parseJson(valor, []);
-  if (!Array.isArray(documentos)) return [];
-  return documentos.filter((documento) => documento && typeof documento === 'object').map((documento) => ({
-    ...documento,
-    tipo: normalizarTipoCadastro(documento.tipo),
-    obrigatorio: documento.obrigatorio !== false,
-    url_template: normalizarCaminhoTemplate(documento.url_template),
+const buscarItensKitDocumental = async (formularioId, executor = pool) => {
+  const { rows: kits } = await executor.query(`SELECT id FROM kits_documentais
+    WHERE formulario_id = $1 AND ativo = TRUE ORDER BY ordem, criado_em LIMIT 1`, [formularioId]);
+  if (!kits[0]) return [];
+  const { rows } = await executor.query(`SELECT * FROM itens_kit_documental
+    WHERE kit_id = $1 AND ativo = TRUE ORDER BY ordem, criado_em`, [kits[0].id]);
+  return rows.map((item) => ({
+    id: item.identificador,
+    nome: item.titulo,
+    tipo: item.tipo === 'gerado' ? 'formulario' : 'documento',
+    documentoId: item.cadastro_documento_id || undefined,
+    referenciaTipo: item.cadastro_documento_id ? 'documento' : 'url',
+    obrigatorio: item.obrigatorio !== false,
+    permiteAnexo: item.permite_anexo,
+    permiteModelo: item.permite_modelo,
+    info: item.descricao || '',
+    url_template: normalizarCaminhoTemplate(item.url_template),
   }));
 };
 
-const serializar = (row) => ({
+const serializar = (row, itensKitDocumental = []) => ({
   id: row.id,
   nome: row.nome,
   area: row.area || row.tipo,
@@ -159,11 +168,22 @@ const serializar = (row) => ({
   status: row.status,
   normas: row.normas,
   periodosSubmissao: parseJson(row.periodos_submissao, []),
-  documentosSolicitados: normalizarDocumentosSolicitados(row.documentos_solicitados),
+  itensKitDocumental,
   active: Boolean(row.active),
   habilitado: row.habilitado === true,
   nSeq: Number(row.nseq || 0),
 });
+
+const serializarComKit = async (row, executor = pool) => {
+  if (row.tipo_cadastro !== 'documento') return serializar(row, await buscarItensKitDocumental(row.id, executor));
+  let documento = row;
+  if (row.descricao === undefined) {
+    const { rows } = await executor.query('SELECT descricao, template_url FROM cadastro_documentos WHERE id = $1', [row.id]);
+    documento = { ...row, ...rows[0] };
+  }
+  return serializar(row, [{ id: row.id, nome: row.nome, tipo: 'documento', obrigatorio: true,
+    info: documento.descricao || '', url_template: normalizarCaminhoTemplate(documento.template_url) }]);
+};
 
 const normalizarChaveDocumento = (nome) => nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
 const chaveComparacaoDocumento = (nome) => normalizarChaveDocumento(nome).replace(/[^\p{L}\p{N}]/gu, '');
@@ -180,14 +200,14 @@ const validar = (body) => {
   if (body.normas !== undefined && (typeof body.normas !== 'string' || body.normas.length > 500000)) return 'Texto de regras invÃ¡lido ou grande demais.';
   if (body.active !== undefined && typeof body.active !== 'boolean') return 'Status de ativaÃ§Ã£o invÃ¡lido.';
   if (body.periodosSubmissao !== undefined && (!Array.isArray(body.periodosSubmissao) || body.periodosSubmissao.length > 100)) return 'CalendÃ¡rio invÃ¡lido.';
-  if (body.documentosSolicitados !== undefined && (!Array.isArray(body.documentosSolicitados) || body.documentosSolicitados.length > 200)) return 'Lista de documentos invÃ¡lida.';
+  if (body.itensKitDocumental !== undefined && (!Array.isArray(body.itensKitDocumental) || body.itensKitDocumental.length > 200)) return 'Lista de documentos invÃ¡lida.';
   for (const periodo of body.periodosSubmissao || []) {
     if (!periodo || typeof periodo !== 'object' || !validarId(periodo.id)
       || typeof periodo.dataInicio !== 'string' || periodo.dataInicio.length > 30
       || typeof periodo.dataFim !== 'string' || periodo.dataFim.length > 30
       || !['Aberto', 'Fechado'].includes(periodo.status)) return 'PerÃ­odo de submissÃ£o invÃ¡lido.';
   }
-  for (const documento of body.documentosSolicitados || []) {
+  for (const documento of body.itensKitDocumental || []) {
     if (!documento || typeof documento !== 'object' || !validarId(documento.id)
       || typeof documento.nome !== 'string' || documento.nome.length > 200
       || (documento.tipo !== undefined && !['documento', 'formulario'].includes(documento.tipo))
@@ -400,7 +420,9 @@ app.post('/api/auth/change-password', validarOrigem, exigirSessao, asyncRoute(as
 }));
 
 const buscarDocumentosPrincipais = async () => {
-  const { rows } = await pool.query("SELECT * FROM cadastros_formularios WHERE tipo_cadastro = 'documento'");
+  const { rows } = await pool.query(`SELECT c.*, d.descricao, d.template_url
+    FROM cadastros_formularios c JOIN cadastro_documentos d ON d.id = c.id
+    WHERE c.tipo_cadastro = 'documento'`);
   return rows;
 };
 
@@ -414,23 +436,51 @@ const buscarDocumentoPrincipal = async (id, nome) => {
 const salvarDocumentoPrincipal = async (id, documento, existente) => {
   const idPrincipal = existente?.id || id;
   const nome = documento.nome.trim();
-  const atual = existente ? parseJson(existente.documentos_solicitados, [])[0] : undefined;
-  const conteudo = [{
-    id: idPrincipal,
-    nome,
-    info: documento.descricao ?? atual?.info ?? '',
-    url_template: documento.template_url ?? atual?.url_template ?? '',
-  }];
-  const { rows } = await pool.query(`
-    INSERT INTO cadastros_formularios
-      (id, nome, tipo, tipo_cadastro, linha_apoio_id, status, normas, periodos_submissao, documentos_solicitados, active)
-    VALUES ($1, $2, $3, 'documento', '', 'Fechado', '', '[]'::jsonb, $4::jsonb, TRUE)
-    ON CONFLICT (id) DO UPDATE SET
-      nome = EXCLUDED.nome, tipo_cadastro = 'documento', documentos_solicitados = EXCLUDED.documentos_solicitados,
-      active = TRUE, atualizado_em = CURRENT_TIMESTAMP
-    RETURNING *
-  `, [idPrincipal, nome, existente?.tipo || 'Projetos', JSON.stringify(conteudo)]);
-  return rows[0];
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(`INSERT INTO cadastros_formularios
+      (id, nome, tipo, tipo_cadastro, linha_apoio_id, status, normas, periodos_submissao, active)
+      VALUES ($1, $2, $3, 'documento', '', 'Fechado', '', '[]'::jsonb, TRUE)
+      ON CONFLICT (id) DO UPDATE SET nome = EXCLUDED.nome, tipo_cadastro = 'documento',
+        active = TRUE, atualizado_em = CURRENT_TIMESTAMP RETURNING *`,
+    [idPrincipal, nome, existente?.tipo || 'Projetos']);
+    const descricao = documento.descricao ?? existente?.descricao ?? '';
+    const templateUrl = documento.template_url ?? existente?.template_url ?? '';
+    await client.query(`INSERT INTO cadastro_documentos (id, nome, descricao, template_url, active)
+      VALUES ($1,$2,$3,$4,TRUE) ON CONFLICT (id) DO UPDATE SET nome = EXCLUDED.nome,
+      descricao = EXCLUDED.descricao, template_url = EXCLUDED.template_url, active = TRUE,
+      atualizado_em = CURRENT_TIMESTAMP`, [idPrincipal, nome, descricao, templateUrl]);
+    await client.query('COMMIT');
+    return { ...rows[0], descricao, template_url: templateUrl };
+  } catch (erro) {
+    await client.query('ROLLBACK');
+    throw erro;
+  } finally {
+    client.release();
+  }
+};
+
+const salvarKitPrincipal = async (executor, formularioId, nomeFormulario, documentos) => {
+  const { rows: kits } = await executor.query(`SELECT id FROM kits_documentais
+    WHERE formulario_id = $1 ORDER BY ordem, criado_em LIMIT 1`, [formularioId]);
+  const kitId = kits[0]?.id || `kit-formulario-${formularioId}`;
+  if (!kits[0]) {
+    await executor.query(`INSERT INTO kits_documentais (id, formulario_id, nome, descricao, ordem, ativo)
+      VALUES ($1,$2,$3,'',1,TRUE)`, [kitId, formularioId, `Kit Documental - ${nomeFormulario}`]);
+  }
+  await executor.query('DELETE FROM itens_kit_documental WHERE kit_id = $1', [kitId]);
+  for (let indice = 0; indice < documentos.length; indice += 1) {
+    const documento = documentos[indice];
+    await executor.query(`INSERT INTO itens_kit_documental
+      (id, kit_id, cadastro_documento_id, identificador, titulo, descricao, tipo, obrigatorio,
+       permite_anexo, permite_modelo, url_template, ordem, ativo)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,TRUE)`,
+    [`item-${randomUUID()}`, kitId, documento.documentoId || null, documento.id, documento.nome,
+      documento.info || '', documento.tipo === 'formulario' ? 'gerado' : 'upload',
+      documento.obrigatorio !== false, documento.permiteAnexo ?? documento.tipo !== 'formulario',
+      documento.permiteModelo ?? Boolean(documento.url_template), documento.url_template || '', indice + 1]);
+  }
 };
 
 app.get('/api/health', asyncRoute(async (_request, response) => {
@@ -767,13 +817,12 @@ app.get('/api/documentos', asyncRoute(async (request, response) => {
   const escopo = escopoDoUsuario(usuario);
   const area = escopo === 'projeto' ? 'Projetos' : escopo === 'prog_apoio' ? 'Programa de Apoio' : null;
   const valores = area ? [area] : [];
-  const { rows } = await pool.query(`SELECT * FROM cadastros_formularios
-    WHERE tipo_cadastro = 'documento' AND active = TRUE AND habilitado = TRUE
-    ${area ? 'AND tipo = $1' : ''} ORDER BY nome`, valores);
-  return response.json(rows.map((row) => {
-    const doc = parseJson(row.documentos_solicitados, [])[0] || {};
-    return { id: row.id, nome: row.nome, descricao: doc.info || '', template_url: normalizarCaminhoTemplate(doc.url_template), active: Boolean(row.active), area: row.tipo };
-  }));
+  const { rows } = await pool.query(`SELECT c.*, d.descricao, d.template_url
+    FROM cadastros_formularios c JOIN cadastro_documentos d ON d.id = c.id
+    WHERE c.tipo_cadastro = 'documento' AND c.active = TRUE AND c.habilitado = TRUE
+    ${area ? 'AND c.tipo = $1' : ''} ORDER BY c.nome`, valores);
+  return response.json(rows.map((row) => ({ id: row.id, nome: row.nome, descricao: row.descricao || '',
+    template_url: normalizarCaminhoTemplate(row.template_url), active: Boolean(row.active), area: row.tipo })));
 }));
 
 app.get('/api/modelos-docx', exigirAdmin, asyncRoute(async (_request, response) => {
@@ -809,8 +858,7 @@ app.post('/api/documentos', validarOrigem, exigirAdmin, asyncRoute(async (reques
     documento.active && chaveComparacaoDocumento(documento.nome) === chaveComparacaoDocumento(request.body.nome));
   if (mesmoNome) return response.status(409).json({ error: 'JÃ¡ existe um documento com este nome. Edite o cadastro existente.' });
   const row = await salvarDocumentoPrincipal(id, request.body, existente);
-  const doc = parseJson(row.documentos_solicitados, [])[0] || {};
-  return response.status(201).json({ id: row.id, nome: row.nome, descricao: doc.info || '', template_url: doc.url_template || '', active: Boolean(row.active) });
+  return response.status(201).json({ id: row.id, nome: row.nome, descricao: row.descricao || '', template_url: row.template_url || '', active: Boolean(row.active) });
 }));
 
 app.put('/api/documentos/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
@@ -824,8 +872,7 @@ app.put('/api/documentos/:id', validarOrigem, exigirAdmin, asyncRoute(async (req
     documento.active && documento.id !== existente.id && chaveComparacaoDocumento(documento.nome) === chaveNome);
   if (mesmoNome) return response.status(409).json({ error: 'JÃ¡ existe outro documento com este nome.' });
   const row = await salvarDocumentoPrincipal(existente.id, request.body, existente);
-  const doc = parseJson(row.documentos_solicitados, [])[0] || {};
-  return response.json({ id: row.id, nome: row.nome, descricao: doc.info || '', template_url: doc.url_template || '', active: Boolean(row.active) });
+  return response.json({ id: row.id, nome: row.nome, descricao: row.descricao || '', template_url: row.template_url || '', active: Boolean(row.active) });
 }));
 
 app.delete('/api/documentos/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
@@ -844,7 +891,7 @@ app.get('/api/formularios', asyncRoute(async (request, response) => {
   const resultados = await Promise.all(areas.map(async (areaAtual) => {
     if (fonteDaArea(areaAtual) === 'file') return carregarFormulariosArquivo(root, areaAtual);
     const { rows } = await pool.query('SELECT * FROM cadastros_formularios WHERE tipo = $1 ORDER BY nseq ASC, nome ASC', [areaAtual]);
-    return rows.map(serializar);
+    return Promise.all(rows.map((row) => serializarComKit(row)));
   }));
   return response.json(resultados.flat());
 }));
@@ -854,21 +901,32 @@ app.post('/api/formularios', validarOrigem, exigirAdmin, asyncRoute(async (reque
   if (error) return response.status(400).json({ error });
   if (fonteDaArea(request.body.area) === 'file') return response.status(409).json(erroFonteSomenteLeitura(request.body.area));
   const id = request.body.id || randomUUID();
-  const documentos = request.body.documentosSolicitados || [{
-    id, nome: request.body.nome, info: request.body.descricao || '', url_template: request.body.template_url || '',
-  }];
+  const documentos = request.body.itensKitDocumental || [];
+  const client = await pool.connect();
   try {
-    const { rows } = await pool.query(`
+    await client.query('BEGIN');
+    const { rows } = await client.query(`
       INSERT INTO cadastros_formularios
-        (id, nome, tipo, tipo_cadastro, linha_apoio_id, status, normas, periodos_submissao, documentos_solicitados, habilitado, nseq)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10, $11)
+        (id, nome, tipo, tipo_cadastro, linha_apoio_id, status, normas, periodos_submissao, habilitado, nseq)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10)
       RETURNING *
     `, [id, request.body.nome.trim(), request.body.area, request.body.tipo, request.body.linhaApoioId || '',
-      request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []), JSON.stringify(documentos), request.body.habilitado !== false, Number(request.body.nSeq || 0)]);
-    return response.status(201).json(serializar(rows[0]));
+      request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []), request.body.habilitado !== false, Number(request.body.nSeq || 0)]);
+    if (request.body.tipo === 'documento') {
+      const documento = documentos[0] || {};
+      await client.query(`INSERT INTO cadastro_documentos (id, nome, descricao, template_url, active)
+        VALUES ($1,$2,$3,$4,TRUE)`, [id, request.body.nome.trim(), documento.info || '', documento.url_template || '']);
+    } else {
+      await salvarKitPrincipal(client, id, request.body.nome.trim(), documentos);
+    }
+    await client.query('COMMIT');
+    return response.status(201).json(await serializarComKit(rows[0]));
   } catch (erro) {
+    await client.query('ROLLBACK');
     if (erro?.code === '23505') return response.status(409).json({ error: 'Este ID jÃ¡ existe; use PUT para atualizar o cadastro.' });
     throw erro;
+  } finally {
+    client.release();
   }
 }));
 
@@ -884,23 +942,43 @@ app.put('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (re
       WHERE id = $4 RETURNING *
     `, [typeof request.body.active === 'boolean' ? request.body.active : null, typeof request.body.habilitado === 'boolean' ? request.body.habilitado : null, Number.isFinite(Number(request.body.nSeq)) ? Number(request.body.nSeq) : null, request.params.id]);
     if (!rows[0]) return response.status(404).json({ error: 'Formulário não encontrado.' });
-    return response.json(serializar(rows[0]));
+    return response.json(await serializarComKit(rows[0]));
   }
   const error = validar(request.body);
   if (error) return response.status(400).json({ error });
   if (!validarId(request.params.id) || (request.body.id && request.body.id !== request.params.id)) return response.status(400).json({ error: 'ID invÃ¡lido.' });
-  const { rows } = await pool.query(`
-    UPDATE cadastros_formularios SET
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(`UPDATE cadastros_formularios SET
       nome = $1, tipo = $2, tipo_cadastro = $3, linha_apoio_id = $4, status = $5, normas = $6,
-      periodos_submissao = $7::jsonb, documentos_solicitados = $8::jsonb,
-      active = $9, habilitado = $10, nseq = $11, atualizado_em = CURRENT_TIMESTAMP
-    WHERE id = $12
-    RETURNING *
-  `, [request.body.nome.trim(), request.body.area, request.body.tipo, request.body.linhaApoioId || '',
-    request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []),
-    JSON.stringify(request.body.documentosSolicitados || []), request.body.active !== false, request.body.habilitado !== false, Number(request.body.nSeq || 0), request.params.id]);
-  if (!rows[0]) return response.status(404).json({ error: 'Formulário não encontrado.' });
-  return response.json(serializar(rows[0]));
+      periodos_submissao = $7::jsonb, active = $8, habilitado = $9, nseq = $10,
+      atualizado_em = CURRENT_TIMESTAMP WHERE id = $11 RETURNING *`,
+    [request.body.nome.trim(), request.body.area, request.body.tipo, request.body.linhaApoioId || '',
+      request.body.status, request.body.normas || '', JSON.stringify(request.body.periodosSubmissao || []),
+      request.body.active !== false, request.body.habilitado !== false, Number(request.body.nSeq || 0), request.params.id]);
+    if (!rows[0]) {
+      await client.query('ROLLBACK');
+      return response.status(404).json({ error: 'Formulário não encontrado.' });
+    }
+    if (request.body.tipo === 'documento') {
+      const documento = request.body.itensKitDocumental?.[0] || {};
+      await client.query(`INSERT INTO cadastro_documentos (id, nome, descricao, template_url, active)
+        VALUES ($1,$2,$3,$4,$5) ON CONFLICT (id) DO UPDATE SET nome = EXCLUDED.nome,
+        descricao = EXCLUDED.descricao, template_url = EXCLUDED.template_url, active = EXCLUDED.active,
+        atualizado_em = CURRENT_TIMESTAMP`, [request.params.id, request.body.nome.trim(), documento.info || '',
+        documento.url_template || '', request.body.active !== false]);
+    } else {
+      await salvarKitPrincipal(client, request.params.id, request.body.nome.trim(), request.body.itensKitDocumental || []);
+    }
+    await client.query('COMMIT');
+    return response.json(await serializarComKit(rows[0]));
+  } catch (erroAtualizacao) {
+    await client.query('ROLLBACK');
+    throw erroAtualizacao;
+  } finally {
+    client.release();
+  }
 }));
 
 app.delete('/api/formularios/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {

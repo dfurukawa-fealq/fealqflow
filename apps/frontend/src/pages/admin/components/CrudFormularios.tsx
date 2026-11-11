@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAdmin } from '../../../contexts/AdminContext';
-import { FormularioApoio, PeriodoSubmissao, DocumentoSolicitadoAdmin } from '../../../types/admin';
+import { FormularioApoio, PeriodoSubmissao, ItemKitDocumentalAdmin } from '../../../types/admin';
 import { PatternFormat } from 'react-number-format';
 import { EditorDocumento, limparHtmlDocumento, normalizarMarcadoresDocumento } from './EditorDocumento';
 import { ModeloDocxPreview } from './ModeloDocxPreview';
@@ -49,7 +49,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   const [linhaApoioId, setLinhaApoioId] = useState('');
   const [status, setStatus] = useState<'Aberto' | 'Fechado'>('Fechado');
   const [normas, setNormas] = useState('');
-  const [documentosSolicitados, setDocumentosSolicitados] = useState<DocumentoSolicitadoAdmin[]>([]);
+  const [itensKitDocumental, setItensKitDocumental] = useState<ItemKitDocumentalAdmin[]>([]);
   const [periodosSubmissao, setPeriodosSubmissao] = useState<PeriodoSubmissao[]>([]);
   const [pesquisa, setPesquisa] = useState('');
   const [filtroArea, setFiltroArea] = useState<'Todos' | 'Projetos' | 'Programa de Apoio'>('Todos');
@@ -102,7 +102,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   }, []);
 
   const [editingDocs, setEditingDocs] = useState<Record<string, boolean>>({});
-  const [documentosAntesEdicao, setDocumentosAntesEdicao] = useState<Record<string, DocumentoSolicitadoAdmin>>({});
+  const [documentosAntesEdicao, setDocumentosAntesEdicao] = useState<Record<string, ItemKitDocumentalAdmin>>({});
   const [editingPeriodos, setEditingPeriodos] = useState<Record<string, boolean>>({});
   const formulariosFiltrados = useMemo(() => {
     const termo = pesquisa.trim().toLowerCase();
@@ -135,10 +135,10 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     setLinhaApoioId(form.linhaApoioId);
     setStatus(form.status);
     setNormas(limparReferenciasCitacao(form.normas || ''));
-    setDescricaoDocumento(form.tipo === 'documento' ? form.documentosSolicitados[0]?.info || '' : '');
-    setTemplateUrl(form.tipo === 'documento' ? normalizarCaminhoModelo(form.documentosSolicitados[0]?.url_template || '') || modelosDocx[0]?.caminho || '' : '');
+    setDescricaoDocumento(form.tipo === 'documento' ? form.itensKitDocumental[0]?.info || '' : '');
+    setTemplateUrl(form.tipo === 'documento' ? normalizarCaminhoModelo(form.itensKitDocumental[0]?.url_template || '') || modelosDocx[0]?.caminho || '' : '');
     
-    setDocumentosSolicitados((form.documentosSolicitados || []).map((documento) => ({ ...documento, nome: limparReferenciasCitacao(documento.nome), info: limparReferenciasCitacao(documento.info || ''), tipo: documento.tipo || 'documento', referenciaTipo: documento.referenciaTipo || (documento.documentoId ? 'documento' : 'url'), obrigatorio: documento.obrigatorio !== false })));
+    setItensKitDocumental((form.itensKitDocumental || []).map((documento) => ({ ...documento, nome: limparReferenciasCitacao(documento.nome), info: limparReferenciasCitacao(documento.info || ''), tipo: documento.tipo || 'documento', referenciaTipo: documento.referenciaTipo || (documento.documentoId ? 'documento' : 'url'), obrigatorio: documento.obrigatorio !== false })));
     setPeriodosSubmissao(form.periodosSubmissao || []);
     setEditingDocs({});
     setEditingPeriodos({});
@@ -173,7 +173,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
             status,
             normas,
             periodosSubmissao: [],
-            documentosSolicitados: [{ id: editingId, nome: nome.trim(), info: descricaoDocumento, url_template: templateUrl }],
+            itensKitDocumental: [{ id: editingId, nome: nome.trim(), info: descricaoDocumento, url_template: templateUrl }],
           });
         } else {
           await addDocumento(documento);
@@ -182,7 +182,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
         return;
       }
 
-      const docsFormatados = documentosSolicitados.filter(d => d.nome.trim() !== '');
+      const docsFormatados = itensKitDocumental.filter(d => d.nome.trim() !== '');
       const data = {
         nome,
         nSeq,
@@ -191,7 +191,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
         linhaApoioId,
         status,
         normas,
-        documentosSolicitados: docsFormatados,
+        itensKitDocumental: docsFormatados,
         periodosSubmissao,
       };
 
@@ -220,7 +220,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     setStatus('Aberto');
     setPeriodosSubmissao([]);
     setNormas('');
-    setDocumentosSolicitados([]);
+    setItensKitDocumental([]);
     setIsFormVisible(true);
   };
   const handleCancel = () => {
@@ -275,7 +275,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
         status: form.status,
         periodosSubmissao: form.periodosSubmissao.map((periodo) => ({ ...periodo, id: `clone-${sufixo}-${periodo.id}` })),
         normas: form.normas,
-        documentosSolicitados: form.documentosSolicitados.map((documento, indice) => ({ ...documento, id: `clone-${sufixo}-item-${indice + 1}` })),
+        itensKitDocumental: form.itensKitDocumental.map((documento, indice) => ({ ...documento, id: `clone-${sufixo}-item-${indice + 1}` })),
         active: true,
         habilitado: true,
       });
@@ -295,7 +295,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   };
 
   const obterConteudoPreview = (form: FormularioApoio) => {
-    const conteudo = form.documentosSolicitados[0]?.info || '<p>Este documento ainda não possui conteúdo cadastrado.</p>';
+    const conteudo = form.itensKitDocumental[0]?.info || '<p>Este documento ainda não possui conteúdo cadastrado.</p>';
     const valores: Record<string, string> = {
       NOME: 'Nome do solicitante', CPF: '000.000.000-00', EMAIL: 'exemplo@fealq.com.br',
       DATA: '05/11/2026', CIDADE: 'Piracicaba', DIA: '05', MES: 'novembro', ANO: '2026',
@@ -314,7 +314,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     setLinhaApoioId('');
     setStatus('Fechado');
     setNormas('');
-    setDocumentosSolicitados([]);
+    setItensKitDocumental([]);
     setPeriodosSubmissao([]);
     setDescricaoDocumento('');
     setTemplateUrl('');
@@ -324,7 +324,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
 
   const handleAddDocumento = () => {
     const id = Math.random().toString(36).substring(7);
-    setDocumentosSolicitados([{ id, nome: '', tipo: 'documento', obrigatorio: true, info: '', url_template: '' }, ...documentosSolicitados]);
+    setItensKitDocumental([{ id, nome: '', tipo: 'documento', obrigatorio: true, info: '', url_template: '' }, ...itensKitDocumental]);
     setEditingDocs({ ...Object.fromEntries(Object.keys(editingDocs).map((chave) => [chave, false])), [id]: true });
   };
 
@@ -333,8 +333,8 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     const documento = documentos.find((item) => tipoSelecionado === 'documento' && item.id === idSelecionado && item.active !== false);
     const formulario = formularios.find((item) => tipoSelecionado === 'formulario' && item.id === idSelecionado && item.active !== false && item.tipo === 'formulario');
     const itemSelecionado = documento || formulario;
-    if (!itemSelecionado || documentosSolicitados.some((item) => item.id === itemSelecionado.id)) return;
-    setDocumentosSolicitados([...documentosSolicitados, {
+    if (!itemSelecionado || itensKitDocumental.some((item) => item.id === itemSelecionado.id)) return;
+    setItensKitDocumental([...itensKitDocumental, {
       id: itemSelecionado.id,
       nome: itemSelecionado.nome,
       tipo: formulario ? 'formulario' : 'documento',
@@ -352,14 +352,14 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     const documento = documentos.find((item) => tipoSelecionado === 'documento' && item.id === idSelecionado && item.active !== false);
     const formulario = formularios.find((item) => tipoSelecionado === 'formulario' && item.id === idSelecionado && item.active !== false && item.tipo !== 'documento');
     const itemSelecionado = documento || formulario;
-    if (!itemSelecionado || documentosSolicitados.some((item) => item.id === itemSelecionado.id)) return;
-    setDocumentosSolicitados([...documentosSolicitados, { id: itemSelecionado.id, nome: itemSelecionado.nome, tipo: formulario ? 'formulario' : 'documento', documentoId: documento?.id, referenciaTipo: documento ? 'documento' : 'url', obrigatorio: true, info: formulario ? formulario.normas : documento?.descricao, url_template: documento?.template_url }]);
+    if (!itemSelecionado || itensKitDocumental.some((item) => item.id === itemSelecionado.id)) return;
+    setItensKitDocumental([...itensKitDocumental, { id: itemSelecionado.id, nome: itemSelecionado.nome, tipo: formulario ? 'formulario' : 'documento', documentoId: documento?.id, referenciaTipo: documento ? 'documento' : 'url', obrigatorio: true, info: formulario ? formulario.normas : documento?.descricao, url_template: documento?.template_url }]);
     setDocumentoSelecionadoId('');
     setDocumentoSelecionadoBusca('');
   };
 
-  const handleUpdateDocumento = (id: string, field: keyof DocumentoSolicitadoAdmin, value: string | boolean) => {
-    setDocumentosSolicitados(documentosSolicitados.map((d) => (d.id === id ? { ...d, [field]: value } : d)));
+  const handleUpdateDocumento = (id: string, field: keyof ItemKitDocumentalAdmin, value: string | boolean) => {
+    setItensKitDocumental(itensKitDocumental.map((d) => (d.id === id ? { ...d, [field]: value } : d)));
   };
 
   const handleSelecionarDocumentoCatalogo = (id: string, nome: string) => {
@@ -368,7 +368,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
       handleUpdateDocumento(id, 'documentoId', '');
       return;
     }
-    setDocumentosSolicitados(documentosSolicitados.map((item) => item.id === id ? {
+    setItensKitDocumental(itensKitDocumental.map((item) => item.id === id ? {
       ...item,
       documentoId: documento.id,
       referenciaTipo: 'documento',
@@ -380,7 +380,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   };
 
   const handleAlterarTipoReferencia = (id: string, tipoReferencia: 'url' | 'documento') => {
-    setDocumentosSolicitados(documentosSolicitados.map((item) => item.id === id ? {
+    setItensKitDocumental(itensKitDocumental.map((item) => item.id === id ? {
       ...item,
       referenciaTipo: tipoReferencia,
       documentoId: tipoReferencia === 'documento' ? item.documentoId : undefined,
@@ -389,21 +389,21 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
   };
 
   const handleRemoveDocumento = (id: string) => {
-    setDocumentosSolicitados(documentosSolicitados.filter((d) => d.id !== id));
+    setItensKitDocumental(itensKitDocumental.filter((d) => d.id !== id));
     const newEditing = { ...editingDocs };
     delete newEditing[id];
     setEditingDocs(newEditing);
   };
 
   const iniciarEdicaoDoc = (id: string) => {
-    const documento = documentosSolicitados.find((item) => item.id === id);
+    const documento = itensKitDocumental.find((item) => item.id === id);
     if (documento) setDocumentosAntesEdicao((atuais) => ({ ...atuais, [id]: { ...documento } }));
     setEditingDocs({ ...editingDocs, [id]: true });
   };
 
   const cancelarEdicaoDoc = (id: string) => {
     const original = documentosAntesEdicao[id];
-    if (original) setDocumentosSolicitados((atuais) => atuais.map((item) => item.id === id ? original : item));
+    if (original) setItensKitDocumental((atuais) => atuais.map((item) => item.id === id ? original : item));
     setDocumentosAntesEdicao((atuais) => {
       const proximo = { ...atuais };
       delete proximo[id];
@@ -447,7 +447,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
     setEditingPeriodos({ ...editingPeriodos, [id]: isEditing });
   };
 
-  const caminhoSalvoPreview = normalizarCaminhoModelo(documentoPreview?.documentosSolicitados[0]?.url_template || '');
+  const caminhoSalvoPreview = normalizarCaminhoModelo(documentoPreview?.itensKitDocumental[0]?.url_template || '');
   const caminhoSolicitadoPreview = caminhoSalvoPreview || modelosDocx[0]?.caminho || '';
   const modeloPreviewDisponivel = modelosDocx.some((modelo) => modelo.caminho === caminhoSolicitadoPreview);
   const caminhoModeloPreview = modeloPreviewDisponivel ? caminhoSolicitadoPreview : '';
@@ -630,11 +630,11 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
               <button type="button" onClick={handleVincularItem} className="px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold text-sm">Vincular item</button>
             </div>
           )}
-          {documentosSolicitados.length === 0 ? (
+          {itensKitDocumental.length === 0 ? (
             <p className="text-sm text-on-surface-variant italic">Nenhum documento exigido.</p>
           ) : (
             <div className="flex flex-col gap-4">
-              {documentosSolicitados.map((doc, idx) => (
+              {itensKitDocumental.map((doc, idx) => (
                 <div key={doc.id} className="p-4 bg-surface rounded-xl border border-outline-variant">
                   {editingDocs[doc.id] ? (
                     <div className="flex flex-col gap-3">
@@ -966,7 +966,7 @@ export const CrudFormularios = ({ modo = 'todos' }: CrudFormulariosProps) => {
             {formulariosPagina.map((form) => {
               const linha = linhasApoio.find((l) => l.id === form.linhaApoioId);
               const resumo = form.tipo === 'documento'
-                ? form.documentosSolicitados[0]?.info?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || 'Documento oficial.'
+                ? form.itensKitDocumental[0]?.info?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || 'Documento oficial.'
                 : form.normas || 'Sem normas.';
               return (
                 <tr key={form.id} className={`hover:bg-surface-container/30 transition-colors ${form.active === false ? 'opacity-60 bg-surface-container-low' : ''}`}>

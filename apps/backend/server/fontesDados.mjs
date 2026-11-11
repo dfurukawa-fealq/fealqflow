@@ -28,7 +28,12 @@ const validarRegistroFormulario = (item) => {
 };
 
 export async function carregarFormulariosArquivo(root, area) {
-  const catalogo = await lerJson(root, 'cadastros_formularios.json');
+  const [catalogo, kits, itens, documentos] = await Promise.all([
+    lerJson(root, 'cadastros_formularios.json'),
+    lerJson(root, 'kits_documentais.json'),
+    lerJson(root, 'itens_kit_documental.json'),
+    lerJson(root, 'cadastro_documentos.json'),
+  ]);
   return catalogo.map(validarRegistroFormulario).filter((item) => item.tipo === area).map((item) => ({
     id: item.id,
     nome: item.nome,
@@ -38,7 +43,23 @@ export async function carregarFormulariosArquivo(root, area) {
     status: item.status,
     normas: item.normas,
     periodosSubmissao: item.periodos_submissao || [],
-    documentosSolicitados: item.documentos_solicitados || [],
+    itensKitDocumental: item.tipo_cadastro === 'documento'
+      ? documentos.filter((documento) => documento.id === item.id).map((documento) => ({
+        id: documento.id, nome: documento.nome, tipo: 'documento', info: documento.descricao,
+        url_template: documento.template_url, obrigatorio: true,
+      }))
+      : (() => {
+        const kit = kits.filter((registro) => registro.formulario_id === item.id && registro.ativo !== false)
+          .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0))[0];
+        if (!kit) return [];
+        return itens.filter((registro) => registro.kit_id === kit.id && registro.ativo !== false)
+          .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0))
+          .map((registro) => ({
+            id: registro.identificador, nome: registro.titulo, tipo: registro.tipo === 'gerado' ? 'formulario' : 'documento',
+            documentoId: registro.cadastro_documento_id || undefined, obrigatorio: registro.obrigatorio !== false,
+            info: registro.descricao || '', url_template: registro.url_template || '',
+          }));
+      })(),
     active: item.active !== false,
     habilitado: item.habilitado === true,
     nSeq: item.nseq || 0,

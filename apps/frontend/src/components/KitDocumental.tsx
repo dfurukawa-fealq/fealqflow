@@ -6,7 +6,7 @@ import {
   ArquivoSelecionado,
 } from './form/AnexarArquivo';
 import { useEnvio } from './form/EnvioContext';
-import { useProcesso } from '../contexts/ProcessoContext';
+import { useProcesso, useProcessoNovo } from '../contexts/ProcessoContext';
 
 interface KitDocumentalProps {
   documentos: DocumentoExigido[];
@@ -50,6 +50,7 @@ export const KitDocumental = ({
   const [erroAnexo, setErroAnexo] = useState('');
   const [enviando, setEnviando] = useState<string | null>(null);
   const processo = useProcesso();
+  const processoNovo = useProcessoNovo();
   const registrarDocumentos = processo?.somenteLeitura ? undefined : processo?.registrarDocumentos;
   const assinaturaDocumentos = documentos.map((item) => `${item.id}:${item.documentoId || ''}:${item.obrigatorio}:${item.status}:${item.tipo}:${Boolean(item.url_template)}`).join('|');
   useEffect(() => {
@@ -65,13 +66,14 @@ export const KitDocumental = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registrarDocumentos, assinaturaDocumentos]);
   const documentoSalvo = (id: string) => processo?.documentos.some((item) => item.id === id && item.preenchido) ?? false;
+  const documentoSelecionado = (id: string) => Boolean(anexos[id] || processoNovo?.anexosPendentes[id]);
   const { registrarPendencias } = useEnvio();
 
   const estaConcluido = (doc: DocumentoExigido) => {
     if (doc.status !== undefined) {
       return doc.status === 'concluido';
     }
-    return (doc.tipo === 'gerado' && !doc.url_template) || documentoSalvo(doc.id);
+    return (doc.tipo === 'gerado' && !doc.url_template) || documentoSalvo(doc.id) || documentoSelecionado(doc.id);
   };
 
   const concluidos = documentos.filter(estaConcluido).length;
@@ -87,9 +89,9 @@ export const KitDocumental = ({
           return d.status !== 'concluido';
         }
         if ((d.tipo === 'gerado' && !d.url_template) || d.tipo === 'externo') return false;
-        return !documentoSalvo(d.id);
+        return !documentoSalvo(d.id) && !documentoSelecionado(d.id);
       }).length,
-    [documentos, processo?.documentos],
+    [anexos, documentos, processo?.documentos, processoNovo?.anexosPendentes],
   );
 
   useEffect(() => {
@@ -100,12 +102,14 @@ export const KitDocumental = ({
     setErroAnexo('');
     setEnviando(id);
     try {
-      if (!processo) throw new Error('Abra um processo para anexar documentos.');
       if (arquivo) {
-        await processo.anexarDocumento(id, arquivo);
+        if (processo) await processo.anexarDocumento(id, arquivo);
+        else if (processoNovo) processoNovo.selecionarAnexo(id, arquivo);
+        else throw new Error('Não foi possível associar o anexo ao rascunho.');
         setAnexos((atuais) => ({ ...atuais, [id]: arquivo }));
       } else {
-        await processo.removerDocumento(id);
+        if (processo) await processo.removerDocumento(id);
+        else if (processoNovo) processoNovo.selecionarAnexo(id, null);
         setAnexos((atuais) => { const proximo = { ...atuais }; delete proximo[id]; return proximo; });
       }
     } catch (falha) {
@@ -148,11 +152,11 @@ export const KitDocumental = ({
           <ItemDocumento
             key={doc.id}
             doc={doc}
-            arquivo={anexos[doc.id] ?? null}
+            arquivo={anexos[doc.id] ?? processoNovo?.anexosPendentes[doc.id] ?? null}
             arquivoSalvo={processo?.documentos.find((item) => item.id === doc.id)?.arquivo_nome || undefined}
             preenchido={processo?.documentos.find((item) => item.id === doc.id)?.preenchido ?? false}
             emitido={processo?.documentos.find((item) => item.id === doc.id)?.emitido ?? false}
-            somenteLeitura={!processo || processo.somenteLeitura}
+            somenteLeitura={processo?.somenteLeitura ?? false}
             enviando={enviando === doc.id}
             onBaixar={arquivoSalvo => { if (processo) void processo.baixarDocumento(doc.id, arquivoSalvo).catch((falha: unknown) => setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível baixar o anexo.')); }}
             onSelecionar={(a) => { void selecionar(doc.id, a); }}
@@ -162,7 +166,7 @@ export const KitDocumental = ({
       </div>
 
       <p className="text-[10px] text-on-surface-variant mt-sm leading-tight">
-        {!processo ? 'Salve o rascunho para habilitar os anexos. ' : nota} {documentos.length} documentos previstos.
+        {!processo ? 'Os anexos selecionados serão enviados ao salvar o rascunho. ' : nota} {documentos.length} documentos previstos.
       </p>
     </section>
   );
@@ -189,17 +193,21 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
   const isEmAndamento = doc.status === 'em_andamento';
 
   const gerado = doc.tipo === 'gerado';
+  const permiteAnexo = doc.permiteAnexo ?? doc.tipo === 'upload';
+  const permiteModelo = doc.permiteModelo ?? (doc.tipo === 'upload' && Boolean(doc.url_template));
   const documentoCatalogo = Boolean(doc.documentoId);
   const arquivoPdfCatalogo = documentoCatalogo && /\.pdf(?:$|[?#])/i.test(doc.url_template || '');
+  const preenchidoEfetivo = preenchido || Boolean(arquivo) || Boolean(arquivoSalvo);
+  const emitidoEfetivo = emitido || Boolean(arquivo) || Boolean(arquivoSalvo);
   // Em protocolos enviados, o estado persistido do item é a fonte canônica.
   // O status de rastreabilidade pode estar ausente/desatualizado (por exemplo,
   // em um protocolo carregado em modo somente leitura), mesmo com o item
   // registrado como preenchido e emitido no processo.
-  const concluido = (preenchido && (emitido || doc.tipo === 'externo')) || (isCustomStatus
+  const concluido = (preenchidoEfetivo && (emitidoEfetivo || doc.tipo === 'externo')) || (isCustomStatus
     ? isConcluidoStatus
     : ((gerado && !doc.url_template) || Boolean(arquivoSalvo)));
   const detalhe = [doc.descricao ? resumirDescricao(doc.descricao) : '', doc.condicao].filter(Boolean).join(' ');
-  const cardAcionavel = !somenteLeitura && acaoNoCard && Boolean(doc.url_template) && !arquivoPdfCatalogo;
+  const cardAcionavel = !somenteLeitura && acaoNoCard && doc.tipo !== 'upload' && Boolean(doc.url_template) && !arquivoPdfCatalogo;
   // Todo documento obrigatório pendente sinaliza ação necessária. Quando há
   // URL, o card também é navegável; uploads continuam usando o anexo interno.
   const cardComMotion = acaoNoCard && !concluido && (doc.obrigatorio || Boolean(doc.url_template));
@@ -222,8 +230,8 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
   return (
     <div
       data-documento-id={doc.id}
-      data-preenchido={preenchido ? 'SIM' : 'NAO'}
-      data-emitido={emitido ? 'SIM' : 'NAO'}
+      data-preenchido={preenchidoEfetivo ? 'SIM' : 'NAO'}
+      data-emitido={emitidoEfetivo ? 'SIM' : 'NAO'}
       onClick={cardAcionavel ? abrirDocumento : undefined}
       onKeyDown={(event) => {
         if (cardAcionavel && (event.key === 'Enter' || event.key === ' ')) {
@@ -330,7 +338,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
           </span>
         ) : (
           <div className="flex items-center gap-sm shrink-0">
-            {doc.url_template && (
+            {permiteModelo && doc.url_template && (
               <a
                 href={doc.url_template}
                 download
@@ -341,7 +349,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
                 Modelo
               </a>
             )}
-            {somenteLeitura ? (
+            {!permiteAnexo ? null : somenteLeitura ? (
               <span className="text-[10px] font-semibold text-on-surface-variant">Consulta</span>
             ) : (
               <AnexarArquivo
@@ -356,8 +364,8 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
       </div>
 
       <div className="mt-xs pl-[26px] flex gap-2 text-[9px] font-bold uppercase">
-        <span className={preenchido ? 'text-secondary' : 'text-on-surface-variant'}>Preenchido: {preenchido ? 'SIM' : 'NÃO'}</span>
-        <span className={emitido ? 'text-secondary' : 'text-on-surface-variant'}>Emitido: {emitido ? 'SIM' : 'NÃO'}</span>
+        <span className={preenchidoEfetivo ? 'text-secondary' : 'text-on-surface-variant'}>Preenchido: {preenchidoEfetivo ? 'SIM' : 'NÃO'}</span>
+        <span className={emitidoEfetivo ? 'text-secondary' : 'text-on-surface-variant'}>Emitido: {emitidoEfetivo ? 'SIM' : 'NÃO'}</span>
       </div>
 
       {arquivo && <ArquivoSelecionado arquivo={arquivo} />}

@@ -9,6 +9,7 @@ export interface EnderecoFieldProps {
   descricao?: string;
   prefixo?: string;
   obrigatorio?: boolean;
+  aliases?: Partial<Record<'Cep' | 'Logradouro' | 'Numero' | 'Complemento' | 'Bairro' | 'Cidade' | 'Uf', string[]>>;
 }
 
 /** Endereço reutilizável com preenchimento dos dados pelo serviço ViaCEP. */
@@ -17,15 +18,16 @@ export const EnderecoField = ({
   descricao = 'Preencha o CEP para autocompletar o logradouro',
   prefixo = 'endereco',
   obrigatorio = false,
+  aliases = {},
 }: EnderecoFieldProps) => {
   const chave = (nome: string) => prefixo ? `${prefixo}${nome}` : nome.toLocaleLowerCase('pt-BR');
-  const [cep, setCep] = useProcessoState(chave('Cep'), '');
-  const [logradouro, setLogradouro] = useProcessoState(chave('Logradouro'), '');
-  const [numero, setNumero] = useProcessoState(chave('Numero'), '');
-  const [complemento, setComplemento] = useProcessoState(chave('Complemento'), '');
-  const [bairro, setBairro] = useProcessoState(chave('Bairro'), '');
-  const [cidade, setCidade] = useProcessoState(chave('Cidade'), '');
-  const [uf, setUf] = useProcessoState(chave('Uf'), '');
+  const [cep, setCep] = useProcessoState(chave('Cep'), '', aliases.Cep);
+  const [logradouro, setLogradouro] = useProcessoState(chave('Logradouro'), '', aliases.Logradouro);
+  const [numero, setNumero] = useProcessoState(chave('Numero'), '', aliases.Numero);
+  const [complemento, setComplemento] = useProcessoState(chave('Complemento'), '', aliases.Complemento);
+  const [bairro, setBairro] = useProcessoState(chave('Bairro'), '', aliases.Bairro);
+  const [cidade, setCidade] = useProcessoState(chave('Cidade'), '', aliases.Cidade);
+  const [uf, setUf] = useProcessoState(chave('Uf'), '', aliases.Uf);
   const [buscando, setBuscando] = useState(false);
   const [mensagem, setMensagem] = useState('');
 

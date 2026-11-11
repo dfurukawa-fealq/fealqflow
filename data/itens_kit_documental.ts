@@ -33,6 +33,10 @@ export interface ItemKitDocumentalRow {
   descricao: string;
   tipo: TipoItemKitDocumental;
   obrigatorio: boolean;
+  /** Exibe a ação para anexar o documento preenchido ao processo. */
+  permite_anexo?: boolean;
+  /** Exibe a ação para baixar o modelo indicado em `url_template`. */
+  permite_modelo?: boolean;
   url_template?: string;
   /** Orientação textual para itens opcionais ou aplicáveis somente em determinados casos. */
   observacao_condicional?: string;
@@ -56,6 +60,8 @@ export const ITENS_KIT_DOCUMENTAL_COLUMNS = [
   'descricao',
   'tipo',
   'obrigatorio',
+  'permite_anexo',
+  'permite_modelo',
   'url_template',
   'observacao_condicional',
   'acao_email',

@@ -78,8 +78,10 @@ export const ProjetoPesquisa = () => {
         id: item.identificador,
         label: item.titulo,
         descricao: item.descricao,
-        tipo: item.tipo,
+        tipo: item.tipo as DocumentoExigido['tipo'],
         obrigatorio: item.obrigatorio,
+        permiteAnexo: 'permite_anexo' in item ? item.permite_anexo : undefined,
+        permiteModelo: 'permite_modelo' in item ? item.permite_modelo : undefined,
         url_template: 'url_template' in item ? item.url_template : undefined,
       }));
   }, [kitSelecionado]);

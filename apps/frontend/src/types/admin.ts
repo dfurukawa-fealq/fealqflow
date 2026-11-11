@@ -13,7 +13,7 @@ export interface PeriodoSubmissao {
   status: 'Aberto' | 'Fechado';
 }
 
-export interface DocumentoSolicitadoAdmin {
+export interface ItemKitDocumentalAdmin {
   id: string;
   nome: string;
   tipo?: 'documento' | 'formulario';
@@ -43,8 +43,7 @@ export interface FormularioApoio {
   status: 'Aberto' | 'Fechado';
   periodosSubmissao: PeriodoSubmissao[];
   normas: string;
-  documentosSolicitados: DocumentoSolicitadoAdmin[];
-  documentoIds?: string[];
+  itensKitDocumental: ItemKitDocumentalAdmin[];
   active?: boolean;
   habilitado?: boolean;
   nSeq?: number;

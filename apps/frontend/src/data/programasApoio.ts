@@ -14,6 +14,8 @@ export interface DocumentoExigido {
   tipo: TipoDocumento;
   /** false = NÃO OBRIGATÓRIO ou opcional; nesse caso preencha `condicao`. */
   obrigatorio: boolean;
+  permiteAnexo?: boolean;
+  permiteModelo?: boolean;
   condicao?: string;
   acaoEmail?: { email: string; label: string };
   url_template?: string;
@@ -67,6 +69,8 @@ interface ItemKitDocumentalJson {
   descricao: string;
   tipo: TipoDocumento;
   obrigatorio: boolean;
+  permite_anexo?: boolean;
+  permite_modelo?: boolean;
   url_template?: string;
   observacao_condicional?: string;
   acao_email?: { email: string; label: string };
@@ -99,6 +103,8 @@ const montarKitProgramaApoio = (formularioId: string): DocumentoExigido[] => {
         descricao: item.descricao || undefined,
         tipo: item.tipo,
         obrigatorio: item.obrigatorio,
+        permiteAnexo: item.permite_anexo,
+        permiteModelo: item.permite_modelo,
         condicao: item.observacao_condicional,
         acaoEmail: item.acao_email,
         url_template: item.url_template,

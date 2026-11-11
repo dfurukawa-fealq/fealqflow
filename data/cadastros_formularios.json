@@ -8,53 +8,55 @@
     "status": "Fechado",
     "normas": "Destinado a alunos de graduação e pós-graduação das unidades parceiras para cobrir custos de passagem aérea e/ou ônibus, hospedagem e outras despesas que não sejam vedadas, para a participação em estágios supervisionados, reuniões técnicas ou viagem para atendimento de necessidades de projetos de pesquisa[cite: 4]. Limitado ao teto de até R$ 3.000,00 para viagens nacionais e R$ 6.000,00 internacionais[cite: 4]. Esta modalidade não contempla apoio para participação em Congresso e similares[cite: 4]. Em caso de aprovação, o beneficiário deverá comprovar após a viagem uma contrapartida à Fealq, a exemplo de vídeos ou publicação na rede social em menção ao apoio concedido[cite: 4].",
     "periodos_submissao": [],
-    "documentos_solicitados": [
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-1",
-        "nome": "a) Formulário de Solicitação de Apoio;[cite: 4]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-2",
-        "nome": "b) Carta com a apresentação e justificativa da viagem, assinado pelo orientador e aluno, limitada uma página;[cite: 4]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-3",
-        "nome": "c) Currículo Lattes do orientador em PDF;[cite: 4]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-4",
-        "nome": "d) Currículo Lattes do aluno em PDF;[cite: 4]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-5",
-        "nome": "e) Histórico escolar da graduação ou pós-graduação;[cite: 4]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-6",
-        "nome": "f) Plano de atividades que serão desenvolvidas na viagem;[cite: 4]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-7",
-        "nome": "g) 2 (dois) orçamentos de fornecedores distintos para cada tipo de apoio solicitado; que podem ser obtidos de estabelecimentos físicos e/ou de plataformas online.[cite: 4]",
-        "info": "",
-        "url_template": ""
-      }
-    ],
     "active": true,
     "habilitado": true,
-    "nseq": 0
+    "nseq": 0,
+    "dados_legados": {
+      "documentos_solicitados": [
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-1",
+          "nome": "a) Formulário de Solicitação de Apoio;[cite: 4]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-2",
+          "nome": "b) Carta com a apresentação e justificativa da viagem, assinado pelo orientador e aluno, limitada uma página;[cite: 4]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-3",
+          "nome": "c) Currículo Lattes do orientador em PDF;[cite: 4]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-4",
+          "nome": "d) Currículo Lattes do aluno em PDF;[cite: 4]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-5",
+          "nome": "e) Histórico escolar da graduação ou pós-graduação;[cite: 4]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-6",
+          "nome": "f) Plano de atividades que serão desenvolvidas na viagem;[cite: 4]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-doc-7",
+          "nome": "g) 2 (dois) orçamentos de fornecedores distintos para cada tipo de apoio solicitado; que podem ser obtidos de estabelecimentos físicos e/ou de plataformas online.[cite: 4]",
+          "info": "",
+          "url_template": ""
+        }
+      ]
+    }
   },
   {
     "id": "apoio-edital-infraestrutura-e-melhorias-2026-1",
@@ -65,47 +67,49 @@
     "status": "Fechado",
     "normas": "Destinado a suprir a necessidade de modernização da estrutura física, incluindo equipamentos, reforma, assessoria, prestação de serviços ou outro item similar com impacto para a comunidade acadêmica[cite: 5]. Podem apresentar projetos as unidades da USP parceiras da Fealq, representados por coordenadores de disciplina, presidentes de comissões acadêmicas, chefes de departamentos e diretores de unidade desde que os projetos visem o uso coletivo[cite: 5]. A Diretoria destinará o montante de até R$ 250.000,00, com cada pedido limitado ao valor de até R$ 20.000,00, visando atender o maior número de beneficiários[cite: 5]. Os recursos aprovados deverão ser utilizados até 30/09/2026 sem prorrogação de prazo[cite: 5].",
     "periodos_submissao": [],
-    "documentos_solicitados": [
-      {
-        "id": "edital-infraestrutura-e-melhorias-2026-doc-1",
-        "nome": "4.1. Carta com descrição e justificativa do pedido;[cite: 5]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "edital-infraestrutura-e-melhorias-2026-doc-2",
-        "nome": "4.2. Carta de anuência da chefia de departamento, caso a solicitação não seja do próprio;[cite: 5]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "edital-infraestrutura-e-melhorias-2026-doc-3",
-        "nome": "4.3. Projeto a ser executado, se aplicável, de acordo com as regras institucionais; limitado a 10 páginas;[cite: 5]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "edital-infraestrutura-e-melhorias-2026-doc-4",
-        "nome": "4.4. Orçamento simplificado com a descrição dos itens contidos na solicitação;[cite: 5]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "edital-infraestrutura-e-melhorias-2026-doc-5",
-        "nome": "4.5. Pedidos feitos por coordenadores de disciplinas e presidentes de Comissões acadêmicas, devem ser acompanhados de um documento que comprove a condição de que o docente é responsável por uma disciplina ou que preside a referida comissão;[cite: 5]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "edital-infraestrutura-e-melhorias-2026-doc-6",
-        "nome": "4.6. Outros documentos que visem instruir o pedido.[cite: 5]",
-        "info": "",
-        "url_template": ""
-      }
-    ],
     "active": true,
     "habilitado": true,
-    "nseq": 1
+    "nseq": 1,
+    "dados_legados": {
+      "documentos_solicitados": [
+        {
+          "id": "edital-infraestrutura-e-melhorias-2026-doc-1",
+          "nome": "4.1. Carta com descrição e justificativa do pedido;[cite: 5]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "edital-infraestrutura-e-melhorias-2026-doc-2",
+          "nome": "4.2. Carta de anuência da chefia de departamento, caso a solicitação não seja do próprio;[cite: 5]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "edital-infraestrutura-e-melhorias-2026-doc-3",
+          "nome": "4.3. Projeto a ser executado, se aplicável, de acordo com as regras institucionais; limitado a 10 páginas;[cite: 5]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "edital-infraestrutura-e-melhorias-2026-doc-4",
+          "nome": "4.4. Orçamento simplificado com a descrição dos itens contidos na solicitação;[cite: 5]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "edital-infraestrutura-e-melhorias-2026-doc-5",
+          "nome": "4.5. Pedidos feitos por coordenadores de disciplinas e presidentes de Comissões acadêmicas, devem ser acompanhados de um documento que comprove a condição de que o docente é responsável por uma disciplina ou que preside a referida comissão;[cite: 5]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "edital-infraestrutura-e-melhorias-2026-doc-6",
+          "nome": "4.6. Outros documentos que visem instruir o pedido.[cite: 5]",
+          "info": "",
+          "url_template": ""
+        }
+      ]
+    }
   },
   {
     "id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-universita-ria-2",
@@ -116,29 +120,31 @@
     "status": "Fechado",
     "normas": "Destinado a apoiar atividades culturais, tais como exposições, apresentações artísticas, oficinas educativas, grupos musicais, iniciativas de bem-estar, campanhas de conscientização, integração social e outras iniciativas que valorizem a Cultura, Extensão, Inclusão e Pertencimento das Unidades parcerias da Fealq[cite: 6]. Limitado ao teto de até R$ 3.000,00 por apoio[cite: 6]. As propostas devem estar alinhadas com no mínimo (1) um dos Objetivos de Desenvolvimento Sustentável (ODS) da Agenda 2030 da ONU[cite: 6]. É exigida comprovação do crédito do patrocínio à Fundação, como contrapartida, a exemplo da inserção da logomarca horizontal da Fealq no material da iniciativa, vídeos ou fotos com menção do apoio da Fealq, publicado em rede social[cite: 6].",
     "periodos_submissao": [],
-    "documentos_solicitados": [
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-universita-ria-doc-1",
-        "nome": "a) Formulário de Solicitação de Apoio;[cite: 6]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-universita-ria-doc-2",
-        "nome": "b) Carta de apoio institucional assinada em papel timbrado;[cite: 6]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-universita-ria-doc-3",
-        "nome": "c) 2 (dois) orçamentos de fornecedores distintos para cada tipo de apoio solicitado, que podem ser obtidos de estabelecimentos físicos e/ou de plataformas online.[cite: 6]",
-        "info": "",
-        "url_template": ""
-      }
-    ],
     "active": true,
     "habilitado": true,
-    "nseq": 2
+    "nseq": 2,
+    "dados_legados": {
+      "documentos_solicitados": [
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-universita-ria-doc-1",
+          "nome": "a) Formulário de Solicitação de Apoio;[cite: 6]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-universita-ria-doc-2",
+          "nome": "b) Carta de apoio institucional assinada em papel timbrado;[cite: 6]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-universita-ria-doc-3",
+          "nome": "c) 2 (dois) orçamentos de fornecedores distintos para cada tipo de apoio solicitado, que podem ser obtidos de estabelecimentos físicos e/ou de plataformas online.[cite: 6]",
+          "info": "",
+          "url_template": ""
+        }
+      ]
+    }
   },
   {
     "id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-interesse-da-comunidade-3",
@@ -149,29 +155,31 @@
     "status": "Fechado",
     "normas": "Destinado a incentivar e viabilizar ações que promovam impacto social e fortalecimento comunitário[cite: 7]. O foco está no apoio a iniciativas abertas à sociedade, sem vínculo com a Universidade, que valorizem a cultura, o esporte, a educação, a cidadania e que proporcionem claro impacto positivo aos beneficiários[cite: 7]. Limitado ao teto de até R$ 5.000,00 por apoio[cite: 7]. As propostas devem estar alinhadas com no mínimo (1) dos Objetivos de Desenvolvimento Sustentável (ODS) da Agenda 2030 da ONU[cite: 7]. Exige comprovação do crédito do patrocínio à Fundação, como contrapartida, a exemplo de publicação de vídeos ou fotos, com menção do apoio da Fealq publicado em rede social[cite: 7].",
     "periodos_submissao": [],
-    "documentos_solicitados": [
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-interesse-da-comunidade-doc-1",
-        "nome": "a) Formulário de Solicitação de Apoio;[cite: 7]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-interesse-da-comunidade-doc-2",
-        "nome": "b) Carta de apoio institucional em papel timbrado (se aplicável);[cite: 7]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-interesse-da-comunidade-doc-3",
-        "nome": "c) 2 (dois) orçamentos de fornecedores distintos, que podem ser obtidos de estabelecimentos físicos e/ou de plataformas online.[cite: 7]",
-        "info": "",
-        "url_template": ""
-      }
-    ],
     "active": true,
     "habilitado": true,
-    "nseq": 3
+    "nseq": 3,
+    "dados_legados": {
+      "documentos_solicitados": [
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-interesse-da-comunidade-doc-1",
+          "nome": "a) Formulário de Solicitação de Apoio;[cite: 7]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-interesse-da-comunidade-doc-2",
+          "nome": "b) Carta de apoio institucional em papel timbrado (se aplicável);[cite: 7]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-interesse-da-comunidade-doc-3",
+          "nome": "c) 2 (dois) orçamentos de fornecedores distintos, que podem ser obtidos de estabelecimentos físicos e/ou de plataformas online.[cite: 7]",
+          "info": "",
+          "url_template": ""
+        }
+      ]
+    }
   },
   {
     "id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-4",
@@ -182,65 +190,67 @@
     "status": "Fechado",
     "normas": "Destinado a alunos de pós-graduação que precisam de apoio para iniciar ou finalizar o programa, sendo concedida por até três meses no início ou final dos cursos, respeitando os prazos regimentais do Programa de Pós-graduação[cite: 8]. Requer encaminhamento realizado pela Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade parceira à qual o candidato está vinculado[cite: 8]. É vedada prorrogação para esta modalidade[cite: 8]. Não é permitida a acumulação de bolsas semelhantes e o auxílio deverá seguir os critérios e valores previstos na tabela de Bolsas de Incentivo do Regulamento de Bolsas da Fealq[cite: 8].",
     "periodos_submissao": [],
-    "documentos_solicitados": [
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-1",
-        "nome": "a) Formulário de Solicitação de Apoio;[cite: 8]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-2",
-        "nome": "b) Justificativa da necessidade do recurso, assinada pelo aluno, orientador ou coordenador do programa, limitada a uma página;[cite: 8]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-3",
-        "nome": "c) Declaração do aluno atestando que não recebe bolsa, assinada em conjunto com o orientador;[cite: 8]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-4",
-        "nome": "d) Apresentar o cronograma de atividades da pesquisa, com o período e fases;[cite: 8]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-5",
-        "nome": "e) Currículo Lattes do aluno em PDF;[cite: 8]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-6",
-        "nome": "f) Currículo Lattes do orientador em PDF;[cite: 8]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-7",
-        "nome": "g) Histórico escolar completo da graduação do aluno e declaração de matrícula da pós-graduação atualizada;[cite: 8]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-8",
-        "nome": "h) Carta de recomendação preferivelmente que não seja o orientador, limitada a uma página;[cite: 8]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-9",
-        "nome": "i) Solicitar à Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade, o \"Formulário de avaliação social\", que após entrevista com o candidato encaminhará diretamente à Fealq.[cite: 8]",
-        "info": "",
-        "url_template": ""
-      }
-    ],
     "active": true,
     "habilitado": true,
-    "nseq": 4
+    "nseq": 4,
+    "dados_legados": {
+      "documentos_solicitados": [
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-1",
+          "nome": "a) Formulário de Solicitação de Apoio;[cite: 8]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-2",
+          "nome": "b) Justificativa da necessidade do recurso, assinada pelo aluno, orientador ou coordenador do programa, limitada a uma página;[cite: 8]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-3",
+          "nome": "c) Declaração do aluno atestando que não recebe bolsa, assinada em conjunto com o orientador;[cite: 8]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-4",
+          "nome": "d) Apresentar o cronograma de atividades da pesquisa, com o período e fases;[cite: 8]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-5",
+          "nome": "e) Currículo Lattes do aluno em PDF;[cite: 8]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-6",
+          "nome": "f) Currículo Lattes do orientador em PDF;[cite: 8]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-7",
+          "nome": "g) Histórico escolar completo da graduação do aluno e declaração de matrícula da pós-graduação atualizada;[cite: 8]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-8",
+          "nome": "h) Carta de recomendação preferivelmente que não seja o orientador, limitada a uma página;[cite: 8]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-doc-9",
+          "nome": "i) Solicitar à Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade, o \"Formulário de avaliação social\", que após entrevista com o candidato encaminhará diretamente à Fealq.[cite: 8]",
+          "info": "",
+          "url_template": ""
+        }
+      ]
+    }
   },
   {
     "id": "apoio-formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-5",
@@ -251,71 +261,73 @@
     "status": "Fechado",
     "normas": "Destinado ao autor responsável pelo artigo, desde que esteja vinculado à linha de pesquisa da unidade parceira onde foi conduzida a pesquisa, para pagamento das taxas de publicação de artigos científicos em revistas com fator de impacto[cite: 9]. O apoio é mediante a apresentação do artigo submetido e do comprovante de aceite da revista científica[cite: 9]. Se o pedido for feito por aluno de Pós-graduação, necessariamente deve ser o primeiro autor[cite: 20]. Se o pedido for feito por docente que deve ser autor correspondente, terá prioridade o artigo que também tiver participação discente[cite: 20]. Publicações em periódicos que possuem acordos transformativos assinados com a USP/CAPES isentam os pesquisadores do pagamento da taxa e não serão avaliados[cite: 20].",
     "periodos_submissao": [],
-    "documentos_solicitados": [
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-1",
-        "nome": "a) Formulário de Apoio;[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-2",
-        "nome": "b) Ofício à Diretoria da Fealq indicando Nome completo do solicitante, telefone, e-mail, instituição vinculada, tipo de vínculo, nome do docente orientador, departamento, título do artigo, nome do periódico, valor da taxa de publicação e outras fontes de recursos, limitado a duas páginas;[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-3",
-        "nome": "c) Currículo Lattes PDF do orientador;[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-4",
-        "nome": "d) Currículo Lattes PDF do aluno;[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-5",
-        "nome": "e) Cópia do artigo aprovado para publicação;[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-6",
-        "nome": "f) Aceite da revista; (obrigatório)[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-7",
-        "nome": "g) Invoice;[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-8",
-        "nome": "h) Fator de Impacto (Impact Factor) e Número Médio Citações (Citescore) do Período Científico, em qual será publicado o artigo;[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-9",
-        "nome": "i) Comprovante de matrícula, no caso de estudantes;[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-10",
-        "nome": "j) Comprovante vigente de credenciamento ao programa de pós-graduação no caso de docentes.[cite: 9, 20]",
-        "info": "",
-        "url_template": ""
-      }
-    ],
     "active": true,
     "habilitado": true,
-    "nseq": 5
+    "nseq": 5,
+    "dados_legados": {
+      "documentos_solicitados": [
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-1",
+          "nome": "a) Formulário de Apoio;[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-2",
+          "nome": "b) Ofício à Diretoria da Fealq indicando Nome completo do solicitante, telefone, e-mail, instituição vinculada, tipo de vínculo, nome do docente orientador, departamento, título do artigo, nome do periódico, valor da taxa de publicação e outras fontes de recursos, limitado a duas páginas;[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-3",
+          "nome": "c) Currículo Lattes PDF do orientador;[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-4",
+          "nome": "d) Currículo Lattes PDF do aluno;[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-5",
+          "nome": "e) Cópia do artigo aprovado para publicação;[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-6",
+          "nome": "f) Aceite da revista; (obrigatório)[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-7",
+          "nome": "g) Invoice;[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-8",
+          "nome": "h) Fator de Impacto (Impact Factor) e Número Médio Citações (Citescore) do Período Científico, em qual será publicado o artigo;[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-9",
+          "nome": "i) Comprovante de matrícula, no caso de estudantes;[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-doc-10",
+          "nome": "j) Comprovante vigente de credenciamento ao programa de pós-graduação no caso de docentes.[cite: 9, 20]",
+          "info": "",
+          "url_template": ""
+        }
+      ]
+    }
   },
   {
     "id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-6",
@@ -326,41 +338,43 @@
     "status": "Fechado",
     "normas": "Destinado aos eventos administrados pela Fundação, para auxílio exclusivo na contratação de coffee-break e aquisição de brindes, além de fornecimento de material de apoio Fealq (canetas, blocos e pastas)[cite: 18]. Limitado ao teto de R$ 3.000,00 por apoio[cite: 18]. O evento deve ser promovido por unidades da USP parceiras da Fealq e a gestão administrativo-financeira deve ser realizada pela Fundação[cite: 18]. Exige-se comprovação do crédito do patrocínio à Fundação na publicidade do evento como contrapartida, a exemplo da inserção da logomarca horizontal no material do evento, vídeos ou fotos com menção do apoio da Fealq, publicado em rede social[cite: 18].",
     "periodos_submissao": [],
-    "documentos_solicitados": [
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-1",
-        "nome": "a) Formulário de Solicitação de Apoio;[cite: 18]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-2",
-        "nome": "b) Carta com a apresentação do evento, limitada a duas páginas;[cite: 18]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-3",
-        "nome": "c) Programação do Evento;[cite: 18]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-4",
-        "nome": "d) Currículo Lattes orientador;[cite: 18]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-5",
-        "nome": "e) 2 (dois) orçamentos de fornecedores distintos para cada tipo de apoio solicitado, que podem ser obtidos de estabelecimentos físicos e/ou de plataformas online.[cite: 18]",
-        "info": "",
-        "url_template": ""
-      }
-    ],
     "active": true,
     "habilitado": true,
-    "nseq": 6
+    "nseq": 6,
+    "dados_legados": {
+      "documentos_solicitados": [
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-1",
+          "nome": "a) Formulário de Solicitação de Apoio;[cite: 18]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-2",
+          "nome": "b) Carta com a apresentação do evento, limitada a duas páginas;[cite: 18]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-3",
+          "nome": "c) Programação do Evento;[cite: 18]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-4",
+          "nome": "d) Currículo Lattes orientador;[cite: 18]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-doc-5",
+          "nome": "e) 2 (dois) orçamentos de fornecedores distintos para cada tipo de apoio solicitado, que podem ser obtidos de estabelecimentos físicos e/ou de plataformas online.[cite: 18]",
+          "info": "",
+          "url_template": ""
+        }
+      ]
+    }
   },
   {
     "id": "apoio-formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-7",
@@ -371,59 +385,61 @@
     "status": "Fechado",
     "normas": "Destinado a alunos de graduação, pós-graduação, pesquisadores e docentes das unidades parceiras para cobrir a inscrição em evento, passagem aérea ou ônibus e/ou hospedagem e demais despesas relacionadas ao evento, que não sejam vedadas nas Normas da Fundação[cite: 19]. O benefício exige a apresentação de comprovante do aceite do trabalho em evento técnico-científico, com limite ao teto de R$ 3.000,00 para eventos nacionais e até R$ 6.000,00 para eventos no exterior[cite: 19]. O aluno que pleitear auxílio nesta modalidade não poderá pleitear simultaneamente na modalidade Auxílio Viagem[cite: 19].",
     "periodos_submissao": [],
-    "documentos_solicitados": [
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-1",
-        "nome": "a) Formulário de Solicitação de Apoio;[cite: 19]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-2",
-        "nome": "b) Programação do evento;[cite: 19]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-3",
-        "nome": "c) Projeto que originou o trabalho submetido;[cite: 19]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-4",
-        "nome": "d) Currículo Lattes do orientador em PDF;[cite: 19]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-5",
-        "nome": "e) Currículo Lattes do aluno em PDF;[cite: 19]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-6",
-        "nome": "f) Resumo do trabalho enviado ao evento;[cite: 19]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-7",
-        "nome": "g) Aceite do trabalho obrigatório;[cite: 19]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-8",
-        "nome": "h) 2 (dois) orçamentos de fornecedores distintos para cada tipo de apoio solicitado, exceto inscrição; que podem ser obtidos de estabelecimentos e/ou plataformas online.[cite: 19]",
-        "info": "",
-        "url_template": ""
-      }
-    ],
     "active": true,
     "habilitado": true,
-    "nseq": 7
+    "nseq": 7,
+    "dados_legados": {
+      "documentos_solicitados": [
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-1",
+          "nome": "a) Formulário de Solicitação de Apoio;[cite: 19]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-2",
+          "nome": "b) Programação do evento;[cite: 19]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-3",
+          "nome": "c) Projeto que originou o trabalho submetido;[cite: 19]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-4",
+          "nome": "d) Currículo Lattes do orientador em PDF;[cite: 19]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-5",
+          "nome": "e) Currículo Lattes do aluno em PDF;[cite: 19]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-6",
+          "nome": "f) Resumo do trabalho enviado ao evento;[cite: 19]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-7",
+          "nome": "g) Aceite do trabalho obrigatório;[cite: 19]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-doc-8",
+          "nome": "h) 2 (dois) orçamentos de fornecedores distintos para cada tipo de apoio solicitado, exceto inscrição; que podem ser obtidos de estabelecimentos e/ou plataformas online.[cite: 19]",
+          "info": "",
+          "url_template": ""
+        }
+      ]
+    }
   },
   {
     "id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-8",
@@ -434,53 +450,55 @@
     "status": "Fechado",
     "normas": "Destinada a alunos de graduação com vulnerabilidade socioeconômica mediante encaminhamento realizado pela Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade[cite: 22]. Poderá ser concedida por até 12 meses[cite: 22].",
     "periodos_submissao": [],
-    "documentos_solicitados": [
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-1",
-        "nome": "a) Formulário de Solicitação de Apoio;[cite: 22]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-2",
-        "nome": "b) Justificativa da necessidade do recurso assinada pelo aluno e orientador, limitada a uma página;[cite: 22]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-3",
-        "nome": "c) Declaração do aluno, atestando que não recebe bolsa, assinada em conjunto com o orientador;[cite: 22]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-4",
-        "nome": "d) Currículo Lattes do orientador em PDF;[cite: 22]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-5",
-        "nome": "e) Histórico escolar atualizado da graduação do aluno;[cite: 22]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-6",
-        "nome": "f) Carta de recomendação ao aluno, limitada a uma página;[cite: 22]",
-        "info": "",
-        "url_template": ""
-      },
-      {
-        "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-7",
-        "nome": "g) Solicitar à Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade, o \"Formulário de Avaliação Social\" que após entrevista com o candidato encaminhará formulário diretamente à Fealq.[cite: 22]",
-        "info": "",
-        "url_template": ""
-      }
-    ],
     "active": true,
     "habilitado": true,
-    "nseq": 8
+    "nseq": 8,
+    "dados_legados": {
+      "documentos_solicitados": [
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-1",
+          "nome": "a) Formulário de Solicitação de Apoio;[cite: 22]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-2",
+          "nome": "b) Justificativa da necessidade do recurso assinada pelo aluno e orientador, limitada a uma página;[cite: 22]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-3",
+          "nome": "c) Declaração do aluno, atestando que não recebe bolsa, assinada em conjunto com o orientador;[cite: 22]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-4",
+          "nome": "d) Currículo Lattes do orientador em PDF;[cite: 22]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-5",
+          "nome": "e) Histórico escolar atualizado da graduação do aluno;[cite: 22]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-6",
+          "nome": "f) Carta de recomendação ao aluno, limitada a uma página;[cite: 22]",
+          "info": "",
+          "url_template": ""
+        },
+        {
+          "id": "formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-doc-7",
+          "nome": "g) Solicitar à Divisão de Atendimento à Comunidade (DVATCOM) ou seção correspondente da unidade, o \"Formulário de Avaliação Social\" que após entrevista com o candidato encaminhará formulário diretamente à Fealq.[cite: 22]",
+          "info": "",
+          "url_template": ""
+        }
+      ]
+    }
   },
   {
     "id": "projeto-abertura-curso-evento",
@@ -491,7 +509,6 @@
     "status": "Aberto",
     "normas": "Formulário para abertura e tramitação de cursos e eventos vinculados à FEALQ/USP.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": true,
     "nseq": 0,
@@ -519,7 +536,6 @@
     "status": "Aberto",
     "normas": "Formulário para cadastro e tramitação de projetos de pesquisa.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": false,
     "nseq": 1,
@@ -547,7 +563,6 @@
     "status": "Aberto",
     "normas": "Formulário para solicitação de apoio e tramitação de publicações.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": false,
     "nseq": 2,
@@ -575,7 +590,6 @@
     "status": "Aberto",
     "normas": "Cadastro de dados do coordenador responsável pelo projeto.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": true,
     "nseq": 3,
@@ -603,7 +617,6 @@
     "status": "Aberto",
     "normas": "Formulário para abertura de projeto de pesquisa.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": true,
     "nseq": 4,
@@ -631,7 +644,6 @@
     "status": "Aberto",
     "normas": "Plano de trabalho e cronograma físico.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": false,
     "nseq": 5,
@@ -659,7 +671,6 @@
     "status": "Aberto",
     "normas": "Cadastro de patrocinador e documentos institucionais.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": false,
     "nseq": 6,
@@ -687,7 +698,6 @@
     "status": "Aberto",
     "normas": "Cadastro de parceiro para evento ou curso fechado.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": false,
     "nseq": 7,
@@ -715,7 +725,6 @@
     "status": "Aberto",
     "normas": "Definição das cotas de patrocínio.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": false,
     "nseq": 8,
@@ -743,7 +752,6 @@
     "status": "Aberto",
     "normas": "Cadastro de instituição financiadora.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": true,
     "nseq": 9,
@@ -771,7 +779,6 @@
     "status": "Aberto",
     "normas": "Planejamento e aplicação dos recursos do projeto.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": true,
     "nseq": 10,
@@ -799,7 +806,6 @@
     "status": "Aberto",
     "normas": "Abertura de programa de educação profissional e extensão.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": false,
     "nseq": 11,
@@ -827,7 +833,6 @@
     "status": "Aberto",
     "normas": "Abertura e regulamentação de central multiusuário.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": false,
     "nseq": 12,
@@ -855,7 +860,6 @@
     "status": "Aberto",
     "normas": "Documento de leitura obrigatória para o coordenador.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": true,
     "nseq": 13,
@@ -890,7 +894,6 @@
     "status": "Aberto",
     "normas": "Termo de aceite e assinatura.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": true,
     "nseq": 14,
@@ -925,7 +928,6 @@
     "status": "Aberto",
     "normas": "Documento de aprovação departamental.",
     "periodos_submissao": [],
-    "documentos_solicitados": [],
     "active": true,
     "habilitado": true,
     "nseq": 15,

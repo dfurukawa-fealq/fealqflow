@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "id": "documento-orientacoes-coordenador",
+    "nome": "Orientações ao Coordenador FEALQ (15 Regras)",
+    "descricao": "1. Se não tiver cadastro como coordenador na Fealq Preencher o Cadastro de Coordenador.<p><br></p><p>2. No caso de dúvidas quanto ao preenchimento deste formulário, contatar a equipe de&nbsp;</p><p>Projetos da Fealq - Área do coordenador link</p><p>3. Enviar este protocolo ao setor de Projetos de Extensão da Fealq para assinatura de forma&nbsp;</p><p>eletrônica. *Não é necessária a assinatura em documentos físicos.</p><p>4. Meios de pagamentos disponíveis para inscrições: boleto bancário e pix à vista, parcelamento no cartão de crédito. Estrangeiros: Pay Pal. Mensalidades de especializações: boleto bancário.&nbsp;</p><p>Custos de operação bancária para emissão de boletos e taxas de cartão de crédito serão&nbsp;</p><p>descontadas do projeto.</p><p>5. O faturamento às Entidades Financiadoras e Patrocinadores serão enviadas notas fiscais e&nbsp;</p><p>boletos bancários.</p><p>6. Custo operacional Fealq: 10% sobre as inscrições e patrocínios.&nbsp;</p><p>* Casos excepcionais e/ou isenções somente mediante ofício para análise e aprovação da Diretoria da FEALQ encaminhado juntamente a este Protocolo.</p><p>7. Para projetos convênio USP as taxas serão aplicadas nas porcentagens padrão da Unidade USP, do Departamento e Reitoria.</p><p>8. Evento realizado no Campus de Esalq haverá incidência de 0,5% destinada a Prefeitura do&nbsp;</p><p>Campus da Unidade. No caso de isenção, é necessário encaminhar à Fealq o documento de&nbsp;</p><p>autorização de isenção da taxa assinado pelo Prefeito do Campus juntamente com este Protocolo.</p><p>9. Encaminhar programação completa do Evento em Word (.doc ou .docx) para inclusão no site de inscrição.</p><p>10. Encaminhar a Fealq para as divulgações, arte visual do evento. Caso não tenha, a divulgação ocorre conforme padrão da Fealq.</p><p>11. Todo material relacionado ao Evento deve conter a logomarca da Fealq como Apoio conforme Manual de Identidade da Fealq e respectivas aplicações.</p><p>12. Informar sempre qualquer alteração/atualização de datas, horários, formatos, valores, lotes&nbsp;</p><p>local e programação.</p><p>13. A gestão do projeto será realizada por meio do Portal do Coordenador Conveniar, o qual será interativo com o Coordenador e sua equipe por meio do envio das solicitações de compra, pagamentos e reembolsos.&nbsp;</p><p>14. Estou ciente das Norma de Utilização de Recursos Fealq, Política e Procedimento de viagens e o Regulamento de Compras e Contratações.</p><p>15. São anexos deste documento de abertura do projeto: Plano de Aplicação de Recursos.</p>",
+    "template_url": "",
+    "active": true,
+    "criado_em": null,
+    "atualizado_em": null
+  },
+  {
+    "id": "documento-termo-lgpd",
+    "nome": "Termo de LGPD e Confidencialidade (FR 01 - PRO)",
+    "descricao": "<p style=\"text-align: center\"><strong>Protocolo de Abertura de Projeto de Cursos/Eventos</strong></p><p style=\"text-align: center\"><strong>Termo de Confidencialidade de Dados</strong></p><p style=\"text-align: center\"><strong><br></strong></p>Eu,<strong> {NOME}</strong>, nacionalidade <strong>{NACIONALIDADE}</strong>, inscrito no CPF sob número <strong>{CPF}</strong>, através do presente instrumento, declaro que solicitou à FUNDAÇÃO DE ESTUDOS AGRÁRIOS LUIZ DE QUEIROS – FEALQ, informações pessoais dos inscritos no Evento <strong>{NOME_DO_EVENTO_OU_GRUPO_PROJETOS_SOB_SUA_COORDENACAO}</strong>, denominado projeto, no qual o ora signatário é organizador. Em razão do fornecimento de dados de terceiros, o declarante se responsabiliza por manter sigilo absoluto e total confidencialidade dos dados, documentos e informações fornecidos pela empresa FEALQ, sendo responsável exclusiva e irrestritamente por todo e qualquer ato que vier a ocorrer pelo mau uso de tais informações, dados e documentos.<p>Declara ainda:&nbsp;</p><p>i) que não utilizará as informações para quaisquer fins ilícitos, e ainda, que se responsabiliza integralmente por qualquer violação do presente termo, mesmo que em detrimento de terceiros prejudicados que não seja a FEALQ, pelo período de 5 anos;&nbsp;</p><p>ii) que manterá sigilo absoluto sobre todas as informações que vier a ter conhecimento em decorrência dos dados, informações e documentos decorrentes deste termo e da respectiva utilização, bem como, de toda e qualquer informação pertinente a FEALQ ou terceiros constantes dos documentos e quaisquer outros envolvidos ou não;&nbsp;</p><p>iii) devolver a FEALQ todo e qualquer material e documento, inclusive eventuais cópias, que lhe tenham sido confiadas e entregue e/ou que tenham sido gerados por ele em razão do presente termo;&nbsp;</p><p>iv) que não repassará a terceiros independentemente do motivo, as informações, dados e documentos recebidos. Em razão de haver tratamento de dados pessoais de terceiros, o declarante se obriga a observar integralmente a legislação vigente sobre a proteção de dados, sobretudo, mas não exclusivamente, a Lei 13.709/2018 (“Lei Geral de Proteção de Dados”), em suas disposições em vigência e eficácia quando aplicável, respondendo por eventuais penalidades.</p><p>Em caso de descumprimento, mesmo que parcial, das obrigações acima dispostas, o declarante fica responsável por arcar integralmente com as perdas e danos incorridas pela FEALQ e/ou terceiros prejudicados, bem como, fica obrigado a ressarcir a parte inocente dos prejuízos experimentados.</p><p><strong>{CIDADE}, {DIA} de {MES} de {ANO}</strong>&nbsp;</p><p><br></p><p>____________________________________________________</p><p>Assinatura do Coordenador do Projeto</p>",
+    "template_url": "",
+    "active": true,
+    "criado_em": null,
+    "atualizado_em": null
+  },
+  {
+    "id": "documento-ciencia-departamento",
+    "nome": "Ciência e Concordância do Departamento (USP)",
+    "descricao": "Documento de aprovação departamental.",
+    "template_url": "",
+    "active": true,
+    "criado_em": null,
+    "atualizado_em": null
+  }
+]

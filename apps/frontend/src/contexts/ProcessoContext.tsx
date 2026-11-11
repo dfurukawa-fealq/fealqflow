@@ -27,7 +27,9 @@ interface ContextoProcessoNovo {
   dados: DadosProcesso;
   erro: string;
   salvando: boolean;
+  anexosPendentes: Record<string, File>;
   atualizarCampo: (campo: string, valor: unknown) => void;
+  selecionarAnexo: (codigo: string, arquivo: File | null) => void;
   salvar: () => Promise<void>;
 }
 
@@ -70,6 +72,21 @@ const mensagemErro = async (resposta: Response) => {
   const corpo: unknown = await resposta.json().catch(() => null);
   return corpo && typeof corpo === 'object' && 'error' in corpo && typeof corpo.error === 'string'
     ? corpo.error : `Falha na comunicação com o servidor (${resposta.status}).`;
+};
+
+const enviarAnexoProcesso = async (processoId: string, token: string, codigo: string, arquivo: File): Promise<DocumentoProcesso> => {
+  if (arquivo.size > 15 * 1024 * 1024) throw new Error('O arquivo deve ter até 15 MB.');
+  if (!['application/pdf', 'image/png', 'image/jpeg'].includes(arquivo.type)) throw new Error('Envie um arquivo PDF, PNG ou JPEG.');
+  const resposta = await fetch(`/api/processos/${processoId}/documentos/${encodeURIComponent(codigo)}`, {
+    method: 'POST', credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/octet-stream', 'x-processo-token': token,
+      'x-arquivo-tipo': arquivo.type, 'x-arquivo-nome': encodeURIComponent(arquivo.name),
+    },
+    body: arquivo,
+  });
+  if (!resposta.ok) throw new Error(await mensagemErro(resposta));
+  return resposta.json() as Promise<DocumentoProcesso>;
 };
 
 const criarProcesso = async (rota: string, chaveCriacao: string, token: string, processoPaiId?: string | null): Promise<ProcessoComToken> => {
@@ -194,7 +211,9 @@ const ProcessoNovoProvider = ({ children, rota, processoPaiId }: {
   const [dados, setDados] = useState<DadosProcesso>({ campos: {} });
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const [anexosPendentes, setAnexosPendentes] = useState<Record<string, File>>({});
   const dadosRef = useRef(dados);
+  const anexosPendentesRef = useRef(anexosPendentes);
   const criacaoRef = useRef<Promise<void> | null>(null);
   const credenciaisRef = useRef({ chaveCriacao: gerarUuid(), token: gerarToken() });
 
@@ -204,6 +223,18 @@ const ProcessoNovoProvider = ({ children, rota, processoPaiId }: {
       const proximo = { campos: { ...atual.campos, [campo]: valor } };
       dadosRef.current = proximo;
       return proximo;
+    });
+  }, []);
+
+  const selecionarAnexo = useCallback((codigo: string, arquivo: File | null) => {
+    if (arquivo?.size && arquivo.size > 15 * 1024 * 1024) throw new Error('O arquivo deve ter até 15 MB.');
+    if (arquivo && !['application/pdf', 'image/png', 'image/jpeg'].includes(arquivo.type)) throw new Error('Envie um arquivo PDF, PNG ou JPEG.');
+    setAnexosPendentes((atuais) => {
+      const proximos = { ...atuais };
+      if (arquivo) proximos[codigo] = arquivo;
+      else delete proximos[codigo];
+      anexosPendentesRef.current = proximos;
+      return proximos;
     });
   }, []);
 
@@ -227,6 +258,9 @@ const ProcessoNovoProvider = ({ children, rota, processoPaiId }: {
           }),
         });
         if (!resposta.ok) throw new Error(await mensagemErro(resposta));
+        for (const [codigo, arquivo] of Object.entries(anexosPendentesRef.current)) {
+          await enviarAnexoProcesso(novo.id, tokenCriacao, codigo, arquivo);
+        }
         const busca = new URLSearchParams(location.search);
         busca.delete('inicio');
         busca.set('processo', novo.id);
@@ -244,8 +278,8 @@ const ProcessoNovoProvider = ({ children, rota, processoPaiId }: {
     return tarefa;
   }, [location.search, navigate, processoPaiId, rota]);
 
-  const valor = useMemo<ContextoProcessoNovo>(() => ({ dados, erro, salvando, atualizarCampo, salvar }),
-    [dados, erro, salvando, atualizarCampo, salvar]);
+  const valor = useMemo<ContextoProcessoNovo>(() => ({ dados, erro, salvando, anexosPendentes, atualizarCampo, selecionarAnexo, salvar }),
+    [dados, erro, salvando, anexosPendentes, atualizarCampo, selecionarAnexo, salvar]);
   return <ProcessoNovoContext.Provider value={valor}>{children}</ProcessoNovoContext.Provider>;
 };
 
@@ -370,17 +404,7 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa, som
   }, [processoInicial.id, token, salvar]);
 
   const anexarDocumento = useCallback(async (codigo: string, arquivo: File) => {
-    if (arquivo.size > 15 * 1024 * 1024) throw new Error('O arquivo deve ter até 15 MB.');
-    const resposta = await fetch(`/api/processos/${processoInicial.id}/documentos/${encodeURIComponent(codigo)}`, {
-      method: 'POST', credentials: 'same-origin',
-      headers: {
-        'Content-Type': 'application/octet-stream', 'x-processo-token': token,
-        'x-arquivo-tipo': arquivo.type, 'x-arquivo-nome': encodeURIComponent(arquivo.name),
-      },
-      body: arquivo,
-    });
-    if (!resposta.ok) throw new Error(await mensagemErro(resposta));
-    const documento = await resposta.json() as DocumentoProcesso;
+    const documento = await enviarAnexoProcesso(processoInicial.id, token, codigo, arquivo);
     setDocumentos((atuais) => [...atuais.filter((item) => item.id !== codigo), documento]);
     setErro('');
   }, [processoInicial.id, token]);

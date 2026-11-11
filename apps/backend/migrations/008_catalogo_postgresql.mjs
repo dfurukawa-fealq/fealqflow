@@ -45,6 +45,13 @@ export async function executar(pool, root) {
   await pool.query(`ALTER TABLE cadastros_formularios
     ADD COLUMN IF NOT EXISTS tipo_cadastro TEXT NOT NULL DEFAULT 'formulario'`);
 
+  // A definição acima é mantida apenas para permitir a evolução de bancos antigos.
+  // Depois da normalização, impede que a tabela substituída reapareça a cada inicialização.
+  const catalogoNormalizado = await pool.query(
+    "SELECT 1 FROM schema_migrations WHERE version = '014_normalizar_kits_documentais'",
+  );
+  if (catalogoNormalizado.rowCount) await pool.query('DROP TABLE IF EXISTS documentos_cadastro');
+
   const versaoImportacao = '008_importacao_sqlite_catalogo';
   const importacaoAplicada = await pool.query('SELECT 1 FROM schema_migrations WHERE version = $1', [versaoImportacao]);
   if (!importacaoAplicada.rowCount) {

@@ -194,7 +194,7 @@ export const FormPageLayout = ({
             {alerta}
           </div>
           {(erroAcao || processo?.erro || processoNovo?.erro) && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAcao || processo?.erro || processoNovo?.erro}</p>}
-          {processoNovo && <p className="mb-md rounded border border-primary/25 bg-primary/5 p-sm text-xs text-primary">Este formulário ainda não criou um processo. Preencha os dados e clique em <strong>Salvar Rascunho</strong> para gerar o protocolo e habilitar anexos e envio.</p>}
+          {processoNovo && <p className="mb-md rounded border border-primary/25 bg-primary/5 p-sm text-xs text-primary">Este formulário ainda não criou um processo. Você pode selecionar os anexos agora; clique em <strong>Salvar Rascunho</strong> para gerar o protocolo, enviar os arquivos selecionados e habilitar o envio.</p>}
           {processo && <p className="mb-md text-xs text-on-surface-variant">Processo {processo.processo.protocolo} · {processo.salvando ? 'Salvando rascunho...' : armazenamentoPersistenteDisponivel ? 'Rascunho disponível para retomada neste navegador' : 'O navegador bloqueia o armazenamento local; a retomada após fechá-lo pode não funcionar.'}</p>}
           {somenteLeitura && <p role="status" className="mb-md rounded border border-primary/30 bg-primary/5 p-sm text-sm text-primary">Protocolo enviado — visualização somente leitura.</p>}
 

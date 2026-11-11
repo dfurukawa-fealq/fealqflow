@@ -56,8 +56,8 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     .map((formulario) => ({
       id: formulario.id,
       nome: formulario.nome,
-      descricao: formulario.documentosSolicitados[0]?.info || '',
-      template_url: formulario.documentosSolicitados[0]?.url_template || '',
+      descricao: formulario.itensKitDocumental[0]?.info || '',
+      template_url: formulario.itensKitDocumental[0]?.url_template || '',
       active: formulario.active !== false,
       area: formulario.area,
     }));
@@ -192,7 +192,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     const novoFormulario: FormularioApoio = {
       id, nome: documento.nome, area: 'Projetos', tipo: 'documento', linhaApoioId: '',
       status: 'Fechado', periodosSubmissao: [], normas: '',
-      documentosSolicitados: [{ id, nome: documento.nome, info: documento.descricao, url_template: documento.template_url }],
+      itensKitDocumental: [{ id, nome: documento.nome, info: documento.descricao, url_template: documento.template_url }],
       active: documento.active !== false,
     };
     const response = await fetch('/api/formularios', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(novoFormulario) });
@@ -210,7 +210,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     const nome = updates.nome || documentoAtual.nome;
     const atualizado: FormularioApoio = {
       ...formularioAtual, nome,
-      documentosSolicitados: [{ id, nome, info: updates.descricao ?? documentoAtual.descricao, url_template: updates.template_url ?? documentoAtual.template_url }],
+      itensKitDocumental: [{ id, nome, info: updates.descricao ?? documentoAtual.descricao, url_template: updates.template_url ?? documentoAtual.template_url }],
     };
     const response = await fetch(`/api/formularios/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(atualizado) });
     if (!response.ok) {
@@ -277,7 +277,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         status: 'Aberto',
         periodosSubmissao: [],
         normas: p.normas || '',
-        documentosSolicitados: p.documentos.map((doc: any) => ({
+        itensKitDocumental: p.documentos.map((doc) => ({
           id: doc.id,
           nome: doc.label,
           info: doc.condicao || doc.descricao || '',

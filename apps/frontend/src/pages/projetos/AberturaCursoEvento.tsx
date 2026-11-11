@@ -14,6 +14,7 @@ import { gerarIdLocal } from '../../utils/id';
 import { EquipeTecnicaEditor } from '../../components/form/projetos/EquipeTecnicaEditor';
 import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSection';
 import { EnderecoField } from '../../components/form/EnderecoField';
+import { converterReaisParaCentavos, CurrencyInput, formatarCentavosComoMoeda } from '../../components/form/CurrencyInput';
 import { DelegadosEditor } from '../../components/form/projetos/DelegadosEditor';
 import { CoordenadorResponsavelSection } from '../../components/form/projetos/CoordenadorResponsavelSection';
 import { CienciaConcordanciaSection } from '../../components/form/projetos/CienciaConcordanciaSection';
@@ -43,11 +44,23 @@ interface Delegado {
 interface LoteInscricao {
   id: string;
   descricao: string;
-  valor: number;
+  valorCentavos: number;
+  /** Valor em reais usado somente para migrar rascunhos antigos. */
+  valor?: number;
   vagas: number;
   dataInicio: string;
   dataFim: string;
 }
+
+const normalizarLote = (lote: LoteInscricao): LoteInscricao => {
+  const { valor, ...campos } = lote;
+  return {
+    ...campos,
+    valorCentavos: Number.isInteger(lote.valorCentavos) && lote.valorCentavos >= 0
+      ? lote.valorCentavos
+      : converterReaisParaCentavos(valor),
+  };
+};
 
 const TIPO_EVENTO_LEGADO: Record<string, string> = { 'Simp\u00c3\u00b3sio': '', 'Simpósio': '' };
 const FORMATO_LEGADO: Record<string, 'Online (Síncrono)' | 'Online (Assíncrono)' | 'Híbrido'> = {
@@ -133,9 +146,9 @@ export const AberturaCursoEvento: React.FC = () => {
   const [tipoInscricao, setTipoInscricao] = useProcessoState<'gratuito' | 'pago'>('tipoInscricao', 'pago');
   const [vagasGratuitas, setVagasGratuitas] = useProcessoState('vagasGratuitas', '');
   const [lotes, setLotes] = useProcessoState<LoteInscricao[]>('lotes', [
-    { id: 'inicial', descricao: '', valor: 0, vagas: 0, dataInicio: '', dataFim: '' },
+    { id: 'inicial', descricao: '', valorCentavos: 0, vagas: 0, dataInicio: '', dataFim: '' },
   ]);
-  const [novoLote, setNovoLote] = useProcessoState<LoteInscricao>('loteNovo', { id: '', descricao: '', valor: 0, vagas: 0, dataInicio: '', dataFim: '' });
+  const [novoLote, setNovoLote] = useProcessoState<LoteInscricao>('loteNovo', { id: '', descricao: '', valorCentavos: 0, vagas: 0, dataInicio: '', dataFim: '' });
   const [investimentoTexto, setInvestimentoTexto] = useProcessoState('investimentoTexto', '');
   const [informacoesAdicionais, setInformacoesAdicionais] = useProcessoState('informacoesAdicionais', '');
 
@@ -190,8 +203,8 @@ export const AberturaCursoEvento: React.FC = () => {
 
   const adicionarLote = () => {
     if (!novoLote.descricao.trim()) return;
-    setLotes(prev => [...prev, { ...novoLote, id: gerarIdLocal() }]);
-    setNovoLote({ id: '', descricao: '', valor: 0, vagas: 0, dataInicio: '', dataFim: '' });
+    setLotes(prev => [...prev.map(normalizarLote), { ...normalizarLote(novoLote), id: gerarIdLocal() }]);
+    setNovoLote({ id: '', descricao: '', valorCentavos: 0, vagas: 0, dataInicio: '', dataFim: '' });
   /*
     setLotes(prev => [
       ...prev,
@@ -210,16 +223,24 @@ export const AberturaCursoEvento: React.FC = () => {
     setLotes(prev => prev.filter(l => l.id !== id));
   };
 
-  const atualizarLote = (id: string, campo: keyof LoteInscricao, valor: any) => {
+  const atualizarLote = <Campo extends keyof LoteInscricao>(id: string, campo: Campo, valor: LoteInscricao[Campo]) => {
     setLotes(prev =>
-      prev.map(l => (l.id === id ? { ...l, [campo]: valor } : l))
+      prev.map(l => (l.id === id ? { ...normalizarLote(l), [campo]: valor } : normalizarLote(l)))
     );
   };
 
   // Totais de lotes
-  const totalVagasLotes = lotes.reduce((acc, curr) => acc + (Number(curr.vagas) || 0), 0);
-  const totalArrecadacaoPrevista = lotes.reduce(
-    (acc, curr) => acc + (Number(curr.valor) || 0) * (Number(curr.vagas) || 0),
+  const lotesNormalizados = useMemo(() => lotes.map(normalizarLote), [lotes]);
+  const novoLoteNormalizado = useMemo(() => normalizarLote(novoLote), [novoLote]);
+  useEffect(() => {
+    if (JSON.stringify(lotes) !== JSON.stringify(lotesNormalizados)) setLotes(lotesNormalizados);
+  }, [lotes, lotesNormalizados, setLotes]);
+  useEffect(() => {
+    if (JSON.stringify(novoLote) !== JSON.stringify(novoLoteNormalizado)) setNovoLote(novoLoteNormalizado);
+  }, [novoLote, novoLoteNormalizado, setNovoLote]);
+  const totalVagasLotes = lotesNormalizados.reduce((acc, curr) => acc + (Number(curr.vagas) || 0), 0);
+  const totalArrecadacaoPrevistaCentavos = lotesNormalizados.reduce(
+    (acc, curr) => acc + curr.valorCentavos * (Number(curr.vagas) || 0),
     0
   );
 
@@ -319,8 +340,10 @@ export const AberturaCursoEvento: React.FC = () => {
           id: item.identificador,
           label: item.titulo,
           descricao: item.descricao,
-          tipo: item.tipo,
+          tipo: item.tipo as DocumentoExigido['tipo'],
           obrigatorio: item.obrigatorio,
+          permiteAnexo: 'permite_anexo' in item ? item.permite_anexo : undefined,
+          permiteModelo: 'permite_modelo' in item ? item.permite_modelo : undefined,
           condicao: item.obrigatorio ? 'Obrigatório' : (item.tipo === 'upload' ? 'Anexo Opcional' : 'NÃO OBRIGATÓRIO'),
         };
         if (item.identificador === 'cadastro-coordenador') {
@@ -1339,13 +1362,13 @@ export const AberturaCursoEvento: React.FC = () => {
                   <tbody className="divide-y divide-outline-variant/60">
                     <tr className="bg-surface-container-lowest">
                       <td className="p-xs px-sm"><input type="text" value={novoLote.descricao} onChange={(e) => setNovoLote((atual) => ({ ...atual, descricao: e.target.value }))} placeholder="Ex: 1º Lote - Estudantes" className="w-full rounded border border-outline-variant p-1 text-[12px]" /></td>
-                      <td className="p-xs px-sm"><div className="flex items-center"><span className="mr-1 text-[11px] text-on-surface-variant">R$</span><input type="number" value={novoLote.valor || ''} onChange={(e) => setNovoLote((atual) => ({ ...atual, valor: parseFloat(e.target.value) || 0 }))} placeholder="0,00" className="w-full rounded border border-outline-variant p-1 text-[12px]" /></div></td>
+                      <td className="p-xs px-sm"><CurrencyInput ariaLabel="Valor da inscrição do novo lote" valorCentavos={novoLoteNormalizado.valorCentavos} onChangeCentavos={(valorCentavos) => setNovoLote((atual) => ({ ...normalizarLote(atual), valorCentavos }))} /></td>
                       <td className="p-xs px-sm"><input type="number" value={novoLote.vagas || ''} onChange={(e) => setNovoLote((atual) => ({ ...atual, vagas: parseInt(e.target.value, 10) || 0 }))} placeholder="0" className="w-full rounded border border-outline-variant p-1 text-[12px]" /></td>
                       <td className="p-xs px-sm"><input type="date" value={novoLote.dataInicio} onChange={(e) => setNovoLote((atual) => ({ ...atual, dataInicio: e.target.value }))} className="w-full rounded border border-outline-variant p-1 text-[11px]" /></td>
                       <td className="p-xs px-sm"><input type="date" value={novoLote.dataFim} onChange={(e) => setNovoLote((atual) => ({ ...atual, dataFim: e.target.value }))} className="w-full rounded border border-outline-variant p-1 text-[11px]" /></td>
                       <td className="p-xs px-sm text-center"><button type="button" onClick={adicionarLote} disabled={!novoLote.descricao.trim()} className="inline-flex h-8 w-8 items-center justify-center text-primary disabled:cursor-not-allowed disabled:opacity-35" title="Salvar lote e adicionar outro" aria-label="Salvar lote e adicionar outro"><span className="material-symbols-outlined text-[22px]">save</span></button></td>
                     </tr>
-                    {lotes.map((lote) => (
+                    {lotesNormalizados.map((lote) => (
                       <tr key={lote.id} className="hover:bg-surface-container-lowest">
                         <td className="p-xs px-sm">
                           <input
@@ -1357,16 +1380,7 @@ export const AberturaCursoEvento: React.FC = () => {
                           />
                         </td>
                         <td className="p-xs px-sm">
-                          <div className="flex items-center">
-                            <span className="text-[11px] text-on-surface-variant mr-1">R$</span>
-                            <input
-                              type="number"
-                              value={lote.valor || ''}
-                              onChange={(e) => atualizarLote(lote.id, 'valor', parseFloat(e.target.value) || 0)}
-                              placeholder="0,00"
-                              className="w-full p-1 border border-outline-variant rounded text-[12px]"
-                            />
-                          </div>
+                          <CurrencyInput ariaLabel={`Valor da inscrição do lote ${lote.descricao || lote.id}`} valorCentavos={lote.valorCentavos} onChangeCentavos={(valorCentavos) => atualizarLote(lote.id, 'valorCentavos', valorCentavos)} />
                         </td>
                         <td className="p-xs px-sm">
                           <input
@@ -1410,7 +1424,7 @@ export const AberturaCursoEvento: React.FC = () => {
                     <tr>
                       <td className="p-xs px-sm">Total Estimado</td>
                       <td className="p-xs px-sm text-primary">
-                        Arrecadação: R$ {totalArrecadacaoPrevista.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        Arrecadação: {formatarCentavosComoMoeda(totalArrecadacaoPrevistaCentavos)}
                       </td>
                       <td className="p-xs px-sm text-on-surface">
                         {totalVagasLotes} vagas
