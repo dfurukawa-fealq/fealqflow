@@ -1167,42 +1167,16 @@
     "ativo": true
   },
   {
-    "id": "financiadora-pf-cpf",
+    "id": "financiadora-pf-documento-identificacao",
     "kit_id": "kit-financiadora-pessoa-fisica",
-    "identificador": "financiadora-pf-cpf",
-    "titulo": "CPF",
-    "descricao": "Anexe uma cópia legível do CPF.",
+    "identificador": "financiadora-pf-documento-identificacao",
+    "titulo": "Documento de Identificação",
+    "descricao": "Anexe um dos documentos: CPF, RG ou Habilitação (CNH).",
     "tipo": "upload",
     "obrigatorio": true,
     "permite_anexo": true,
     "permite_modelo": false,
     "ordem": 2,
-    "ativo": true
-  },
-  {
-    "id": "financiadora-pf-rg",
-    "kit_id": "kit-financiadora-pessoa-fisica",
-    "identificador": "financiadora-pf-rg",
-    "titulo": "RG",
-    "descricao": "Anexe frente e verso do documento de identidade.",
-    "tipo": "upload",
-    "obrigatorio": true,
-    "permite_anexo": true,
-    "permite_modelo": false,
-    "ordem": 3,
-    "ativo": true
-  },
-  {
-    "id": "financiadora-pf-habilitacao",
-    "kit_id": "kit-financiadora-pessoa-fisica",
-    "identificador": "financiadora-pf-habilitacao",
-    "titulo": "Habilitação (CNH)",
-    "descricao": "Anexe uma cópia legível da habilitação.",
-    "tipo": "upload",
-    "obrigatorio": true,
-    "permite_anexo": true,
-    "permite_modelo": false,
-    "ordem": 4,
     "ativo": true
   },
   {
