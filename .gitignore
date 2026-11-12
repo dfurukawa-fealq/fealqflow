@@ -8,3 +8,4 @@ coverage/
 !.env.example
 /.npm-cache
 /.Agente
+/test-results

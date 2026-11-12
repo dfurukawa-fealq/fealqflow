@@ -1,6 +1,7 @@
 import { useProcesso, useProcessoState } from '../../contexts/ProcessoContext';
-import { useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { lerTextoProcesso } from '../../utils/camposProcesso';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
@@ -26,24 +27,35 @@ import { InstituicoesFinanciadorasSection } from '../../components/form/projetos
 
 export const ProjetoPesquisa = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const processo = useProcesso();
+  const [erroAbertura, setErroAbertura] = useState('');
   const { gerarUrlVinculada, registrarAberturaFormulario, statusFormulario } = useRastreabilidade();
   const rotaRetorno = encodeURIComponent(location.pathname);
   const lerCampo = (...nomes: string[]) => {
     const campos = processo?.dados.campos || {};
-    const chave = Object.keys(campos).find((item) => nomes.some((nome) => item === nome || item.startsWith(`campo:${nome}:`)));
-    const valor = chave ? campos[chave] : '';
-    return typeof valor === 'string' ? valor.trim() : '';
+    return lerTextoProcesso(campos, ...nomes);
   };
   const dadosParaSubformularios = new URLSearchParams({
-    coordenador: lerCampo('Nome Completo do Coordenador'),
-    cpf: lerCampo('CPF'),
+    coordenador: lerCampo('coordNome', 'Nome Completo do Coordenador'),
+    cpf: lerCampo('coordCpf', 'CPF'),
     rg: lerCampo('RG / Órgão Emissor'),
-    departamento: lerCampo('Departamento / Instituição', 'Departamento / Unidade USP'),
-    email: lerCampo('E-mail Institucional'),
+    departamento: lerCampo('coordDepto', 'Departamento / Instituição', 'Departamento / Unidade USP'),
+    email: lerCampo('coordEmail', 'E-mail Institucional'),
     projeto: lerCampo('Título do Projeto', 'Título do Projeto / Curso / Evento'),
   }).toString();
-  const urlTermoLGPD = gerarUrlVinculada(`/projetos/termo-lgpd?retorno=pesquisa&rota_retorno=${rotaRetorno}&${dadosParaSubformularios}`, 'CERT-LGPD-01', 'Termo de LGPD e Confidencialidade');
+  const urlTermoLGPD = gerarUrlVinculada(`/projetos/termo-lgpd?rota_retorno=${rotaRetorno}`, 'CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', processo?.processo.id);
+  const abrirTermoLGPD = async () => {
+    setErroAbertura('');
+    try {
+      if (!processo) throw new Error('Salve o rascunho antes de abrir o Termo de LGPD.');
+      await processo.save_state();
+      registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD);
+      navigate(urlTermoLGPD);
+    } catch (falha: unknown) {
+      setErroAbertura(falha instanceof Error ? falha.message : 'Não foi possível abrir o termo. Tente novamente.');
+    }
+  };
   const urlOrientacoes = gerarUrlVinculada(`/projetos/orientacoes-coordenador?retorno=pesquisa&rota_retorno=${rotaRetorno}&${dadosParaSubformularios}`, 'CERT-ORIENT-01', 'Orientações ao Coordenador FEALQ');
   const urlPlanoRecursos = gerarUrlVinculada(`/projetos/form-plano-recursos?retorno=pesquisa&rota_retorno=${rotaRetorno}`, 'CONV-PL-01', 'Plano de AplicaÃ§Ã£o de Recursos');
   const statusLGPD = statusFormulario('CERT-LGPD-01');
@@ -90,6 +102,7 @@ export const ProjetoPesquisa = () => {
     if (documento.id === 'plano-aplicacao-recursos') {
       return {
         ...documento,
+        url_template: urlPlanoRecursos,
         status: undefined,
         onAbrirLink: async () => {
           await processo?.save_state();
@@ -128,6 +141,7 @@ export const ProjetoPesquisa = () => {
       acaoPrincipal="Submeter Projeto para FEALQ"
       sidebar={<KitDocumental acaoNoCard documentos={documentosKit} />}
     >
+      {erroAbertura && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAbertura}</p>}
       <OrientacoesProjetoSection />
       <ConvenioUSPSection possuiConvenio={possuiConvenio} aoAlterar={setPossuiConvenio} numeroConvenio={numeroConvenio} numeroProtocolo={numeroProcesso} aoAlterarNumeroConvenio={setNumeroConvenio} aoAlterarNumeroProtocolo={setNumeroProcesso} />
       {possuiConvenio && (
@@ -159,7 +173,7 @@ export const ProjetoPesquisa = () => {
 
       <CienciaConcordanciaSection numero={8} />
       <TermoAnuenciaProjetoSection />
-      <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD)} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
+      <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => { void abrirTermoLGPD(); }} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
     </FormPageLayout>
   );
 };

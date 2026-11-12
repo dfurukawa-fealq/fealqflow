@@ -1,5 +1,9 @@
 # 🏛️ FealqFlow Architecture & Project Rules
 
+## Testes — autorização explícita
+
+Não criar nem executar testes automaticamente. Testes somente quando o usuário solicitar explicitamente. Pedidos de implementação, correção ou CodeReview não autorizam testes por si só.
+
 This document serves as the central architectural reference and rulebook for the FealqFlow project (Portal de Formulários da FEALQ). Any AI agent or developer working on this codebase MUST adhere to the standards, structures, and guidelines defined below.
 
 ## 🛠️ Tech Stack

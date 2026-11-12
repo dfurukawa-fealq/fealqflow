@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { DocumentoExigido } from '../data/programasApoio';
 import {
   AnexarArquivo,
@@ -186,7 +186,11 @@ interface ItemDocumentoProps {
 }
 
 const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, enviando, somenteLeitura, onBaixar, onSelecionar, acaoNoCard }: ItemDocumentoProps) => {
+  const navigate = useNavigate();
   const processo = useProcesso();
+  const processoNovo = useProcessoNovo();
+  const [abrindo, setAbrindo] = useState(false);
+  const [erroAbertura, setErroAbertura] = useState('');
   const isCustomStatus = doc.status !== undefined;
   const isConcluidoStatus = doc.status === 'concluido';
   const isEmAndamento = doc.status === 'em_andamento';
@@ -211,7 +215,10 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
   // URL, o card também é navegável; uploads continuam usando o anexo interno.
   const cardComMotion = acaoNoCard && !concluido && (doc.obrigatorio || Boolean(doc.url_template));
   const abrirDocumento = async () => {
-    if (!doc.url_template) return;
+    if (!doc.url_template || abrindo) return;
+    setAbrindo(true);
+    setErroAbertura('');
+    try {
     // Persiste o rascunho antes de sair da tela para manter os dados
     // disponíveis nos subformulários vinculados ao processo.
     if (processo) await processo.save_state();
@@ -224,18 +231,22 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
       link.click();
       return;
     }
-    // Recarrega a rota do subformulário depois de persistir o protocolo pai.
-    // Em instalações integradas ao WordPress/servidores com SPA embutida, a
-    // navegação client-side pode trocar a URL sem desmontar o formulário atual.
+    // Mantém o vínculo com o pai sem recarregar os assets relativos da SPA.
     const destino = new URL(doc.url_template, window.location.origin);
     const processoPai = processo?.processo.id || new URLSearchParams(window.location.search).get('processo');
     if (processoPai) destino.searchParams.set('processo_pai', processoPai);
-    window.location.assign(destino.toString());
+    navigate(`${destino.pathname}${destino.search}${destino.hash}`);
+    } catch (falha: unknown) {
+      setErroAbertura(falha instanceof Error ? falha.message : 'Não foi possível abrir o documento. Tente novamente.');
+    } finally {
+      setAbrindo(false);
+    }
   };
 
   return (
     <div
       data-documento-id={doc.id}
+      aria-busy={abrindo}
       data-preenchido={preenchidoEfetivo ? 'SIM' : 'NAO'}
       data-emitido={emitidoEfetivo ? 'SIM' : 'NAO'}
       onClick={cardAcionavel ? abrirDocumento : undefined}
@@ -257,6 +268,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
             : 'border-outline-variant border-dashed hover:border-primary-container'
       } ${cardAcionavel ? `cursor-pointer hover:shadow-sm focus:outline-none focus:ring-2 ${concluido ? 'focus:ring-secondary/40' : isEmAndamento ? 'focus:ring-amber-500/40' : 'focus:ring-blue-500/40'}` : ''} ${cardComMotion ? 'relative overflow-hidden before:absolute before:inset-[-2px] before:rounded-[inherit] before:bg-[conic-gradient(from_0deg,transparent_0deg,currentColor_80deg,transparent_160deg)] before:opacity-80 before:animate-[spin_3s_linear_infinite] after:absolute after:inset-[2px] after:rounded-[inherit] after:bg-surface-container-lowest [&>*]:relative [&>*]:z-10' : ''}`}
     >
+      {erroAbertura && <p role="alert" className="mb-sm text-xs font-semibold text-error">{erroAbertura}</p>}
       <div className="flex items-start justify-between gap-sm">
         <div className="flex items-start gap-sm min-w-0">
           <span

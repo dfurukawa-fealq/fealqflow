@@ -472,9 +472,9 @@ export function useProcessoState<T>(campo: string, inicial: T | (() => T), alias
     const salvo = campos?.[campo] ?? aliases.map((alias) => campos?.[alias]).find((item) => item !== undefined);
     return salvo !== undefined ? salvo as T : typeof inicial === 'function' ? (inicial as () => T)() : inicial;
   });
+  const atualizarCampo = processo?.atualizarCampo ?? processoNovo?.atualizarCampo;
   useEffect(() => {
-    if (processo) processo.atualizarCampo(campo, valor);
-    else processoNovo?.atualizarCampo(campo, valor);
-  }, [campo, valor, processo, processoNovo]);
+    atualizarCampo?.(campo, valor);
+  }, [campo, valor, atualizarCampo]);
   return [valor, setValor];
 }

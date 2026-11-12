@@ -11,6 +11,7 @@ import { sanitizeInputText, sanitizeProtocolId, getSafeReturnUrl } from '../../u
 import { AutoPreencherButton } from '../../components/form/AutoPreencherButton';
 import { safeGetItem } from '../../utils/safeStorage';
 import { capturarProcessoPai } from '../../utils/processoPai';
+import { lerTextoProcesso } from '../../utils/camposProcesso';
 
 interface DadosProcessoPai { dados_json?: { campos?: Record<string, unknown> }; }
 
@@ -19,19 +20,14 @@ export const TermoLGPDConfidencialidade = () => {
   const navigate = useNavigate();
   const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
 
-  // Dados do coordenador e projeto (recebidos via query ou autopreenchidos)
-  const [nomeCoordenador, setNomeCoordenador] = useProcessoState('nomeCoordenador',
-    sanitizeInputText(searchParams.get('coordenador')) || ''
-  );
-  const [cpf, setCpf] = useProcessoState('cpf', formatCPF(searchParams.get('cpf') || ''));
-  const [rg, setRg] = useProcessoState('rg', formatRG(searchParams.get('rg') || ''));
-  const [departamento, setDepartamento] = useProcessoState('departamento',
-    sanitizeInputText(searchParams.get('departamento')) || ''
-  );
-  const [tituloProjeto, setTituloProjeto] = useProcessoState('tituloProjeto',
-    sanitizeInputText(searchParams.get('projeto')) || ''
-  );
-  const [email, setEmail] = useProcessoState('email', sanitizeInputText(searchParams.get('email')) || '');
+  // Os dados vêm do próprio termo salvo ou da consulta ao processo pai vinculado.
+  // Parâmetros de URL não são uma fonte de dados pessoais do declarante.
+  const [nomeCoordenador, setNomeCoordenador] = useProcessoState('nomeCoordenador', '');
+  const [cpf, setCpf] = useProcessoState('cpf', '');
+  const [rg, setRg] = useProcessoState('rg', '');
+  const [departamento, setDepartamento] = useProcessoState('departamento', '');
+  const [tituloProjeto, setTituloProjeto] = useProcessoState('tituloProjeto', '');
+  const [email, setEmail] = useProcessoState('email', '');
   const [mensagemAutoPreenchimento, setMensagemAutoPreenchimento] = useState('');
   const [toast, setToast] = useState('');
   const [camposProcessoPai, setCamposProcessoPai] = useState<Record<string, unknown>>({});
@@ -70,12 +66,7 @@ export const TermoLGPDConfidencialidade = () => {
 
   const preencherAutomaticamente = () => {
     const lerCampoPai = (...nomes: string[]) => {
-      for (const nome of nomes) {
-        const chave = Object.keys(camposProcessoPai).find((item) => item === nome || item.startsWith(`campo:${nome}:`));
-        const valor = chave ? camposProcessoPai[chave] : undefined;
-        if (typeof valor === 'string' && valor.trim()) return valor.trim();
-      }
-      return '';
+      return lerTextoProcesso(camposProcessoPai, ...nomes);
     };
     const valores = {
       nome: sanitizeInputText(lerCampoPai('coordNome', 'Nome Completo do Coordenador')),

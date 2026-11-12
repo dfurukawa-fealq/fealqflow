@@ -279,7 +279,7 @@ export const AberturaCursoEvento: React.FC = () => {
   const statusDepto = statusFormulario('CERT-DEPTO-01');
 
   const urlLGPD = gerarUrlVinculada(
-    `/projetos/termo-lgpd?coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}&rg=${encodeURIComponent(coordRg || '')}&email=${encodeURIComponent(coordEmail || '')}&departamento=${encodeURIComponent(coordDepto || deptoNome || '')}&projeto=${encodeURIComponent(titulo || '')}&rota_retorno=${encodeURIComponent(location.pathname)}`,
+    `/projetos/termo-lgpd?rota_retorno=${encodeURIComponent(location.pathname)}`,
     'CERT-LGPD-01',
     'Termo de LGPD e Confidencialidade',
     processoAtual?.processo.id
