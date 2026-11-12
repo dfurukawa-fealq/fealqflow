@@ -61,7 +61,7 @@
     "obrigatorio": true,
     "permite_anexo": true,
     "permite_modelo": true,
-    "url_template": "https://docs.google.com/document/d/16Bofe2pVGsMDUi73H-dbRMphl2U12VEQrD5PvaSZGwc/export?format=pdf",
+    "url_template": "https://docs.google.com/spreadsheets/d/1-YBYEX4sh6uGiJZW7H6X3sZGW3kRLN91/export?format=xlsx",
     "ordem": 2,
     "ativo": true
   },

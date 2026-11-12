@@ -142,7 +142,7 @@ export const CadastroFinanciadora = () => {
           Uf: ['campo:Estado (UF)'],
         }}
       />
-      <EnderecoField
+      {/* <EnderecoField
         titulo="Endereço para Fatura"
         descricao="Endereço utilizado na emissão de faturas"
         prefixo="entidadeEnderecoFatura"
@@ -151,12 +151,12 @@ export const CadastroFinanciadora = () => {
         titulo="Endereço para Cobrança"
         descricao="Endereço utilizado para correspondências de cobrança"
         prefixo="entidadeEnderecoCobranca"
-      />
+      /> */}
     </FormSection>
 
     <FormSection numero={4} icone="rule" titulo="Regras Financeiras">
       <Field
-        label="Pedido Formal Requerido?"
+        label="Pedido de Compra Requerido?"
         tipo="select"
         opcoes={[
           'Sim, obrigatório',

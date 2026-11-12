@@ -32,7 +32,7 @@ interface RastreabilidadeContextData {
   formOrigem: string | null;
   sessaoAtual: SessaoRastreabilidade;
   formulariosVinculados: Record<string, FormularioVinculado>;
-  gerarUrlVinculada: (path: string, formCodigo: string, formNome: string) => string;
+  gerarUrlVinculada: (path: string, formCodigo: string, formNome: string, processoPaiId?: string) => string;
   registrarAberturaFormulario: (formCodigo: string, formNome: string, urlDestino: string) => void;
   marcarFormularioConcluido: (formCodigo: string, dados?: Record<string, any>) => void;
   statusFormulario: (formCodigo: string) => 'pendente' | 'em_andamento' | 'concluido';
@@ -157,9 +157,9 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
     return novoProtocolo;
   };
 
-  const gerarUrlVinculada = (path: string, formCodigo: string, formNome: string) => {
+  const gerarUrlVinculada = (path: string, formCodigo: string, formNome: string, processoPaiId?: string) => {
     const separator = path.includes('?') ? '&' : '?';
-    const processoPai = capturarProcessoPai(searchParams, true);
+    const processoPai = processoPaiId || capturarProcessoPai(searchParams, true);
     const url = `${path}${separator}protocolo=${encodeURIComponent(protocolId)}&sessao=${encodeURIComponent(sessionId)}&origem=${encodeURIComponent(sessao.formOrigem)}&form_codigo=${encodeURIComponent(formCodigo)}${processoPai ? `&processo_pai=${encodeURIComponent(processoPai)}` : ''}`;
     return url;
   };

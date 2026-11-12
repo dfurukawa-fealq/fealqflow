@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { DocumentoExigido } from '../data/programasApoio';
 import {
   AnexarArquivo,
@@ -186,7 +186,6 @@ interface ItemDocumentoProps {
 }
 
 const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, enviando, somenteLeitura, onBaixar, onSelecionar, acaoNoCard }: ItemDocumentoProps) => {
-  const navigate = useNavigate();
   const processo = useProcesso();
   const isCustomStatus = doc.status !== undefined;
   const isConcluidoStatus = doc.status === 'concluido';
@@ -215,7 +214,8 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
     if (!doc.url_template) return;
     // Persiste o rascunho antes de sair da tela para manter os dados
     // disponíveis nos subformulários vinculados ao processo.
-    await processo?.save_state();
+    if (processo) await processo.save_state();
+    else if (processoNovo) await processoNovo.salvar();
     await doc.onAbrirLink?.();
     if (arquivoPdfCatalogo) {
       const link = document.createElement('a');
@@ -224,7 +224,13 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
       link.click();
       return;
     }
-    navigate(doc.url_template);
+    // Recarrega a rota do subformulário depois de persistir o protocolo pai.
+    // Em instalações integradas ao WordPress/servidores com SPA embutida, a
+    // navegação client-side pode trocar a URL sem desmontar o formulário atual.
+    const destino = new URL(doc.url_template, window.location.origin);
+    const processoPai = processo?.processo.id || new URLSearchParams(window.location.search).get('processo');
+    if (processoPai) destino.searchParams.set('processo_pai', processoPai);
+    window.location.assign(destino.toString());
   };
 
   return (
