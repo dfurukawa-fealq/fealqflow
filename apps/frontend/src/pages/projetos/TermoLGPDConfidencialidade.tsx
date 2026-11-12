@@ -10,6 +10,7 @@ import { formatCPF, formatRG } from '../../utils/formatters';
 import { sanitizeInputText, sanitizeProtocolId, getSafeReturnUrl } from '../../utils/security';
 import { AutoPreencherButton } from '../../components/form/AutoPreencherButton';
 import { safeGetItem } from '../../utils/safeStorage';
+import { capturarProcessoPai } from '../../utils/processoPai';
 
 interface DadosProcessoPai { dados_json?: { campos?: Record<string, unknown> }; }
 
@@ -35,30 +36,46 @@ export const TermoLGPDConfidencialidade = () => {
   const [toast, setToast] = useState('');
   const [camposProcessoPai, setCamposProcessoPai] = useState<Record<string, unknown>>({});
   const [carregandoDadosPai, setCarregandoDadosPai] = useState(false);
+  const [erroDadosPai, setErroDadosPai] = useState('');
 
   useEffect(() => {
-    const processoPai = searchParams.get('processo_pai');
-    if (!processoPai || !/^[0-9a-f-]{36}$/i.test(processoPai)) return;
+    const processoPai = capturarProcessoPai(searchParams);
+    if (!processoPai || !/^[0-9a-f-]{36}$/i.test(processoPai)) {
+      setErroDadosPai('Este termo foi aberto sem vínculo com o processo pai. Retorne ao protocolo e abra o termo pelo botão correspondente.');
+      return;
+    }
     const token = safeGetItem(`@Fealq:processo:${processoPai}`);
-    if (!token) return;
+    if (!token) {
+      setErroDadosPai('Não foi possível localizar a chave local do protocolo pai. Reabra o termo a partir do protocolo neste navegador.');
+      return;
+    }
     let ativo = true;
     setCarregandoDadosPai(true);
+    setErroDadosPai('');
     fetch(`/api/processos/${encodeURIComponent(processoPai)}`, { credentials: 'same-origin', headers: { 'x-processo-token': token } })
       .then(async (resposta) => {
         if (!resposta.ok) throw new Error('Não foi possível consultar o formulário pai.');
         return resposta.json() as Promise<DadosProcessoPai>;
       })
       .then((pai) => { if (ativo) setCamposProcessoPai(pai.dados_json?.campos || {}); })
-      .catch(() => { if (ativo) setCamposProcessoPai({}); })
+      .catch((falha: unknown) => {
+        if (ativo) {
+          setCamposProcessoPai({});
+          setErroDadosPai(falha instanceof Error ? falha.message : 'Não foi possível carregar os dados do processo pai.');
+        }
+      })
       .finally(() => { if (ativo) setCarregandoDadosPai(false); });
     return () => { ativo = false; };
   }, [searchParams]);
 
   const preencherAutomaticamente = () => {
     const lerCampoPai = (...nomes: string[]) => {
-      const chave = Object.keys(camposProcessoPai).find((item) => nomes.some((nome) => item === nome || item.startsWith(`campo:${nome}:`)));
-      const valor = chave ? camposProcessoPai[chave] : '';
-      return typeof valor === 'string' ? valor.trim() : '';
+      for (const nome of nomes) {
+        const chave = Object.keys(camposProcessoPai).find((item) => item === nome || item.startsWith(`campo:${nome}:`));
+        const valor = chave ? camposProcessoPai[chave] : undefined;
+        if (typeof valor === 'string' && valor.trim()) return valor.trim();
+      }
+      return '';
     };
     const valores = {
       nome: sanitizeInputText(lerCampoPai('coordNome', 'Nome Completo do Coordenador')),
@@ -157,7 +174,7 @@ export const TermoLGPDConfidencialidade = () => {
     : rotaSolicitada === '/projetos/form-curso-evento' || rotaSolicitada === '/projetos/form-curso'
       ? rotaSolicitada
     : searchParams.get('retorno') === 'pesquisa' ? '/projetos/form-pesquisa' : '/projetos/form-curso';
-  const processoPai = searchParams.get('processo_pai');
+  const processoPai = capturarProcessoPai(searchParams);
   const linkRetorno = getSafeReturnUrl(`${rotaRetorno}?protocolo=${encodeURIComponent(protocoloUrlParam)}${processoPai ? `&processo=${encodeURIComponent(processoPai)}` : ''}`);
 
   return (
@@ -230,6 +247,7 @@ export const TermoLGPDConfidencialidade = () => {
           <p className="col-span-12 -mt-xs text-[12px] text-on-surface-variant">
             Dados autopreenchidos a partir do cadastro do coordenador e do protocolo de abertura.
           </p>
+          {erroDadosPai && <p role="alert" className="col-span-12 -mt-xs text-[11px] font-semibold text-error">{erroDadosPai}</p>}
           {mensagemAutoPreenchimento && <p role="status" className="col-span-12 -mt-xs text-[11px] font-semibold text-secondary">{mensagemAutoPreenchimento}</p>}
           <Field
             label="Nome Completo do Coordenador"

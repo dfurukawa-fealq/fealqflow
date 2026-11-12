@@ -95,7 +95,7 @@ export default function App() {
             <Route path="/projetos/form-plano-recursos" element={<ProcessoRoute><PlanoAplicacaoRecursos /></ProcessoRoute>} />
             <Route path="/projetos/form-programa-epe" element={<ProcessoRoute><AberturaProgramaEPE /></ProcessoRoute>} />
             <Route path="/projetos/form-central" element={<ProcessoRoute><CentralMultiusuario /></ProcessoRoute>} />
-            <Route path="/projetos/termo-lgpd" element={<TermoLGPDConfidencialidade />} />
+            <Route path="/projetos/termo-lgpd" element={<ProcessoRoute><TermoLGPDConfidencialidade /></ProcessoRoute>} />
             <Route path="/projetos/orientacoes-coordenador" element={<OrientacoesCoordenador />} />
             <Route path="/projetos/ciencia-departamento" element={<CienciaConcordanciaDepto />} />
 

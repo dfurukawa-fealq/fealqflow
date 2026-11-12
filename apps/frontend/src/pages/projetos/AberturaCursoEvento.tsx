@@ -1,6 +1,6 @@
 import { useProcessoState } from '../../contexts/ProcessoContext';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
 import { Field } from '../../components/form/Field';
@@ -71,6 +71,7 @@ const FORMATO_LEGADO: Record<string, 'Online (Síncrono)' | 'Online (Assíncrono
 
 export const AberturaCursoEvento: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const processoAtual = useProcesso();
   const { protocolId, gerarUrlVinculada, statusFormulario, registrarAberturaFormulario, marcarFormularioConcluido } = useRastreabilidade();
   const statusPlanoRecursos = statusFormulario('CONV-PL-01');
@@ -282,6 +283,18 @@ export const AberturaCursoEvento: React.FC = () => {
     'CERT-LGPD-01',
     'Termo de LGPD e Confidencialidade'
   );
+
+  const abrirTermoLGPD = async () => {
+    registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD);
+    try {
+      await processoAtual?.save_state();
+      navigate(urlLGPD);
+    } catch (falha) {
+      setAvisoValidacao(falha instanceof Error
+        ? `NÃ£o foi possÃ­vel salvar o rascunho antes de abrir o termo: ${falha.message}`
+        : 'NÃ£o foi possÃ­vel salvar o rascunho antes de abrir o termo.');
+    }
+  };
 
   const urlOrientacoes = gerarUrlVinculada(
     `/projetos/orientacoes-coordenador?coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}`,
@@ -1581,7 +1594,7 @@ export const AberturaCursoEvento: React.FC = () => {
       <CienciaConcordanciaSection numero={6} />
 
       {/* 7. TERMOS, LGPD E DECLARAÇÕES FINAIS */}
-      <TermosLGPDSection aceito={isLGPDValido} urlTermo={urlLGPD} aoAbrirTermo={() => { registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD); void processoAtual?.save_state().finally(() => window.location.assign(urlLGPD)); }} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
+      <TermosLGPDSection aceito={isLGPDValido} urlTermo={urlLGPD} aoAbrirTermo={() => { void abrirTermoLGPD(); }} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
       <div className="hidden">
       <FormSection
         numero={7}

@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { safeGetItem, safeJsonParse, safeRemoveItem, safeSetItem } from '../utils/safeStorage';
 import { useUser } from './UserContext';
 import { BackupProcesso, DadosProcesso, DocumentoProcesso, Processo, ProcessoComToken, ProcessoLocal } from '../types/processo';
+import { capturarProcessoPai } from '../utils/processoPai';
 export type { ProcessoLocal } from '../types/processo';
 
 interface ContextoProcesso {
@@ -134,6 +135,15 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
       }).then((carregado) => {
         if (!ativo) return;
         if (carregado.formulario_rota !== location.pathname) {
+          const parametrosAtuais = new URLSearchParams(location.search);
+          const processoPaiCapturado = capturarProcessoPai(parametrosAtuais, true);
+          if (processoPaiCapturado && !parametrosAtuais.has('processo_pai')) {
+            parametrosAtuais.delete('processo');
+            parametrosAtuais.delete('proocesso');
+            parametrosAtuais.set('processo_pai', processoPaiCapturado);
+            navigate(`${location.pathname}?${parametrosAtuais.toString()}`, { replace: true });
+            return;
+          }
           setErro('Este processo pertence a outro formulário.');
           return;
         }
@@ -168,7 +178,7 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
     </main>
   );
   if (!id) return (
-    <ProcessoNovoProvider rota={location.pathname} processoPaiId={parametros.get('processo_pai')}>
+    <ProcessoNovoProvider rota={location.pathname} processoPaiId={capturarProcessoPai(parametros)}>
       {children}
     </ProcessoNovoProvider>
   );

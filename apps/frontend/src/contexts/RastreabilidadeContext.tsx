@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useMe
 import { useSearchParams } from 'react-router-dom';
 import { safeGetItem, safeSetItem, safeJsonParse } from '../utils/safeStorage';
 import { sanitizeProtocolId } from '../utils/security';
+import { capturarProcessoPai } from '../utils/processoPai';
 
 export interface FormularioVinculado {
   formCodigo: string;
@@ -59,7 +60,7 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
   const [searchParams] = useSearchParams();
 
   // Lê parâmetros vindos da URL caso um formulário filho tenha sido aberto a partir de um pai
-  const processoUrl = searchParams.get('processo');
+  const processoUrl = capturarProcessoPai(searchParams, true);
   const rawParamProtocolo = searchParams.get('protocolo')
     || (processoUrl && /^[0-9a-f-]{36}$/i.test(processoUrl) ? `FEALQ-${processoUrl.replaceAll('-', '').slice(0, 20)}` : null);
   const paramProtocolo = rawParamProtocolo ? sanitizeProtocolId(rawParamProtocolo) : null;
@@ -158,7 +159,7 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
 
   const gerarUrlVinculada = (path: string, formCodigo: string, formNome: string) => {
     const separator = path.includes('?') ? '&' : '?';
-    const processoPai = searchParams.get('processo');
+    const processoPai = capturarProcessoPai(searchParams, true);
     const url = `${path}${separator}protocolo=${encodeURIComponent(protocolId)}&sessao=${encodeURIComponent(sessionId)}&origem=${encodeURIComponent(sessao.formOrigem)}&form_codigo=${encodeURIComponent(formCodigo)}${processoPai ? `&processo_pai=${encodeURIComponent(processoPai)}` : ''}`;
     return url;
   };
