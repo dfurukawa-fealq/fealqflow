@@ -22,6 +22,8 @@ export interface FormPageLayoutProps {
   acaoPrincipal: string;
   acaoIcone?: string;
   mostrarRascunho?: boolean;
+  /** Libera ações customizadas de subformulários vinculados a um processo pai, sem criar outro processo. */
+  permitirEnvioSemProcesso?: boolean;
   botoesAcoes?: ReactNode;
   footerCenter?: ReactNode;
   /** Permite forçar a liberação ou bloqueio do envio (ignora contagem de pendências do Kit Documental) */
@@ -47,6 +49,7 @@ export const FormPageLayout = ({
   acaoPrincipal,
   acaoIcone = 'send',
   mostrarRascunho = true,
+  permitirEnvioSemProcesso = false,
   botoesAcoes,
   footerCenter,
   sidebar,
@@ -89,7 +92,7 @@ export const FormPageLayout = ({
   );
   const envio = useMemo(() => ({ registrarPendencias }), [registrarPendencias]);
   const liberado = (podeEnviar ?? true) && (pendencias === null || pendencias === 0)
-    && Boolean(processo || (aoSubmeter && !processoNovo)) && !executando && !somenteLeitura;
+    && Boolean(processo || (aoSubmeter && (!processoNovo || permitirEnvioSemProcesso))) && !executando && !somenteLeitura;
 
   useEffect(() => {
     // Os campos do formulário são controlados pelo React/ProcessoContext.
@@ -195,7 +198,7 @@ export const FormPageLayout = ({
             {alerta}
           </div>
           {(erroAcao || processo?.erro || processoNovo?.erro) && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAcao || processo?.erro || processoNovo?.erro}</p>}
-          {processoNovo && <p className="mb-md rounded border border-primary/25 bg-primary/5 p-sm text-xs text-primary">Este formulário ainda não criou um processo. Você pode selecionar os anexos agora; clique em <strong>Salvar Rascunho</strong> para gerar o protocolo, enviar os arquivos selecionados e habilitar o envio.</p>}
+          {processoNovo && !permitirEnvioSemProcesso && <p className="mb-md rounded border border-primary/25 bg-primary/5 p-sm text-xs text-primary">Este formulário ainda não criou um processo. Você pode selecionar os anexos agora; clique em <strong>Salvar Rascunho</strong> para gerar o protocolo, enviar os arquivos selecionados e habilitar o envio.</p>}
           {processo && <p className="mb-md text-xs text-on-surface-variant">Processo {processo.processo.protocolo} · {processo.salvando ? 'Salvando rascunho...' : armazenamentoPersistenteDisponivel ? 'Rascunho disponível para retomada neste navegador' : 'O navegador bloqueia o armazenamento local; a retomada após fechá-lo pode não funcionar.'}</p>}
           {somenteLeitura && <p role="status" className="mb-md rounded border border-primary/30 bg-primary/5 p-sm text-sm text-primary">Protocolo enviado — visualização somente leitura.</p>}
 

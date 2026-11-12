@@ -257,6 +257,8 @@ export const OrientacoesCoordenador = () => {
       badge="Leitura Obrigatória"
       acaoPrincipal={processoPai ? 'Concluir e Retornar ao Protocolo' : 'Concluir'}
       acaoIcone="verified"
+      mostrarRascunho={!processoPai}
+      permitirEnvioSemProcesso={Boolean(processoPai)}
       podeEnviar={confirmado}
       aoSubmeter={() => {
         navigate(linkRetorno);

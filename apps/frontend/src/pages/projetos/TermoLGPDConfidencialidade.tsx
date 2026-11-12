@@ -15,19 +15,32 @@ import { lerTextoProcesso } from '../../utils/camposProcesso';
 
 interface DadosProcessoPai { dados_json?: { campos?: Record<string, unknown> }; }
 
+const textoSalvo = (dados: Record<string, unknown> | undefined, chave: string): string =>
+  typeof dados?.[chave] === 'string' ? (dados[chave] as string) : '';
+
+const dataSalva = (valor: string, tipo: 'data' | 'hora'): string | null => {
+  if (!valor) return null;
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return null;
+  return tipo === 'data' ? data.toLocaleDateString('pt-BR') : data.toLocaleTimeString('pt-BR');
+};
+
 export const TermoLGPDConfidencialidade = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario } = useRastreabilidade();
+  const { protocolId, sessionId, marcarFormularioConcluido, statusFormulario, formulariosVinculados } = useRastreabilidade();
+  const dadosCertificacao = formulariosVinculados['CERT-LGPD-01']?.dadosVinculados;
+  const certificacaoConcluida = statusFormulario('CERT-LGPD-01') === 'concluido';
+  const assinaturaSalva = textoSalvo(dadosCertificacao, 'assinadoEm');
 
   // Os dados vêm do próprio termo salvo ou da consulta ao processo pai vinculado.
   // Parâmetros de URL não são uma fonte de dados pessoais do declarante.
-  const [nomeCoordenador, setNomeCoordenador] = useProcessoState('nomeCoordenador', '');
-  const [cpf, setCpf] = useProcessoState('cpf', '');
-  const [rg, setRg] = useProcessoState('rg', '');
-  const [departamento, setDepartamento] = useProcessoState('departamento', '');
-  const [tituloProjeto, setTituloProjeto] = useProcessoState('tituloProjeto', '');
-  const [email, setEmail] = useProcessoState('email', '');
+  const [nomeCoordenador, setNomeCoordenador] = useProcessoState('nomeCoordenador', textoSalvo(dadosCertificacao, 'nomeCoordenador'));
+  const [cpf, setCpf] = useProcessoState('cpf', textoSalvo(dadosCertificacao, 'cpf'));
+  const [rg, setRg] = useProcessoState('rg', textoSalvo(dadosCertificacao, 'rg'));
+  const [departamento, setDepartamento] = useProcessoState('departamento', textoSalvo(dadosCertificacao, 'departamento'));
+  const [tituloProjeto, setTituloProjeto] = useProcessoState('tituloProjeto', textoSalvo(dadosCertificacao, 'tituloProjeto'));
+  const [email, setEmail] = useProcessoState('email', textoSalvo(dadosCertificacao, 'email'));
   const [mensagemAutoPreenchimento, setMensagemAutoPreenchimento] = useState('');
   const [toast, setToast] = useState('');
   const [camposProcessoPai, setCamposProcessoPai] = useState<Record<string, unknown>>({});
@@ -96,13 +109,33 @@ export const TermoLGPDConfidencialidade = () => {
   };
 
   // Confirmação de Leitura
-  const [leuTermo, setLeuTermo] = useProcessoState('leuTermo', false);
-  const [confirmado, setConfirmado] = useProcessoState('confirmado', statusFormulario('CERT-LGPD-01') === 'concluido');
+  // Restaura campos ausentes no acesso de revisao a partir dos dados atuais do processo pai.
+  useEffect(() => {
+    if (!certificacaoConcluida || carregandoDadosPai || !Object.keys(camposProcessoPai).length) return;
+    const lerCampoPai = (...nomes: string[]) => lerTextoProcesso(camposProcessoPai, ...nomes);
+    const valoresPai = {
+      nome: sanitizeInputText(lerCampoPai('coordNome', 'Nome Completo do Coordenador')),
+      cpf: formatCPF(lerCampoPai('coordCpf', 'CPF')),
+      rg: formatRG(lerCampoPai('coordRg', 'RG / Órgão Emissor')),
+      departamento: sanitizeInputText(lerCampoPai('coordDepto', 'Departamento / Instituição', 'Departamento / Unidade USP')),
+      email: sanitizeInputText(lerCampoPai('coordEmail', 'E-mail Institucional')),
+      titulo: sanitizeInputText(lerCampoPai('titulo', 'tituloProjeto', 'Título', 'Título do Projeto', 'Título do Curso/Evento', 'Título do Projeto / Curso / Evento')),
+    };
+    if (!nomeCoordenador && valoresPai.nome) setNomeCoordenador(valoresPai.nome);
+    if (!cpf && valoresPai.cpf) setCpf(valoresPai.cpf);
+    if (!rg && valoresPai.rg) setRg(valoresPai.rg);
+    if (!departamento && valoresPai.departamento) setDepartamento(valoresPai.departamento);
+    if (!email && valoresPai.email) setEmail(valoresPai.email);
+    if (!tituloProjeto && valoresPai.titulo) setTituloProjeto(valoresPai.titulo);
+  }, [certificacaoConcluida, carregandoDadosPai, camposProcessoPai, nomeCoordenador, cpf, rg, departamento, email, tituloProjeto, setNomeCoordenador, setCpf, setRg, setDepartamento, setEmail, setTituloProjeto]);
+
+  const [leuTermo, setLeuTermo] = useProcessoState('leuTermo', certificacaoConcluida);
+  const [confirmado, setConfirmado] = useProcessoState('confirmado', certificacaoConcluida);
   const [dataCertificacao, setDataCertificacao] = useProcessoState<string | null>('dataCertificacao',
-    statusFormulario('CERT-LGPD-01') === 'concluido' ? new Date().toLocaleDateString('pt-BR') : null
+    dataSalva(assinaturaSalva, 'data')
   );
   const [horaCertificacao, setHoraCertificacao] = useProcessoState<string | null>('horaCertificacao',
-    statusFormulario('CERT-LGPD-01') === 'concluido' ? new Date().toLocaleTimeString('pt-BR') : null
+    dataSalva(assinaturaSalva, 'hora')
   );
   const instrumentoRef = useRef<HTMLDivElement>(null);
 
@@ -183,6 +216,8 @@ export const TermoLGPDConfidencialidade = () => {
       badge="Obrigatório"
       acaoPrincipal={processoPai ? 'Concluir e Retornar ao Protocolo' : 'Concluir'}
       acaoIcone="verified"
+      mostrarRascunho={!processoPai}
+      permitirEnvioSemProcesso={Boolean(processoPai)}
       podeEnviar={confirmado}
       aoSubmeter={() => {
         navigate(linkRetorno);
@@ -240,7 +275,7 @@ export const TermoLGPDConfidencialidade = () => {
           numero={1}
           icone="person"
           titulo="Identificação do Declarante e Projeto"
-          acao={<AutoPreencherButton onClick={preencherAutomaticamente} disabled={carregandoDadosPai} />}
+          acao={<AutoPreencherButton onClick={preencherAutomaticamente} disabled={carregandoDadosPai || confirmado} />}
         >
           <p className="col-span-12 -mt-xs text-[12px] text-on-surface-variant">
             Dados autopreenchidos a partir do cadastro do coordenador e do protocolo de abertura.
@@ -253,6 +288,7 @@ export const TermoLGPDConfidencialidade = () => {
             tipo="text"
             valor={nomeCoordenador}
             onChange={(val) => setNomeCoordenador(val)}
+            disabled={confirmado}
             obrigatorio
           />
           <Field
@@ -261,6 +297,7 @@ export const TermoLGPDConfidencialidade = () => {
             tipo="text"
             valor={cpf}
             onChange={(val) => setCpf(formatCPF(val))}
+            disabled={confirmado}
             obrigatorio
           />
           <Field
@@ -269,6 +306,7 @@ export const TermoLGPDConfidencialidade = () => {
             tipo="text"
             valor={rg}
             onChange={(val) => setRg(formatRG(val))}
+            disabled={confirmado}
           />
           <Field
             label="Departamento / Unidade USP"
@@ -276,6 +314,7 @@ export const TermoLGPDConfidencialidade = () => {
             tipo="text"
             valor={departamento}
             onChange={(val) => setDepartamento(val)}
+            disabled={confirmado}
             obrigatorio
           />
           <Field
@@ -284,6 +323,7 @@ export const TermoLGPDConfidencialidade = () => {
             tipo="email"
             valor={email}
             onChange={(val) => setEmail(val)}
+            disabled={confirmado}
             obrigatorio
           />
           <Field
@@ -292,6 +332,7 @@ export const TermoLGPDConfidencialidade = () => {
             tipo="text"
             valor={tituloProjeto}
             onChange={(val) => setTituloProjeto(val)}
+            disabled={confirmado}
             obrigatorio
           />
         </FormSection>
