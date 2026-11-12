@@ -190,10 +190,10 @@ export const FormPageLayout = ({
 
   return (
     <EnvioContext.Provider value={envio}>
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-background print:bg-white print:text-black">
+      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background print:h-auto print:overflow-visible print:bg-white print:text-black">
         {usuario && <div className="print:hidden"><TopBar /></div>}
 
-        <main ref={mainRef} className="mx-auto w-full min-w-0 max-w-[1200px] flex-1 px-sm py-md pb-[190px] sm:px-md lg:px-xl lg:py-lg lg:pb-[80px] print:px-0 print:pb-0">
+        <main ref={mainRef} className="mx-auto flex min-h-0 w-full min-w-0 max-w-[1200px] flex-1 flex-col overflow-y-auto px-sm py-md sm:px-md lg:overflow-hidden lg:px-xl lg:pt-lg print:min-h-0 print:overflow-visible print:px-0 print:py-0">
           <div className="print:hidden">
             {alerta}
           </div>
@@ -278,12 +278,12 @@ export const FormPageLayout = ({
             </button>
           )}
 
-          <div className="grid min-w-0 grid-cols-1 items-start gap-lg lg:min-h-0 lg:grid-cols-12 print:block">
+          <div className="grid min-w-0 grid-cols-1 items-start gap-lg lg:min-h-0 lg:flex-1 lg:grid-cols-12 lg:items-stretch print:block">
             <div
               className={`flex min-w-0 flex-col gap-lg print:col-span-12 print:block ${
                 sidebarVisivel
-                  ? 'lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:col-span-8'
-                  : 'lg:col-span-12'
+                  ? 'lg:col-span-8 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-2'
+                  : 'lg:col-span-12 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain'
               }`}
             >
               {somenteLeitura ? <fieldset disabled className="contents">{children}</fieldset> : children}
@@ -298,11 +298,11 @@ export const FormPageLayout = ({
                     className="lg:hidden fixed inset-0 bg-black/35 z-40 print:hidden"
                   />
                 )}
-                <div className={`${sidebarMobileAberta ? 'flex fixed bottom-0 left-0 right-0 z-50 w-screen max-w-[100vw] max-h-[78vh] overflow-hidden rounded-t-2xl border-t-2 border-primary/30 bg-surface-container-lowest p-sm sm:p-md shadow-2xl' : 'hidden'} lg:flex lg:static lg:z-auto lg:w-auto lg:max-w-none lg:max-h-[calc(100vh-220px)] lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:col-span-4 flex-col gap-lg lg:overflow-y-auto lg:overscroll-contain lg:pr-2 print:hidden`}>
+                <div className={`${sidebarMobileAberta ? 'flex fixed bottom-0 left-0 right-0 z-50 w-screen max-w-[100vw] max-h-[78vh] overflow-hidden rounded-t-2xl border-t-2 border-primary/30 bg-surface-container-lowest p-sm sm:p-md shadow-2xl' : 'hidden'} lg:flex lg:static lg:z-auto lg:w-auto lg:max-w-none lg:max-h-none lg:min-h-0 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:col-span-4 lg:overflow-y-auto lg:overscroll-contain lg:pr-2 flex-col gap-lg print:hidden`}>
                   <div className="lg:hidden flex justify-center -mt-xs mb-xs">
                     <span className="block w-12 h-1.5 rounded-full bg-outline-variant" aria-hidden="true" />
                   </div>
-                  <div className="min-w-0 w-full overflow-y-auto overflow-x-hidden overscroll-contain flex flex-col gap-lg">{sidebar}</div>
+                  <div className="min-w-0 w-full overflow-x-hidden flex flex-col gap-lg">{sidebar}</div>
                 </div>
               </>
             )}
@@ -320,7 +320,7 @@ export const FormPageLayout = ({
           </div>
         )}
 
-        <footer className={`fixed inset-x-0 bottom-0 z-30 flex min-w-0 flex-col gap-xs border-t border-outline-variant bg-surface-container-lowest px-sm py-xs sm:px-md ${usuario ? 'lg:left-sidebar-width lg:px-xl' : 'lg:px-xl'} print:hidden`}>
+        <footer className="flex min-w-0 shrink-0 flex-col gap-xs border-t border-outline-variant bg-surface-container-lowest px-sm py-xs sm:px-md lg:px-xl print:hidden">
           {sidebarVisivel && (
             <button
               type="button"

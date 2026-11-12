@@ -62,11 +62,17 @@ const AppRoutes = () => {
   const rotaFormulario = /^\/projetos\/(form-|termo-lgpd|orientacoes-coordenador|ciencia-departamento)/.test(location.pathname)
     || /^\/programas-de-apoio\/apoio-/.test(location.pathname);
   const mostrarSidebar = Boolean(usuario) || !rotaFormulario;
+  const alturaShellFormulario = rotaFormulario
+    ? 'h-dvh overflow-hidden print:h-auto print:overflow-visible'
+    : 'min-h-screen';
+  const alturaConteudoFormulario = rotaFormulario
+    ? 'h-full min-h-0 overflow-hidden print:h-auto print:overflow-visible'
+    : 'min-h-screen';
 
   return (
-    <div className="flex min-h-screen">
+    <div className={`flex ${alturaShellFormulario}`}>
       {mostrarSidebar && <div className="hidden lg:block print:hidden"><Sidebar /></div>}
-      <div className={`flex min-h-screen min-w-0 flex-1 flex-col ${mostrarSidebar ? 'lg:ml-[240px]' : ''} print:ml-0`}>
+      <div className={`flex ${alturaConteudoFormulario} min-w-0 flex-1 flex-col ${mostrarSidebar ? 'lg:ml-[240px]' : ''} print:ml-0`}>
         <Routes>
 
             {/* Default root routes to Programas de Apoio requests panel as specified */}
