@@ -16,14 +16,15 @@
     "id": "pesquisa-conv-planilha-usp",
     "kit_id": "kit-projeto-pesquisa-com-convenio",
     "identificador": "planilha-recursos-usp",
-    "titulo": "Planilha de Aplicação de Recursos USP",
-    "descricao": "Anexo obrigatório para projeto com convênio USP.",
+    "titulo": "Plano de Aplicação dos Recursos",
+    "descricao": "Anexe o plano de aplicação dos recursos do projeto.",
     "tipo": "upload",
     "obrigatorio": true,
     "permite_anexo": true,
-    "permite_modelo": false,
+    "permite_modelo": true,
+    "url_template": "https://docs.google.com/spreadsheets/d/1Kri3kWc8Hb5jCY_TQH2GmfaWPD6fdxLP/export?format=xlsx",
     "ordem": 2,
-    "ativo": true
+    "ativo": true    
   },
   {
     "id": "pesquisa-conv-coordenador",
