@@ -6,9 +6,10 @@ interface InputSearchListProps {
   obrigatorio?: boolean;
   placeholder?: string;
   span?: number;
+  hint?: string;
 }
 
-export const InputSearchList = ({ label, valor, opcoes, onChange, obrigatorio = false, placeholder = 'Digite para buscar', span = 12 }: InputSearchListProps) => {
+export const InputSearchList = ({ label, valor, opcoes, onChange, obrigatorio = false, placeholder = 'Digite para buscar', span = 12, hint }: InputSearchListProps) => {
   const id = `lista-${label.toLowerCase().replace(/[^a-z0-9]+/gi, '-')}`;
   const [aberta, setAberta] = useState(false);
   const filtradas = useMemo(() => opcoes.filter((opcao) => opcao.toLocaleLowerCase('pt-BR').includes(valor.toLocaleLowerCase('pt-BR'))), [opcoes, valor]);
@@ -24,6 +25,7 @@ export const InputSearchList = ({ label, valor, opcoes, onChange, obrigatorio = 
         {filtradas.map((opcao) => <button key={opcao} type="button" onMouseDown={(evento) => evento.preventDefault()} onClick={() => { onChange(opcao); setAberta(false); }} className="block w-full px-sm py-sm text-left text-[13px] text-on-surface hover:bg-primary/10">{opcao}</button>)}
       </div>}
     </div>
+    {hint && <span className="mt-xs block text-[10px] text-on-surface-variant">{hint}</span>}
   </div>;
 };
 import { useMemo, useState } from 'react';

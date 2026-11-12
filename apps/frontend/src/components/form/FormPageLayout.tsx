@@ -61,7 +61,7 @@ export const FormPageLayout = ({
   const processo = useProcesso();
   const processoNovo = useProcessoNovo();
   const { usuario } = useUser();
-  const sidebarVisivel = usuario ? sidebar : undefined;
+  const sidebarVisivel = sidebar;
   const somenteLeitura = processo?.somenteLeitura ?? false;
   const mainRef = useRef<HTMLElement>(null);
   const ocupadoRef = useRef(false);
@@ -204,7 +204,7 @@ export const FormPageLayout = ({
 
           <div className="mb-lg border-b border-outline-variant pb-sm">
             <div>
-              <div className="mb-xs flex min-w-0 items-center gap-xs overflow-x-auto whitespace-nowrap text-[12px] text-on-surface-variant print:hidden">
+              {usuario && <div className="mb-xs flex min-w-0 items-center gap-xs overflow-x-auto whitespace-nowrap text-[12px] text-on-surface-variant print:hidden">
                 <Link to="/" className="flex items-center text-on-surface-variant hover:text-primary transition-colors">
                   <span className="material-symbols-outlined text-[14px]">
                     home
@@ -239,7 +239,7 @@ export const FormPageLayout = ({
                     </span>
                   );
                 })}
-              </div>
+              </div>}
               <h1 className="text-[20px] text-on-surface font-bold flex items-center flex-wrap gap-sm">
                 {titulo}
                 {codigo && (
@@ -280,8 +280,10 @@ export const FormPageLayout = ({
 
           <div className="grid min-w-0 grid-cols-1 items-start gap-lg lg:min-h-0 lg:grid-cols-12 print:block">
             <div
-              className={`flex min-w-0 flex-col gap-lg lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 print:col-span-12 print:block ${
-                sidebarVisivel ? 'lg:col-span-8' : 'lg:col-span-12'
+              className={`flex min-w-0 flex-col gap-lg print:col-span-12 print:block ${
+                sidebarVisivel
+                  ? 'lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:col-span-8'
+                  : 'lg:col-span-12'
               }`}
             >
               {somenteLeitura ? <fieldset disabled className="contents">{children}</fieldset> : children}

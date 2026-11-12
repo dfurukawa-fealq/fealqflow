@@ -1,6 +1,11 @@
+import { useState } from 'react';
+import { ConfirmacaoModal } from '../../ConfirmacaoModal';
+
 interface TermoSigiloCardProps { aceito: boolean; aoAceitar: () => void; }
 
-export const TermoSigiloCard = ({ aceito, aoAceitar }: TermoSigiloCardProps) => 
+export const TermoSigiloCard = ({ aceito, aoAceitar }: TermoSigiloCardProps) => {
+const [modalAberto, setModalAberto] = useState(false);
+return <>
 <div className="col-span-12 mt-sm w-full rounded-lg border border-outline-variant bg-surface-container-low p-md">
     <div className="flex items-start gap-sm border-b border-outline-variant pb-sm">
         <span className="material-symbols-outlined text-primary">
@@ -24,9 +29,20 @@ export const TermoSigiloCard = ({ aceito, aoAceitar }: TermoSigiloCardProps) =>
             A divulgação científica, o tratamento de dados pessoais e a propriedade intelectual observarão as regras pertinentes.
         </p>
     </div>
-    <label className="flex items-start gap-xs border-t border-outline-variant pt-sm text-[12px] font-semibold"><input type="checkbox" checked={aceito} disabled={aceito} onChange={() => { if (!aceito) aoAceitar(); }} className="mt-0.5 h-4 w-4 rounded border-outline-variant text-primary disabled:opacity-100" />
+    <label className="flex items-start gap-xs border-t border-outline-variant pt-sm text-[12px] font-semibold"><input type="checkbox" checked={aceito} disabled={aceito} onChange={() => { if (!aceito) setModalAberto(true); }} className="mt-0.5 h-4 w-4 rounded border-outline-variant text-primary disabled:opacity-100" />
         <span>
-            {aceito ? 'Aceite do Termo de Sigilo registrado.' : 'Declaro que li e assumo os compromissos estabelecidos no Termo de Sigilo e Confidencialidade.'}
+            {aceito ? 'Ciência registrada. Este aceite não pode ser revogado.' : 'Declaro que li e assumo os compromissos estabelecidos no Termo de Sigilo e Confidencialidade.'}
         </span>
     </label>
-</div>;
+</div>
+{modalAberto && !aceito && <ConfirmacaoModal
+    titulo="Confirmar aceite"
+    mensagem="O aceite do Termo de Sigilo e Confidencialidade será registrado neste processo e não poderá ser revogado posteriormente."
+    icone="verified_user"
+    textoConfirmar="Confirmar aceite"
+    variante="principal"
+    onCancelar={() => setModalAberto(false)}
+    onConfirmar={() => { aoAceitar(); setModalAberto(false); }}
+/>}
+</>;
+};

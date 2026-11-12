@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { safeGetItem, safeSetItem, safeJsonParse } from '../utils/safeStorage';
 import { sanitizeProtocolId } from '../utils/security';
 import { capturarProcessoPai } from '../utils/processoPai';
@@ -58,6 +58,7 @@ const criarSessaoPadrao = (protocolo: string, sessao: string, origem: string): S
 
 export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
 
   // Lê parâmetros vindos da URL caso um formulário filho tenha sido aberto a partir de um pai
   const processoUrl = capturarProcessoPai(searchParams, true);
@@ -66,9 +67,17 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
   const paramProtocolo = rawParamProtocolo ? sanitizeProtocolId(rawParamProtocolo) : null;
   const paramSessao = searchParams.get('sessao') || (processoUrl ? `sess_${processoUrl.replaceAll('-', '')}` : null);
   const paramOrigem = searchParams.get('origem');
+  const rotaNovoFormulario = /^\/projetos\/form-/.test(location.pathname)
+    || /^\/programas-de-apoio\/apoio-/.test(location.pathname);
+  const ultimaRotaRef = useRef(location.pathname);
 
   const [protocolId, setProtocolId] = useState<string>(() => {
     if (paramProtocolo) return paramProtocolo;
+    if (rotaNovoFormulario) {
+      const novo = `FEALQ-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      safeSetItem(`${STORAGE_PREFIX}active_protocol`, novo);
+      return novo;
+    }
     const salvo = safeGetItem(`${STORAGE_PREFIX}active_protocol`);
     if (salvo) return sanitizeProtocolId(salvo);
     const ano = new Date().getFullYear();
@@ -80,6 +89,11 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
 
   const [sessionId, setSessionId] = useState<string>(() => {
     if (paramSessao) return paramSessao;
+    if (rotaNovoFormulario) {
+      const novo = 'sess_' + Math.random().toString(36).substring(2, 12);
+      safeSetItem(`${STORAGE_PREFIX}active_session`, novo);
+      return novo;
+    }
     const salvo = safeGetItem(`${STORAGE_PREFIX}active_session`);
     if (salvo) return salvo;
     const novo = 'sess_' + Math.random().toString(36).substring(2, 12);
@@ -95,6 +109,19 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
   });
 
   // Sincroniza parâmetros de URL quando a rota muda
+  useEffect(() => {
+    const rotaAnterior = ultimaRotaRef.current;
+    ultimaRotaRef.current = location.pathname;
+    if (rotaAnterior === location.pathname || !rotaNovoFormulario || paramProtocolo || processoUrl) return;
+    const novoProtocolo = `FEALQ-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const novaSessaoId = 'sess_' + Math.random().toString(36).substring(2, 12);
+    setProtocolId(novoProtocolo);
+    setSessionId(novaSessaoId);
+    setSessao(criarSessaoPadrao(novoProtocolo, novaSessaoId, location.pathname.split('/').pop() || 'formulario'));
+    safeSetItem(`${STORAGE_PREFIX}active_protocol`, novoProtocolo);
+    safeSetItem(`${STORAGE_PREFIX}active_session`, novaSessaoId);
+  }, [location.pathname, paramProtocolo, processoUrl, rotaNovoFormulario]);
+
   useEffect(() => {
     if (paramProtocolo && paramProtocolo !== protocolId) {
       setProtocolId(paramProtocolo);

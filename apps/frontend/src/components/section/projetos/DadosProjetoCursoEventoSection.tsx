@@ -1,6 +1,7 @@
 import { Field } from '../../form/Field';
 import { FormSection } from '../../form/FormSection';
 import { EnderecoField } from '../../form/EnderecoField';
+import { InputSearchList } from '../../form/InputSearchList';
 import { TIPOS_EVENTO } from '../../../data/listas';
 
 type FormatoRealizacao = 'Presencial' | 'Online (Síncrono)' | 'Online (Assíncrono)' | 'Híbrido';
@@ -30,7 +31,7 @@ export function DadosProjetoCursoEventoSection(props: Props) {
     <FormSection numero={2} icone="event" titulo="Dados do Projeto & Detalhamento Técnico">
       <Field label="Título do Curso/Evento" span={9} placeholder="Ex: Simpósio de Tecnologia Agrícola e Sustentabilidade" obrigatorio valor={props.titulo} onChange={props.aoAlterarTitulo} />
       <Field label="Edição" span={3} placeholder="Ex: 5ª Edição" valor={props.edicao} onChange={props.aoAlterarEdicao} />
-      <Field label="Tipo de Evento" span={4} tipo="select" opcoes={[...TIPOS_EVENTO]} placeholder="-- nenhum --" valor={props.tipoEvento} onChange={props.aoAlterarTipoEvento} hint="Espelha a classificação de eventos do SAP/FEALQ" />
+      <InputSearchList label="Tipo de Evento" span={4} opcoes={TIPOS_EVENTO} placeholder="Digite ou selecione um tipo de evento" valor={props.tipoEvento} onChange={props.aoAlterarTipoEvento} hint="Espelha a classificação de eventos do SAP/FEALQ" />
       <Field label="Público-Alvo" span={5} placeholder="Estudantes, Pesquisadores, Profissionais do Setor" obrigatorio valor={props.publicoAlvo} onChange={props.aoAlterarPublicoAlvo} />
       <Field label="Carga Horária (h)" span={3} tipo="number" placeholder="Ex: 40" obrigatorio valor={props.cargaHoraria} onChange={props.aoAlterarCargaHoraria} />
       <Field label="Data de Início" span={3} tipo="date" valor={props.dataInicio} onChange={props.aoAlterarDataInicio} obrigatorio />

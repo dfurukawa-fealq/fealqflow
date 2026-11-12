@@ -396,24 +396,30 @@ export const AberturaCursoEvento: React.FC = () => {
 
   // Cálculo de progresso de preenchimento
   let preenchidos = 0;
-  let totalPontos = 5;
+  let totalPontos = 6;
   if (titulo.trim()) preenchidos++;
   if (coordNome.trim() && coordCpf.trim()) preenchidos++;
   if (publicoAlvo.trim()) preenchidos++;
   if (objetoProjeto.trim()) preenchidos++;
   if (isLGPDValido) preenchidos++;
+  if (sigiloAceito) preenchidos++;
 
   const percentualConclusao = Math.min(100, Math.round((preenchidos / totalPontos) * 100));
   const podeSubmeter =
     titulo.trim() !== '' &&
     coordNome.trim() !== '' &&
     coordCpf.trim() !== '' &&
-    isLGPDValido;
+    isLGPDValido &&
+    sigiloAceito;
 
   const handleSubmit = () => {
     if (!podeSubmeter) {
       if (!isLGPDValido) {
         setAvisoValidacao('A confirmação de leitura e aceite formal do Termo de LGPD e Confidencialidade (FLAG OBRIGATÓRIA) é indispensável para submeter o protocolo.');
+        return;
+      }
+      if (!sigiloAceito) {
+        setAvisoValidacao('Confirme o aceite do Termo de Sigilo e Confidencialidade antes de submeter o protocolo.');
         return;
       }
       setAvisoValidacao('Por favor, preencha todos os campos obrigatórios do projeto (Título, Coordenador e CPF).');
