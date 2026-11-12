@@ -6,6 +6,7 @@ import { FormActionButton } from './FormActionButton';
 import { useProcesso, useProcessoNovo } from '../../contexts/ProcessoContext';
 import { armazenamentoPersistenteDisponivel } from '../../utils/safeStorage';
 import { RelatorioFormulario } from './RelatorioFormulario';
+import { useUser } from '../../contexts/UserContext';
 
 export interface FormPageLayoutProps {
   /** Trilha completa, incluindo a página atual: ['Área do Coordenador', 'Auxílio Viagem'] */
@@ -56,6 +57,8 @@ export const FormPageLayout = ({
   const navigate = useNavigate();
   const processo = useProcesso();
   const processoNovo = useProcessoNovo();
+  const { usuario } = useUser();
+  const sidebarVisivel = usuario ? sidebar : undefined;
   const somenteLeitura = processo?.somenteLeitura ?? false;
   const mainRef = useRef<HTMLElement>(null);
   const ocupadoRef = useRef(false);
@@ -185,9 +188,7 @@ export const FormPageLayout = ({
   return (
     <EnvioContext.Provider value={envio}>
       <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-background print:bg-white print:text-black">
-        <div className="print:hidden">
-          <TopBar />
-        </div>
+        {usuario && <div className="print:hidden"><TopBar /></div>}
 
         <main ref={mainRef} className="mx-auto w-full min-w-0 max-w-[1200px] flex-1 px-sm py-md pb-[190px] sm:px-md lg:px-xl lg:py-lg lg:pb-[80px] print:px-0 print:pb-0">
           <div className="print:hidden">
@@ -252,7 +253,7 @@ export const FormPageLayout = ({
             </div>
           </div>
 
-          {sidebar && (
+          {sidebarVisivel && (
             <button
               type="button"
               onClick={() => setSidebarMobileAberta((aberta) => !aberta)}
@@ -277,12 +278,12 @@ export const FormPageLayout = ({
           <div className="grid min-w-0 grid-cols-1 items-start gap-lg lg:min-h-0 lg:grid-cols-12 print:block">
             <div
               className={`flex min-w-0 flex-col gap-lg lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 print:col-span-12 print:block ${
-                sidebar ? 'lg:col-span-8' : 'lg:col-span-12'
+                sidebarVisivel ? 'lg:col-span-8' : 'lg:col-span-12'
               }`}
             >
               {somenteLeitura ? <fieldset disabled className="contents">{children}</fieldset> : children}
             </div>
-            {sidebar && (
+            {sidebarVisivel && (
               <>
                 {sidebarMobileAberta && (
                   <button
@@ -314,8 +315,8 @@ export const FormPageLayout = ({
           </div>
         )}
 
-        <footer className="fixed inset-x-0 bottom-0 z-30 flex min-w-0 flex-col gap-xs border-t border-outline-variant bg-surface-container-lowest px-sm py-xs sm:px-md lg:left-sidebar-width lg:px-xl print:hidden">
-          {sidebar && (
+        <footer className={`fixed inset-x-0 bottom-0 z-30 flex min-w-0 flex-col gap-xs border-t border-outline-variant bg-surface-container-lowest px-sm py-xs sm:px-md ${usuario ? 'lg:left-sidebar-width lg:px-xl' : 'lg:px-xl'} print:hidden`}>
+          {sidebarVisivel && (
             <button
               type="button"
               onClick={() => setSidebarMobileAberta((aberta) => !aberta)}

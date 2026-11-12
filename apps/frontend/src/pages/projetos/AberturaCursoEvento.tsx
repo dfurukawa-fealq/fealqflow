@@ -13,7 +13,6 @@ import { formatCPF } from '../../utils/formatters';
 import { gerarIdLocal } from '../../utils/id';
 import { EquipeTecnicaEditor } from '../../components/form/projetos/EquipeTecnicaEditor';
 import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSection';
-import { EnderecoField } from '../../components/form/EnderecoField';
 import { converterReaisParaCentavos, CurrencyInput, formatarCentavosComoMoeda } from '../../components/form/CurrencyInput';
 import { DelegadosEditor } from '../../components/form/projetos/DelegadosEditor';
 import { CoordenadorResponsavelSection } from '../../components/form/projetos/CoordenadorResponsavelSection';
@@ -21,6 +20,7 @@ import { CienciaConcordanciaSection } from '../../components/form/projetos/Cienc
 import { InstituicoesFinanciadorasSection } from '../../components/form/projetos/InstituicoesFinanciadorasSection';
 import { OrientacoesProjetoSection } from '../../components/form/projetos/OrientacoesProjetoSection';
 import { TIPOS_EVENTO, UNIDADES_USP } from '../../data/listas';
+import { DadosProjetoCursoEventoSection } from '../../components/section/projetos/DadosProjetoCursoEventoSection';
 import kitsDocumentais from '../../../../../data/kits_documentais.json';
 import itensKitDocumental from '../../../../../data/itens_kit_documental.json';
 
@@ -588,180 +588,15 @@ export const AberturaCursoEvento: React.FC = () => {
         )}
       </FormSection>
 
-      {/* 2. DADOS DO PROJETO & DETALHAMENTO TÉCNICO */}
-      <FormSection
-        numero={2}
-        icone="event"
-        titulo="Dados do Projeto & Detalhamento Técnico"
-      >
-        <Field
-          label="Título do Curso/Evento"
-          span={9}
-          placeholder="Ex: Simpósio de Tecnologia Agrícola e Sustentabilidade"
-          obrigatorio
-          valor={titulo}
-          onChange={setTitulo}
-        />
-        <Field
-          label="Edição"
-          span={3}
-          placeholder="Ex: 5ª Edição"
-          valor={edicao}
-          onChange={setEdicao}
-        />
-
-        {/* Tipo de Evento (Dropdown espelhando SAP / Flávia) */}
-        <Field
-          label="Tipo de Evento"
-          span={4}
-          tipo="select"
-          opcoes={[...TIPOS_EVENTO]}
-          placeholder="-- nenhum --"
-          valor={tipoEvento}
-          onChange={setTipoEvento}
-          hint="Espelha a classificação de eventos do SAP/FEALQ"
-        />
-
-        <Field
-          label="Público-Alvo"
-          span={5}
-          placeholder="Estudantes, Pesquisadores, Profissionais do Setor"
-          obrigatorio
-          valor={publicoAlvo}
-          onChange={setPublicoAlvo}
-        />
-
-        <Field
-          label="Carga Horária (h)"
-          span={3}
-          tipo="number"
-          placeholder="Ex: 40"
-          obrigatorio
-          valor={cargaHoraria}
-          onChange={setCargaHoraria}
-        />
-
-        {/* Datas e Horário */}
-        <Field
-          label="Data de Início"
-          span={3}
-          tipo="date"
-          valor={dataInicio}
-          onChange={setDataInicio}
-          obrigatorio
-        />
-        <Field
-          label="Data de Término"
-          span={3}
-          tipo="date"
-          valor={dataFim}
-          onChange={setDataFim}
-          obrigatorio
-        />
-        <Field
-          label="Horário / Turno"
-          span={3}
-          placeholder="Ex: 08:00 às 18:00 (Integral)"
-          valor={horarioRealizacao}
-          onChange={setHorarioRealizacao}
-        />
-        <Field
-          label="Vaga(s) Estimada(s)"
-          span={3}
-          tipo="number"
-          placeholder="Ex: 100"
-          valor={numeroVagas}
-          onChange={setNumeroVagas}
-          hint="Substitui a estimativa genérica de pessoas"
-        />
-
-        {/* Formato de Realização */}
-        <div className="col-span-12">
-          <Field
-            label="Formato de Realização"
-            span={12}
-            tipo="select"
-            opcoes={[
-              'Presencial',
-              'Online (Síncrono)',
-              'Online (Assíncrono)',
-              'Híbrido',
-            ]}
-            valor={formato}
-            onChange={(val) => setFormato(val as any)}
-          />
-        </div>
-
-        {/* Campos Condicionais para Presencial ou Híbrido: Endereço Completo com busca por CEP */}
-        {(formato === 'Presencial' || formato === 'Híbrido') && (
-          <>
-            <Field label="Local / Auditório / Campus" span={12} placeholder="Ex: Auditório da Engenharia, Campus USP Piracicaba" valor={localAuditorio} onChange={setLocalAuditorio} />
-            <EnderecoField prefixo="localRealizacao" />
-          </>
-        )}
-
-        {/* Pergunta NÃO OBRIGATÓRIO para Online (Síncrono/Assíncrono) ou Híbrido: Doity / FEALQ */}
-        {(formato === 'Online (Síncrono)' ||
-          formato === 'Online (Assíncrono)' ||
-          formato === 'Híbrido') && (
-          <div className="col-span-12 bg-blue-50/70 border border-blue-200 p-md rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-md">
-            <div>
-              <span className="text-[13px] font-bold text-blue-950 flex items-center gap-xs">
-                <span className="material-symbols-outlined text-[18px] text-blue-700">hub</span>
-                Utiliza a plataforma da Doity / FEALQ para transmissão e inscrições?
-              </span>
-              <span className="text-[12px] text-blue-800">
-                A FEALQ possui integração direta com a plataforma Doity para emissão de certificados e checkout seguro.
-              </span>
-            </div>
-
-            <div className="flex items-center gap-lg">
-              <label className="flex items-center gap-xs cursor-pointer text-[13px] font-medium text-blue-950">
-                <input
-                  type="radio"
-                  name="utilizaDoity"
-                  value="sim"
-                  checked={utilizaDoity === 'sim'}
-                  onChange={() => setUtilizaDoity('sim')}
-                  className="w-4 h-4 text-primary accent-primary"
-                />
-                Sim, utilizará Doity/FEALQ
-              </label>
-
-              <label className="flex items-center gap-xs cursor-pointer text-[13px] font-medium text-blue-950">
-                <input
-                  type="radio"
-                  name="utilizaDoity"
-                  value="nao"
-                  checked={utilizaDoity === 'nao'}
-                  onChange={() => setUtilizaDoity('nao')}
-                  className="w-4 h-4 text-primary accent-primary"
-                />
-                Não (Outra plataforma)
-              </label>
-            </div>
-          </div>
-        )}
-
-        {/* Objeto do Projeto / Ementa Resumida */}
-        <div className="col-span-12">
-          <div className="flex items-center justify-between mb-xs">
-            <label className="block text-on-surface-variant text-[11px] font-bold uppercase tracking-wide">
-              Objetivo do Projeto <span className="text-red-500">*</span>
-            </label>
-            <span className="text-[11px] text-on-surface-variant">
-              Descreva detalhadamente o escopo acadêmico/técnico
-            </span>
-          </div>
-          <textarea
-            rows={4}
-            value={objetoProjeto}
-            onChange={(e) => setObjetoProjeto(e.target.value)}
-            placeholder="Descreva o propósito acadêmico, científico ou extensionista do curso/evento, metodologias aplicadas e resultados esperados..."
-            className="w-full p-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-[13px] focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none transition-colors resize-y leading-relaxed"
-          />
-        </div>
-      </FormSection>
+      <DadosProjetoCursoEventoSection
+        titulo={titulo} aoAlterarTitulo={setTitulo} edicao={edicao} aoAlterarEdicao={setEdicao}
+        tipoEvento={tipoEvento} aoAlterarTipoEvento={setTipoEvento} publicoAlvo={publicoAlvo} aoAlterarPublicoAlvo={setPublicoAlvo}
+        cargaHoraria={cargaHoraria} aoAlterarCargaHoraria={setCargaHoraria} dataInicio={dataInicio} aoAlterarDataInicio={setDataInicio}
+        dataFim={dataFim} aoAlterarDataFim={setDataFim} horarioRealizacao={horarioRealizacao} aoAlterarHorario={setHorarioRealizacao}
+        numeroVagas={numeroVagas} aoAlterarNumeroVagas={setNumeroVagas} formato={formato} aoAlterarFormato={setFormato}
+        localAuditorio={localAuditorio} aoAlterarLocal={setLocalAuditorio} utilizaDoity={utilizaDoity} aoAlterarUtilizaDoity={setUtilizaDoity}
+        objetoProjeto={objetoProjeto} aoAlterarObjetoProjeto={setObjetoProjeto}
+      />
 
       {/* O bloco legado foi substituído pelos componentes compartilhados abaixo. */}
       {false && <FormSection

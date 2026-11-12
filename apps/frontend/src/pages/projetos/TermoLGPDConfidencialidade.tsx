@@ -73,7 +73,14 @@ export const TermoLGPDConfidencialidade = () => {
       cpf: formatCPF(lerCampoPai('coordCpf', 'CPF')),
       rg: formatRG(lerCampoPai('coordRg', 'RG / Órgão Emissor')),
       departamento: sanitizeInputText(lerCampoPai('coordDepto', 'Departamento / Instituição', 'Departamento / Unidade USP')),
-      titulo: sanitizeInputText(lerCampoPai('titulo', 'Título', 'Título do Projeto', 'Título do Projeto / Curso / Evento')),
+      titulo: sanitizeInputText(lerCampoPai(
+        'titulo',
+        'tituloProjeto',
+        'Título',
+        'Título do Projeto',
+        'Título do Curso/Evento',
+        'Título do Projeto / Curso / Evento',
+      )),
       email: sanitizeInputText(lerCampoPai('coordEmail', 'E-mail Institucional')),
     };
     let preenchidos = 0;

@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { Footer } from '../../components/Footer';
 import { PROGRAMAS_APOIO } from '../../data/programasApoio';
 import { MeusRascunhos } from '../../components/form/MeusRascunhos';
+import { useUser } from '../../contexts/UserContext';
 
 export const ProgramasApoioPage = () => {
+  const { usuario } = useUser();
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       <main className="flex-1 p-xl">
@@ -46,6 +48,8 @@ export const ProgramasApoioPage = () => {
                 <div className="text-sm font-medium truncate pr-sm">
                   <Link
                     to={item.path}
+                    target={!usuario ? '_blank' : undefined}
+                    rel={!usuario ? 'noopener noreferrer' : undefined}
                     className="hover:text-primary transition-colors hover:underline"
                   >
                     {item.titulo}
@@ -61,6 +65,8 @@ export const ProgramasApoioPage = () => {
                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Link
                     to={item.path}
+                    target={!usuario ? '_blank' : undefined}
+                    rel={!usuario ? 'noopener noreferrer' : undefined}
                     className="inline-flex items-center justify-center bg-secondary text-white text-xs font-bold px-3 py-1.5 rounded hover:opacity-90 transition-opacity"
                   >
                     Solicitar

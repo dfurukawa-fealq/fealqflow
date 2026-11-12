@@ -3,6 +3,7 @@ import { Footer } from '../../components/Footer';
 import { useAdmin } from '../../contexts/AdminContext';
 import { MeusRascunhos } from '../../components/form/MeusRascunhos';
 import { PROJETOS } from '../../data/projetos';
+import { useUser } from '../../contexts/UserContext';
 
 export const ProjetosPage = () => {
   const rotas = [
@@ -121,6 +122,7 @@ export const ProjetosPage = () => {
   ];
 
   const { formularios } = useAdmin();
+  const { usuario } = useUser();
   const rotasDoCatalogo = PROJETOS.map((formulario) => ({
     id: formulario.id,
     label: formulario.titulo,
@@ -181,6 +183,8 @@ export const ProjetosPage = () => {
                 <div className="text-sm font-medium truncate pr-sm">
                   <Link
                     to={form.path}
+                    target={!usuario ? '_blank' : undefined}
+                    rel={!usuario ? 'noopener noreferrer' : undefined}
                     className="hover:text-primary transition-colors hover:underline"
                   >
                     {form.label}
@@ -195,6 +199,8 @@ export const ProjetosPage = () => {
                 <div className="flex items-center justify-end pr-xs">
                   <Link
                     to={form.path}
+                    target={!usuario ? '_blank' : undefined}
+                    rel={!usuario ? 'noopener noreferrer' : undefined}
                     className="inline-flex items-center justify-center h-7 px-3 bg-secondary text-on-secondary text-xs rounded font-bold hover:opacity-90 transition-opacity"
                   >
                     Preencher

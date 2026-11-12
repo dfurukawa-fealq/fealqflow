@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { Footer } from './Footer';
 import { DocumentoDoProcesso, formatarDocumentosDoProcesso } from '../utils/processoDocumentos';
+import { ConfirmacaoModal } from './ConfirmacaoModal';
 
 type CategoriaPainel = 'projeto' | 'apoio';
 type StatusSolicitacao = 'pendente' | 'rascunho' | 'finalizada';
@@ -22,6 +23,7 @@ interface ProcessoPainelApi {
 }
 
 interface SolicitacaoPainel {
+  processoId: string;
   id: string;
   formName: string;
   subtitulo: string;
@@ -49,6 +51,12 @@ export const PainelSolicitacoes = ({ categoria }: PainelSolicitacoesProps) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todos' | StatusSolicitacao>('todos');
   const [solicitacoes, setSolicitacoes] = useState<SolicitacaoPainel[]>([]);
+  const [pagina, setPagina] = useState(1);
+  const [itensPorPagina, setItensPorPagina] = useState(10);
+  const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [confirmarInativacao, setConfirmarInativacao] = useState(false);
+  const [inativando, setInativando] = useState(false);
+  const [mensagem, setMensagem] = useState('');
   const [erro, setErro] = useState('');
   const projetos = categoria === 'projeto';
 
@@ -69,6 +77,7 @@ export const PainelSolicitacoes = ({ categoria }: PainelSolicitacoesProps) => {
           const url = new URL(destino, window.location.origin);
           if (status === 'finalizada') url.searchParams.set('modo', 'consulta');
           return {
+            processoId: processo.id,
             id: processo.protocolo,
             formName: processo.formulario_nome,
             subtitulo: projetos ? processo.titulo : '',
@@ -94,6 +103,52 @@ export const PainelSolicitacoes = ({ categoria }: PainelSolicitacoesProps) => {
       .some((valor) => valor.toLocaleLowerCase('pt-BR').includes(consulta));
     return correspondeStatus && correspondeBusca;
   }), [search, solicitacoes, statusFilter]);
+
+  const totalPaginas = Math.max(1, Math.ceil(filtradas.length / itensPorPagina));
+  const inicio = filtradas.length ? (pagina - 1) * itensPorPagina : 0;
+  const itensPagina = filtradas.slice(inicio, inicio + itensPorPagina);
+  const todosFiltradosSelecionados = filtradas.length > 0 && filtradas.every((item) => selecionados.includes(item.processoId));
+  const alternarTodosFiltrados = () => setSelecionados((atuais) => todosFiltradosSelecionados
+    ? atuais.filter((id) => !filtradas.some((item) => item.processoId === id))
+    : [...new Set([...atuais, ...filtradas.map((item) => item.processoId)])]);
+  const inativarSolicitacoes = async () => {
+    setInativando(true);
+    setErro('');
+    try {
+      const idsInativados = new Set<string>();
+      for (let indice = 0; indice < selecionados.length; indice += 100) {
+        const lote = selecionados.slice(indice, indice + 100);
+        const resposta = await fetch('/api/processos/inativar', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: lote }),
+        });
+        const resultado = await resposta.json().catch(() => ({})) as { error?: string; inativados?: string[] };
+        if (!resposta.ok) throw new Error(resultado.error || 'Não foi possível inativar as solicitações selecionadas.');
+        (resultado.inativados || lote).forEach((id) => idsInativados.add(id));
+      }
+      setSolicitacoes((atuais) => atuais.filter((item) => !idsInativados.has(item.processoId)));
+      setSelecionados((atuais) => atuais.filter((id) => !idsInativados.has(id)));
+      setConfirmarInativacao(false);
+    } catch (falha: unknown) {
+      setErro(falha instanceof Error ? falha.message : 'Não foi possível inativar as solicitações selecionadas.');
+    } finally {
+      setInativando(false);
+    }
+  };
+  const copiarUrl = async (item: SolicitacaoPainel) => {
+    const url = new URL(item.link, window.location.origin).toString();
+    try {
+      await navigator.clipboard.writeText(url);
+      setMensagem(`URL de ${item.id} copiada.`);
+    } catch {
+      setMensagem('Não foi possível copiar a URL. Verifique a permissão de acesso à área de transferência.');
+    }
+    window.setTimeout(() => setMensagem(''), 3000);
+  };
+
+  useEffect(() => { setPagina(1); }, [search, statusFilter, itensPorPagina]);
+  useEffect(() => { setPagina((atual) => Math.min(atual, totalPaginas)); }, [totalPaginas]);
 
   const contagem = (status: StatusSolicitacao) => solicitacoes.filter((item) => item.status === status).length;
   const rascunhos = contagem('rascunho');
@@ -149,8 +204,8 @@ export const PainelSolicitacoes = ({ categoria }: PainelSolicitacoesProps) => {
         </section>
 
         <section className="flex flex-1 flex-col overflow-hidden rounded border border-outline-variant bg-surface-container-lowest shadow-sm">
-          <div className="flex flex-col items-start justify-between gap-3 border-b border-outline-variant bg-surface-container-low px-md py-sm sm:flex-row sm:items-center">
-            <div className="flex items-center gap-3">
+          <div className="grid grid-cols-1 items-center gap-3 border-b border-outline-variant bg-surface-container-low px-md py-sm sm:grid-cols-[1fr_minmax(360px,1.5fr)_1fr]">
+            <div className="flex min-w-0 items-center gap-3">
               <h2 className="flex items-center gap-1.5 text-sm font-semibold text-primary">
                 <span className="material-symbols-outlined text-base">folder_special</span>
                 {projetos ? 'Solicitações de Projetos' : 'Solicitações de Apoio'}
@@ -159,15 +214,16 @@ export const PainelSolicitacoes = ({ categoria }: PainelSolicitacoesProps) => {
                 {pendentes} com Ação Necessária
               </span>
             </div>
-            <div className="flex w-full items-center gap-2 sm:w-auto">
-              <div className="relative flex-1 sm:w-64">
+            <div className="flex w-full min-w-0 items-center justify-center gap-2 sm:col-start-2">
+              <div className="relative w-full min-w-0">
                 <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant/70">search</span>
                 <input
-                  type="search"
+                  type="text"
+                  aria-label="Buscar solicitações"
                   placeholder={projetos ? 'Buscar projeto, ID ou coordenador...' : 'Buscar formulário, ID ou solicitante...'}
                   value={search}
                   onChange={(evento) => setSearch(evento.target.value)}
-                  className="w-full rounded border border-outline-variant bg-surface py-1.5 pl-8 pr-3 text-xs focus:border-primary focus:outline-none"
+                  className="block h-10 w-full min-w-0 rounded border border-outline-variant bg-surface py-2 pl-9 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
               {statusFilter !== 'todos' && (
@@ -178,9 +234,23 @@ export const PainelSolicitacoes = ({ categoria }: PainelSolicitacoesProps) => {
             </div>
           </div>
 
+          {mensagem && <p role="status" className="border-b border-outline-variant px-md py-1 text-center text-xs text-secondary">{mensagem}</p>}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant px-md py-2 text-xs">
+            <label className="flex items-center gap-2 font-medium text-on-surface-variant">
+              <input type="checkbox" checked={todosFiltradosSelecionados} onChange={alternarTodosFiltrados} aria-label="Selecionar todas as solicitações filtradas" />
+              Selecionar todos os filtrados
+            </label>
+            <div className="flex items-center gap-3">
+              <span>{selecionados.length} selecionado(s)</span>
+              <button type="button" disabled={!selecionados.length || inativando} onClick={() => setConfirmarInativacao(true)} className="inline-flex items-center gap-1 rounded border border-error px-2 py-1 font-semibold text-error hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-40" title="Inativar solicitações selecionadas">
+                <span className="material-symbols-outlined text-sm">delete</span>Excluir / Cancelar
+              </button>
+            </div>
+          </div>
+
           <div className="flex-1 overflow-auto">
-            <div className="grid min-w-[1180px] grid-cols-[36px_135px_minmax(220px,1.4fr)_minmax(150px,1fr)_130px_140px_160px] items-center gap-3 border-b border-outline-variant bg-surface-container-low px-md py-2 text-xs font-semibold uppercase text-on-surface-variant">
-              <span />
+            <div className="grid min-w-[1220px] grid-cols-[36px_36px_135px_minmax(220px,1.4fr)_minmax(150px,1fr)_130px_140px_160px] items-center gap-3 border-b border-outline-variant bg-surface-container-low px-md py-2 text-xs font-semibold uppercase text-on-surface-variant">
+              <span /><span />
               <span>ID</span>
               <span>Formulário / Solicitação</span>
               <span>{projetos ? 'Coordenador' : 'Solicitante'}</span>
@@ -191,13 +261,14 @@ export const PainelSolicitacoes = ({ categoria }: PainelSolicitacoesProps) => {
 
             {filtradas.length === 0 ? (
               <div className="p-8 text-center text-sm text-on-surface-variant">Nenhuma solicitação encontrada com os filtros selecionados.</div>
-            ) : filtradas.map((item) => (
-              <div key={item.id} className="min-w-[1180px] border-b border-outline-variant last:border-0">
+            ) : itensPagina.map((item) => (
+              <div key={item.id} className="min-w-[1220px] border-b border-outline-variant last:border-0">
                 <div
-                  className="grid min-h-[54px] cursor-pointer grid-cols-[36px_135px_minmax(220px,1.4fr)_minmax(150px,1fr)_130px_140px_160px] items-center gap-3 px-md hover:bg-surface-container-low"
+                  className="grid min-h-[54px] cursor-pointer grid-cols-[36px_36px_135px_minmax(220px,1.4fr)_minmax(150px,1fr)_130px_140px_160px] items-center gap-3 px-md hover:bg-surface-container-low"
                   onClick={() => setExpandedRow(expandedRow === item.id ? null : item.id)}
                 >
                   <span className={clsx('material-symbols-outlined text-center text-on-surface-variant transition-transform', expandedRow === item.id && 'rotate-180')}>expand_more</span>
+                  <input type="checkbox" checked={selecionados.includes(item.processoId)} aria-label={`Selecionar ${item.id}`} onClick={(evento) => evento.stopPropagation()} onChange={() => setSelecionados((atuais) => atuais.includes(item.processoId) ? atuais.filter((id) => id !== item.processoId) : [...atuais, item.processoId])} />
                   <span className="font-mono text-xs font-semibold text-primary">{item.id}</span>
                   <span className="min-w-0 text-sm">
                     <Link to={item.link} onClick={(evento) => evento.stopPropagation()} className="block font-medium leading-tight text-primary hover:underline">{item.formName}</Link>
@@ -226,6 +297,7 @@ export const PainelSolicitacoes = ({ categoria }: PainelSolicitacoesProps) => {
                       title="Contato via E-mail"
                       aria-label={`Contato via E-mail: ${item.solicitante || item.id}`}
                     ><span className="material-symbols-outlined text-[14px]">mail</span></a>
+                    <button type="button" onClick={(evento) => { evento.stopPropagation(); void copiarUrl(item); }} className="flex h-7 w-7 items-center justify-center rounded border border-outline-variant text-primary hover:bg-primary/10" title="Copiar URL" aria-label={`Copiar URL de ${item.id}`}><span className="material-symbols-outlined text-[14px]">content_copy</span></button>
                     <Link
                       to={item.link}
                       onClick={(evento) => evento.stopPropagation()}
@@ -259,9 +331,30 @@ export const PainelSolicitacoes = ({ categoria }: PainelSolicitacoesProps) => {
               </div>
             ))}
           </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-outline-variant bg-surface px-md py-3 text-xs text-on-surface-variant">
+            <span>Total: <strong className="text-on-surface">{filtradas.length}</strong> item(ns) - Exibindo {filtradas.length ? inicio + 1 : 0} a {Math.min(inicio + itensPagina.length, filtradas.length)}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <label htmlFor="itens-por-pagina">Itens por pagina</label>
+              <select id="itens-por-pagina" value={itensPorPagina} onChange={(evento) => setItensPorPagina(Number(evento.target.value))} className="rounded border border-outline-variant bg-surface px-2 py-1.5">
+                {[10, 25, 50].map((quantidade) => <option key={quantidade} value={quantidade}>{quantidade}</option>)}
+              </select>
+              <button type="button" disabled={pagina <= 1} onClick={() => setPagina((atual) => Math.max(1, atual - 1))} className="rounded border border-outline-variant px-3 py-1.5 disabled:opacity-40" aria-label="Pagina anterior">Anterior</button>
+              <span>Pagina {pagina} de {totalPaginas}</span>
+              <button type="button" disabled={pagina >= totalPaginas} onClick={() => setPagina((atual) => Math.min(totalPaginas, atual + 1))} className="rounded border border-outline-variant px-3 py-1.5 disabled:opacity-40" aria-label="Proxima pagina">Proxima</button>
+            </div>
+          </div>
         </section>
       </main>
       <Footer />
+      {confirmarInativacao && <ConfirmacaoModal
+        titulo="Excluir / cancelar solicitações?"
+        mensagem={`As ${selecionados.length} solicitações selecionadas serão inativadas e deixarão de aparecer no painel. Os dados serão preservados para rastreabilidade.`}
+        icone="delete"
+        textoConfirmar="Confirmar"
+        carregando={inativando}
+        onCancelar={() => setConfirmarInativacao(false)}
+        onConfirmar={() => void inativarSolicitacoes()}
+      />}
     </div>
   );
 };

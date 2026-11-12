@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 
 // Projetos
@@ -46,7 +46,7 @@ import { HistoricoPendencias } from './pages/HistoricoPendencias';
 import { RastreabilidadeProvider } from './contexts/RastreabilidadeContext';
 import { ProcessoRoute } from './contexts/ProcessoContext';
 import { AdminProvider } from './contexts/AdminContext';
-import { UserProvider } from './contexts/UserContext';
+import { UserProvider, useUser } from './contexts/UserContext';
 import { RequireAdmin } from './components/auth/RequireAdmin';
 import { RequireArea } from './components/auth/RequireArea';
 import { RequireSessao } from './components/auth/RequireSessao';
@@ -56,18 +56,19 @@ import { GestaoDocumentos } from './pages/admin/GestaoDocumentos';
 import { GestaoUsuarios } from './pages/admin/GestaoUsuarios';
 import { Home } from './pages/Home';
 
-export default function App() {
+const AppRoutes = () => {
+  const location = useLocation();
+  const { usuario } = useUser();
+  const rotaFormulario = /^\/projetos\/(form-|termo-lgpd|orientacoes-coordenador|ciencia-departamento)/.test(location.pathname)
+    || /^\/programas-de-apoio\/apoio-/.test(location.pathname);
+  const mostrarSidebar = Boolean(usuario) || !rotaFormulario;
+
   return (
-    <BrowserRouter>
-      <RastreabilidadeProvider>
-        <AdminProvider>
-        <UserProvider>
-        <div className="flex min-h-screen">
-          <div className="hidden lg:block print:hidden">
-            <Sidebar />
-          </div>
-          <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:ml-[240px] print:ml-0">
-            <Routes>
+    <div className="flex min-h-screen">
+      {mostrarSidebar && <div className="hidden lg:block print:hidden"><Sidebar /></div>}
+      <div className={`flex min-h-screen min-w-0 flex-1 flex-col ${mostrarSidebar ? 'lg:ml-[240px]' : ''} print:ml-0`}>
+        <Routes>
+
             {/* Default root routes to Programas de Apoio requests panel as specified */}
             <Route path="/" element={<Home />} />
             <Route path="/historico" element={<RequireSessao><HistoricoPendencias /></RequireSessao>} />
@@ -147,10 +148,20 @@ export default function App() {
             <Route path="/apoio-comunidade" element={<Navigate to="/programas-de-apoio/apoio-comunidade" replace />} />
             <Route path="/apoio-material-evento" element={<Navigate to="/programas-de-apoio/apoio-material-evento" replace />} />
             <Route path="/apoio-cultura" element={<Navigate to="/programas-de-apoio/apoio-cultura" replace />} />
-          </Routes>
-        </div>
+        </Routes>
       </div>
-        </UserProvider>
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <RastreabilidadeProvider>
+        <AdminProvider>
+          <UserProvider>
+            <AppRoutes />
+          </UserProvider>
         </AdminProvider>
       </RastreabilidadeProvider>
     </BrowserRouter>
