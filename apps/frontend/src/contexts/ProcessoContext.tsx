@@ -480,14 +480,14 @@ export const useProcessoNovo = () => useContext(ProcessoNovoContext);
 export function useProcessoState<T>(campo: string, inicial: T | (() => T), aliases: string[] = []): [T, Dispatch<SetStateAction<T>>] {
   const processo = useProcesso();
   const processoNovo = useProcessoNovo();
-  const [valor, setValor] = useState<T>(() => {
-    const campos = processo?.dados.campos ?? processoNovo?.dados.campos;
-    const salvo = campos?.[campo] ?? aliases.map((alias) => campos?.[alias]).find((item) => item !== undefined);
-    return salvo !== undefined ? salvo as T : typeof inicial === 'function' ? (inicial as () => T)() : inicial;
-  });
+  const campos = processo?.dados.campos ?? processoNovo?.dados.campos ?? {};
+  const salvo = campos[campo] ?? aliases.map((alias) => campos[alias]).find((item) => item !== undefined);
+  const valor = salvo !== undefined ? salvo as T : typeof inicial === 'function' ? (inicial as () => T)() : inicial;
   const atualizarCampo = processo?.atualizarCampo ?? processoNovo?.atualizarCampo;
-  useEffect(() => {
-    atualizarCampo?.(campo, valor);
-  }, [campo, valor, atualizarCampo]);
+  const setValor = useCallback<Dispatch<SetStateAction<T>>>((proximoValor) => {
+    const valorAtual = campos[campo] ?? aliases.map((alias) => campos[alias]).find((item) => item !== undefined);
+    const base = valorAtual !== undefined ? valorAtual as T : typeof inicial === 'function' ? (inicial as () => T)() : inicial;
+    atualizarCampo?.(campo, typeof proximoValor === 'function' ? (proximoValor as (atual: T) => T)(base) : proximoValor);
+  }, [aliases, atualizarCampo, campo, campos, inicial]);
   return [valor, setValor];
 }

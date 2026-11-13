@@ -19,7 +19,7 @@ import { CoordenadorResponsavelSection } from '../../components/form/projetos/Co
 import { CienciaConcordanciaSection } from '../../components/form/projetos/CienciaConcordanciaSection';
 import { InstituicoesFinanciadorasSection } from '../../components/form/projetos/InstituicoesFinanciadorasSection';
 import { OrientacoesProjetoSection } from '../../components/form/projetos/OrientacoesProjetoSection';
-import { TIPOS_EVENTO, UNIDADES_USP } from '../../data/listas';
+import { TIPOS_EVENTO, UNIDADES_USP_SIGLAS } from '../../data/listas';
 import { DadosProjetoCursoEventoSection } from '../../components/section/projetos/DadosProjetoCursoEventoSection';
 import kitsDocumentais from '../../../../../data/kits_documentais.json';
 import itensKitDocumental from '../../../../../data/itens_kit_documental.json';
@@ -304,7 +304,7 @@ export const AberturaCursoEvento: React.FC = () => {
   );
 
   const urlDepto = gerarUrlVinculada(
-    `/projetos/ciencia-departamento?depto=${encodeURIComponent(deptoNome || coordDepto || '')}&coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}`,
+    `/projetos/ciencia-departamento?unidade=${encodeURIComponent(coordUnidade)}&depto=${encodeURIComponent(deptoNome || coordUnidade || coordDepto || '')}&coordenador=${encodeURIComponent(coordNome || '')}&cpf=${encodeURIComponent(coordCpf || '')}`,
     'CERT-DEPTO-01',
     'Ciência e Concordância do Departamento'
   );
@@ -440,19 +440,15 @@ export const AberturaCursoEvento: React.FC = () => {
       aoSubmeter={handleSubmit}
       sidebar={
         <div className="flex flex-col gap-lg">
-          {/* Box de Rastreabilidade e Protocolo da Sessão */}
+          {/* Identificação do processo */}
           <div className="bg-surface-container-low border border-primary/20 rounded-lg p-sm flex items-center justify-between">
             <div className="flex items-center gap-xs">
               <span className="material-symbols-outlined text-[18px] text-primary">share_location</span>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant block leading-tight">Processo</span>
-                <span className="text-[13px] font-bold text-primary font-mono leading-tight">{processoAtual?.processo.protocolo ?? protocolId}</span>
+              <div className="flex min-w-0 items-baseline gap-xs">
+                <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant leading-tight">Processo</span>
+                <span className="truncate text-[13px] font-bold text-primary font-mono leading-tight">{processoAtual?.processo.protocolo ?? protocolId}</span>
               </div>
             </div>
-            <span className="text-[10px] bg-secondary-fixed text-on-secondary-fixed font-bold px-xs py-[2px] rounded uppercase flex items-center gap-1">
-              <span className="material-symbols-outlined text-[12px]">sync</span>
-              Rastreado
-            </span>
           </div>
 
           <StatusCard
@@ -679,7 +675,7 @@ export const AberturaCursoEvento: React.FC = () => {
               label="Unidade"
               span={6}
               tipo="select"
-              opcoes={[...UNIDADES_USP]}
+              opcoes={[...UNIDADES_USP_SIGLAS]}
               placeholder="Selecione a unidade"
               ordem={6}
               inicio={7}
@@ -1343,7 +1339,7 @@ export const AberturaCursoEvento: React.FC = () => {
           label="Departamento / Unidade"
           span={12}
           tipo="select"
-          opcoes={[...UNIDADES_USP]}
+          opcoes={[...UNIDADES_USP_SIGLAS]}
           placeholder="Selecione a unidade"
           obrigatorio
           valor={coordUnidade}

@@ -22,7 +22,7 @@ interface FieldProps {
   tipo?: TipoCampo;
   placeholder?: string;
   /** Opções de `select` e `radio`. */
-  opcoes?: string[];
+  opcoes?: (string | { value: string; label: string })[];
   /** Opção marcada por padrão em `radio`/`select`. */
   padrao?: string;
   /** Valor inicial de inputs de texto (telas de demonstração). */
@@ -100,7 +100,7 @@ export const Field = ({
   const chaveEstavel = `campo:${label}`;
   const chaveLegada = `campo:${label}:${id}`;
   const [valorLocal, setValorLocal] = useProcessoState<string | boolean>(chaveEstavel,
-    valor ?? padrao ?? (tipo === 'checkbox' ? false : tipo === 'select' && !placeholder ? opcoes[0] ?? '' : ''), [chaveLegada]);
+    valor ?? padrao ?? (tipo === 'checkbox' ? false : tipo === 'select' && !placeholder ? (typeof opcoes[0] === 'string' ? opcoes[0] : opcoes[0]?.value) ?? '' : ''), [chaveLegada]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     if (onChange) {
@@ -138,30 +138,34 @@ export const Field = ({
             className={CONTROLE}
           >
             {placeholder && <option value="">{placeholder}</option>}
-            {opcoes.map((o) => (
-              <option key={o} value={o}>{o}</option>
-            ))}
+            {opcoes.map((o) => {
+              const { value: opcaoValor, label: texto } = typeof o === 'string' ? { value: o, label: o } : o;
+              return <option key={opcaoValor} value={opcaoValor}>{texto}</option>;
+            })}
           </select>
         ) : tipo === 'radio' ? (
           <div className="flex items-center flex-wrap gap-md h-[36px]">
-            {opcoes.map((o) => (
+            {opcoes.map((o) => {
+              const { value: opcaoValor, label: texto } = typeof o === 'string' ? { value: o, label: o } : o;
+              return (
               <label
-                key={o}
+                key={opcaoValor}
                 className="flex items-center gap-xs text-[13px] text-on-surface cursor-pointer"
               >
                 <input
                   type="radio"
                   name={id}
-                  value={o}
-                  checked={onChange ? valor === o : valorLocal === o}
+                  value={opcaoValor}
+                  checked={onChange ? valor === opcaoValor : valorLocal === opcaoValor}
                   disabled={disabled}
                   required={obrigatorio}
                   onChange={handleInputChange}
                   className="text-primary-container focus:ring-primary-container border-outline-variant"
                 />
-                {o}
+                {texto}
               </label>
-            ))}
+              );
+            })}
           </div>
         ) : tipo === 'checkbox' ? (
           <div className="flex items-center gap-xs h-[36px]">

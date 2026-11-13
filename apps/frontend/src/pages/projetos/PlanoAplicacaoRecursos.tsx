@@ -126,12 +126,12 @@ export const PlanoAplicacaoRecursos = () => {
         </div>
       }
     >
-      {/* BANNER DE RASTREABILIDADE ENTRE SESSÕES */}
+      {/* Indica o protocolo ao qual este formulário pertence. */}
       {protocoloUrlParam && (
         <div className="mb-md p-sm bg-primary/10 border border-primary/30 rounded-lg flex items-center justify-between text-[13px]">
           <div className="flex items-center gap-xs text-primary font-medium">
             <span className="material-symbols-outlined text-[20px]">share_location</span>
-            <span>Rastreabilidade Ativa: Vinculado ao Protocolo <strong className="font-mono text-on-surface">{protocoloUrlParam}</strong></span>
+            <span>Protocolo principal: <strong className="font-mono text-on-surface">{protocoloUrlParam}</strong></span>
           </div>
           <span className="text-[11px] bg-primary text-white font-semibold px-2 py-0.5 rounded flex items-center gap-1">
             <span className="material-symbols-outlined text-[14px]">sync</span>

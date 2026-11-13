@@ -90,6 +90,32 @@ export const FormPageLayout = ({
     if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
   }, []);
 
+  useEffect(() => {
+    const raiz = mainRef.current;
+    if (!raiz) return;
+
+    const desativarAutopreenchimento = (raizCampos: ParentNode) => {
+      raizCampos.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea').forEach((campo) => {
+        campo.autocomplete = 'off';
+      });
+      raizCampos.querySelectorAll<HTMLFormElement>('form').forEach((formulario) => {
+        formulario.autocomplete = 'off';
+      });
+    };
+
+    desativarAutopreenchimento(raiz);
+    const observador = new MutationObserver((alteracoes) => {
+      alteracoes.forEach((alteracao) => alteracao.addedNodes.forEach((no) => {
+        if (!(no instanceof HTMLElement)) return;
+        if (no instanceof HTMLInputElement || no instanceof HTMLSelectElement || no instanceof HTMLTextAreaElement) no.autocomplete = 'off';
+        if (no instanceof HTMLFormElement) no.autocomplete = 'off';
+        desativarAutopreenchimento(no);
+      }));
+    });
+    observador.observe(raiz, { childList: true, subtree: true });
+    return () => observador.disconnect();
+  }, []);
+
   // null = a página não tem Kit Documental; o envio segue bloqueado se podeEnviar não for informado.
   const [pendencias, setPendencias] = useState<number | null>(null);
   const registrarPendencias = useCallback(

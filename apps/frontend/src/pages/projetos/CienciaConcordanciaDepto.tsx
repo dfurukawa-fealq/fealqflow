@@ -1,5 +1,5 @@
 import { useProcessoState } from '../../contexts/ProcessoContext';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
@@ -7,7 +7,7 @@ import { Field } from '../../components/form/Field';
 import { CertificacaoSidebarCard } from '../../components/form/CertificacaoSidebarCard';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { sanitizeInputText, sanitizeProtocolId, getSafeReturnUrl } from '../../utils/security';
-import { UNIDADES_USP } from '../../data/listas';
+import { UNIDADES_USP_OPCOES } from '../../data/listas';
 
 export const CienciaConcordanciaDepto = () => {
   const [searchParams] = useSearchParams();
@@ -18,6 +18,10 @@ export const CienciaConcordanciaDepto = () => {
   const [deptoNome, setDeptoNome] = useProcessoState('coordUnidade',
     sanitizeInputText(searchParams.get('depto')) || '', ['deptoNome']
   );
+  useEffect(() => {
+    const unidadeRecebida = searchParams.get('unidade') ?? searchParams.get('depto');
+    if (unidadeRecebida !== null) setDeptoNome(sanitizeInputText(unidadeRecebida));
+  }, [searchParams, setDeptoNome]);
   const [modalidadeAprovacao, setModalidadeAprovacao] = useState<'conselho' | 'ad_referendum'>('conselho');
   const [dataConselho, setDataConselho] = useProcessoState('dataConselho', '');
   const [isentaTaxa, setIsentaTaxa] = useProcessoState<'sim' | 'nao'>('isentaTaxa', 'nao');
@@ -169,39 +173,8 @@ export const CienciaConcordanciaDepto = () => {
               required
             >
               <option value="">Selecione a unidade</option>
-              {UNIDADES_USP.map((unidade) => <option key={unidade} value={unidade}>{unidade}</option>)}
+              {UNIDADES_USP_OPCOES.map((unidade) => <option key={unidade.value} value={unidade.value}>{unidade.label}</option>)}
             </select>
-            <div className="flex items-center gap-2 flex-wrap text-[11px] text-on-surface-variant">
-              <span>Sugestões rápidas:</span>
-              <button
-                type="button"
-                onClick={() => setDeptoNome('FZEA')}
-                className="px-2 py-0.5 rounded border border-outline-variant hover:bg-surface-variant transition-colors"
-              >
-                FZEA/USP - Alimentos
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeptoNome('ESALQ')}
-                className="px-2 py-0.5 rounded border border-outline-variant hover:bg-surface-variant transition-colors"
-              >
-                ESALQ/USP - Alimentos
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeptoNome('CENA')}
-                className="px-2 py-0.5 rounded border border-outline-variant hover:bg-surface-variant transition-colors"
-              >
-                ESALQ/USP - Solos
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeptoNome('FMVZ')}
-                className="px-2 py-0.5 rounded border border-outline-variant hover:bg-surface-variant transition-colors"
-              >
-                FZEA/USP - Zootecnia
-              </button>
-            </div>
           </div>
         </FormSection>
 
@@ -209,14 +182,10 @@ export const CienciaConcordanciaDepto = () => {
         <FormSection
           numero={2}
           icone="how_to_reg"
-          titulo="Modalidade de Aprovação do Departamento"
+          titulo="Ciência e concordância do Departamento"
           livre
         >
           <div className="bg-surface-container-low border border-outline-variant rounded-lg p-lg space-y-md">
-            <h4 className="text-[13px] font-bold text-on-surface uppercase tracking-wide">
-              Modalidade de Aprovação do Departamento:
-            </h4>
-
             {/* Opção 1: Aprovado pelo Conselho */}
             <div
               onClick={() => setModalidadeAprovacao('conselho')}
@@ -237,13 +206,13 @@ export const CienciaConcordanciaDepto = () => {
                 />
                 <div className="flex-1">
                   <span className="text-[13px] text-on-surface leading-relaxed block">
-                    Este Projeto, inclusive a participação do Coordenador e/ou Docentes deste Departamento, foi <strong>aprovado pelo Conselho do Departamento</strong>. Ao Departamento compete a verificação das normas legais vigentes na USP e no Brasil, relacionadas com o objeto deste evento.
+                    Este Projeto, inclusive a participação do Coordenador e/ou Docentes deste Departamento, foi aprovado pelo Conselho Técnico Administrativo em Selecione a data.
                   </span>
 
                   {modalidadeAprovacao === 'conselho' && (
                     <div className="mt-md pt-sm border-t border-outline-variant/40 max-w-xs">
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
-                        DATA DA REUNIÃO DO CONSELHO *
+                        DATA DA APROVAÇÃO *
                       </label>
                       <input
                         type="date"

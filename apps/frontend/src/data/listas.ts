@@ -21,11 +21,10 @@ export const TIPOS_EVENTO = [
 
 export type TipoEvento = typeof TIPOS_EVENTO[number];
 
-export const UNIDADES_USP = [
-  'ESALQ', 'CENA', 'FZEA', 'EACH', 'ECA', 'FAU', 'FCF', 'FD', 'FEA', 'FEARP',
-  'FFLCH', 'FMVZ', 'FOB', 'FMRP', 'FSP', 'IAG', 'IB', 'ICB', 'ICMC', 'IEA',
-  'IEE', 'IF', 'IGC', 'IME', 'IO', 'IP', 'IQ', 'IRI', 'IAC', 'Museu Paulista',
-  'Museu de Zoologia', 'Outro',
-] as const;
+import unidadesUsp from '../../../../data/unidades_usp.json';
 
-export type UnidadeUSP = typeof UNIDADES_USP[number];
+export const UNIDADES_USP = unidadesUsp.filter((unidade) => unidade.active);
+export const UNIDADES_USP_SIGLAS = UNIDADES_USP.map((unidade) => unidade.sigla);
+export const UNIDADES_USP_OPCOES = UNIDADES_USP.map((unidade) => ({ value: unidade.sigla, label: `${unidade.sigla} - ${unidade.descricao}` }));
+
+export type UnidadeUSP = typeof UNIDADES_USP[number]['sigla'];

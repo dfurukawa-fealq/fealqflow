@@ -1,5 +1,5 @@
 import { useProcessoState } from '../../../contexts/ProcessoContext';
-import { UNIDADES_USP } from '../../../data/listas';
+import { UNIDADES_USP_OPCOES } from '../../../data/listas';
 import { FormSection } from '../FormSection';
 import { Field } from '../Field';
 import { InputSearchList } from '../InputSearchList';
@@ -22,7 +22,7 @@ export const CoordenadorResponsavelSection = ({ numero = 3 }: { numero?: number 
         <Field label="E-mail Institucional" span={6} tipo="email" placeholder="coordenador@usp.br" obrigatorio valor={email} onChange={setEmail} hint="Preferencialmente e-mail institucional @usp.br" />
         <div className="col-span-12 grid grid-cols-12 gap-sm">
           <Field label="Departamento / Instituição" span={6} placeholder="Ex.: Engenharia de Biossistemas" valor={departamento} onChange={setDepartamento} />
-          <InputSearchList label="Unidade" span={6} opcoes={UNIDADES_USP} placeholder="Digite ou selecione uma unidade" valor={unidade} onChange={setUnidade} />
+          <InputSearchList label="Unidade" span={6} opcoes={UNIDADES_USP_OPCOES} placeholder="Digite ou selecione uma unidade" valor={unidade} onChange={setUnidade} />
         </div>
       </div>
     </div>
