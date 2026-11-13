@@ -7,9 +7,10 @@ interface GestaoLayoutProps {
   title: string;
   description: string;
   children: ReactNode;
+  mostrarSincronizacao?: boolean;
 }
 
-export const GestaoLayout = ({ title, description, children }: GestaoLayoutProps) => {
+export const GestaoLayout = ({ title, description, children, mostrarSincronizacao = true }: GestaoLayoutProps) => {
   const { resetToDefaults } = useAdmin();
   const { usuario, logout, alterarSenha } = useUser();
   const navigate = useNavigate();
@@ -93,14 +94,14 @@ export const GestaoLayout = ({ title, description, children }: GestaoLayoutProps
             <span className="material-symbols-outlined text-[20px]">logout</span>
             Sair
           </button>
-          <button
+          {mostrarSincronizacao && <button
             type="button"
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 rounded-lg bg-error/10 px-4 py-2 text-sm font-medium text-error transition-colors hover:bg-error/20"
           >
             <span className="material-symbols-outlined text-[20px]">sync</span>
             Sincronizar Base Oficial
-          </button>
+          </button>}
         </div>
       </div>
       {mostrarAlteracaoSenha && (

@@ -169,6 +169,24 @@ export const Sidebar = () => {
             <span className="material-symbols-outlined text-lg">description</span>
             <span>Documentos</span>
           </Link>
+          <Link to="/admin/unidades" className={clsx(
+            'flex items-center space-x-3 px-xl py-2.5 transition-colors text-sm',
+            path === '/admin/unidades'
+              ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
+              : 'text-surface-variant/80 hover:bg-white/5 hover:text-white'
+          )}>
+            <span className="material-symbols-outlined text-lg">account_balance</span>
+            <span>Unidades USP</span>
+          </Link>
+          <Link to="/admin/kits" className={clsx(
+            'flex items-center space-x-3 px-xl py-2.5 transition-colors text-sm',
+              path === '/admin/kits' || path.startsWith('/kit/')
+              ? 'border-l-2 border-secondary-fixed bg-white/10 text-white font-bold'
+              : 'text-surface-variant/80 hover:bg-white/5 hover:text-white'
+          )}>
+            <span className="material-symbols-outlined text-lg">folder_copy</span>
+            <span>Kits</span>
+          </Link>
           <Link to="/admin/usuarios" className={clsx(
             'flex items-center space-x-3 px-xl py-2.5 transition-colors text-sm',
             path === '/admin/usuarios'

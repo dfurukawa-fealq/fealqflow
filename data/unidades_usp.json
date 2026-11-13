@@ -1,35 +1,370 @@
 [
-  { "id": "ESALQ", "sigla": "ESALQ", "descricao": "Escola Superior de Agricultura Luiz de Queiroz", "active": true },
-  { "id": "CENA", "sigla": "CENA", "descricao": "Centro de Energia Nuclear na Agricultura", "active": true },
-  { "id": "FZEA", "sigla": "FZEA", "descricao": "Faculdade de Zootecnia e Engenharia de Alimentos", "active": true },
-  { "id": "EACH", "sigla": "EACH", "descricao": "Escola de Artes, Ciências e Humanidades", "active": true },
-  { "id": "ECA", "sigla": "ECA", "descricao": "Escola de Comunicações e Artes", "active": true },
-  { "id": "FAU", "sigla": "FAU", "descricao": "Faculdade de Arquitetura e Urbanismo", "active": true },
-  { "id": "FCF", "sigla": "FCF", "descricao": "Faculdade de Ciências Farmacêuticas", "active": true },
-  { "id": "FD", "sigla": "FD", "descricao": "Faculdade de Direito", "active": true },
-  { "id": "FEA", "sigla": "FEA", "descricao": "Faculdade de Economia, Administração e Contabilidade", "active": true },
-  { "id": "FEARP", "sigla": "FEARP", "descricao": "Faculdade de Economia, Administração e Contabilidade de Ribeirão Preto", "active": true },
-  { "id": "FFLCH", "sigla": "FFLCH", "descricao": "Faculdade de Filosofia, Letras e Ciências Humanas", "active": true },
-  { "id": "FMVZ", "sigla": "FMVZ", "descricao": "Faculdade de Medicina Veterinária e Zootecnia", "active": true },
-  { "id": "FOB", "sigla": "FOB", "descricao": "Faculdade de Odontologia de Bauru", "active": true },
-  { "id": "FMRP", "sigla": "FMRP", "descricao": "Faculdade de Medicina de Ribeirão Preto", "active": true },
-  { "id": "FSP", "sigla": "FSP", "descricao": "Faculdade de Saúde Pública", "active": true },
-  { "id": "IAG", "sigla": "IAG", "descricao": "Instituto de Astronomia, Geofísica e Ciências Atmosféricas", "active": true },
-  { "id": "IB", "sigla": "IB", "descricao": "Instituto de Biociências", "active": true },
-  { "id": "ICB", "sigla": "ICB", "descricao": "Instituto de Ciências Biomédicas", "active": true },
-  { "id": "ICMC", "sigla": "ICMC", "descricao": "Instituto de Ciências Matemáticas e de Computação", "active": true },
-  { "id": "IEA", "sigla": "IEA", "descricao": "Instituto de Estudos Avançados", "active": true },
-  { "id": "IEE", "sigla": "IEE", "descricao": "Instituto de Energia e Ambiente", "active": true },
-  { "id": "IF", "sigla": "IF", "descricao": "Instituto de Física", "active": true },
-  { "id": "IGC", "sigla": "IGC", "descricao": "Instituto de Geociências", "active": true },
-  { "id": "IME", "sigla": "IME", "descricao": "Instituto de Matemática e Estatística", "active": true },
-  { "id": "IO", "sigla": "IO", "descricao": "Instituto Oceanográfico", "active": true },
-  { "id": "IP", "sigla": "IP", "descricao": "Instituto de Psicologia", "active": true },
-  { "id": "IQ", "sigla": "IQ", "descricao": "Instituto de Química", "active": true },
-  { "id": "IRI", "sigla": "IRI", "descricao": "Instituto de Relações Internacionais", "active": true },
-  { "id": "IAC", "sigla": "IAC", "descricao": "Instituto Agronômico de Campinas (órgão externo à USP)", "active": false },
-  { "id": "IAU", "sigla": "IAU", "descricao": "Instituto de Arquitetura e Urbanismo", "active": true },
-  { "id": "MUSEU-PAULISTA", "sigla": "MP", "descricao": "Museu Paulista", "active": true },
-  { "id": "MUSEU-ZOOLOGIA", "sigla": "MZ", "descricao": "Museu de Zoologia", "active": true },
-  { "id": "OUTRO", "sigla": "Outro", "descricao": "Outra unidade ou instituição", "active": true }
+  {
+    "id": "EXEC-001",
+    "sigla": "ANPEC",
+    "descricao": "Associação Nacional dos Centros de Pós-Graduação em Economia",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-002",
+    "sigla": "CENA/USP",
+    "descricao": "Centro de Energia Nuclear na Agricultura",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-003",
+    "sigla": "EMBRAPA",
+    "descricao": "Empresa Brasileira de Pesquisa Agropecuária",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-004",
+    "sigla": "EACH/USP",
+    "descricao": "Escola de Artes, Ciências e Humanidades",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-005",
+    "sigla": "ECA/USP",
+    "descricao": "Escola de Comunicação e Artes",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-006",
+    "sigla": "EEL/USP",
+    "descricao": "Escola de Engenharia de Lorena",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-007",
+    "sigla": "ESALQ/USP",
+    "descricao": "Escola Superior de Agricultura Luiz de Queiroz",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-008",
+    "sigla": null,
+    "descricao": "Ernesto Norio Takahashi",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-009",
+    "sigla": "FCAV/UNESP",
+    "descricao": "Faculdade de Ciências Agrárias e Veterinárias – Câmpus de Jaboticabal",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-010",
+    "sigla": "FCFRP/USP",
+    "descricao": "Faculdade de Ciências Farmacêuticas de Ribeirão Preto",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-011",
+    "sigla": "FFCLRP/USP",
+    "descricao": "Faculdade de Filosofia, Ciências e Letras de Ribeirão Preto",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-012",
+    "sigla": "FFLCH/USP",
+    "descricao": "Faculdade de Filosofia, Letras e Ciências Humanas",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-013",
+    "sigla": "FMRP/USP",
+    "descricao": "Faculdade de Medicina de Ribeirão Preto",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-014",
+    "sigla": "FMVZ/USP",
+    "descricao": "Faculdade de Medicina Veterinária e Zootecnia",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-015",
+    "sigla": "FZEA/USP",
+    "descricao": "Faculdade de Zootecnia e Engenharia de Alimentos",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-016",
+    "sigla": "BMZ",
+    "descricao": "Federal Ministry for Economic Cooperation and Development",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-017",
+    "sigla": "FUNDECITRUS",
+    "descricao": "Fundo de Defesa da Citricultura",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-018",
+    "sigla": null,
+    "descricao": "Fundação Agrisus",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-019",
+    "sigla": "FUNCAMP",
+    "descricao": "Fundação de Desenvolvimento da UNICAMP",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-020",
+    "sigla": "FEALQ",
+    "descricao": "Fundação de Estudos Agrários Luiz de Queiroz",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-021",
+    "sigla": null,
+    "descricao": "Fundação João Pinheiro",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-022",
+    "sigla": null,
+    "descricao": "Fundação MS para Pesquisa e Difusão de Tecnologias Agropecuárias",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-023",
+    "sigla": null,
+    "descricao": "Gleysson Roberto da Silva Centro de Equitação e Equoterapia Ltda.",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-024",
+    "sigla": "IAC/APTA/SAA-SP",
+    "descricao": "Instituto Agronômico",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-025",
+    "sigla": "IAG/USP",
+    "descricao": "Instituto de Astronomia, Geofísica e Ciências Atmosféricas",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-026",
+    "sigla": "IB/USP",
+    "descricao": "Instituto de Biociências",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-027",
+    "sigla": "ICB/USP",
+    "descricao": "Instituto de Ciências Biomédicas",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-028",
+    "sigla": "ICMC/USP",
+    "descricao": "Instituto de Ciências Matemáticas e de Computação",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-029",
+    "sigla": "IGc/USP",
+    "descricao": "Instituto de Geociências",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-030",
+    "sigla": "IQ/USP",
+    "descricao": "Instituto de Química",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-031",
+    "sigla": "IRI/USP",
+    "descricao": "Instituto de Relações Internacionais",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-032",
+    "sigla": "IZ/APTA/SAA-SP",
+    "descricao": "Instituto de Zootecnia",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-033",
+    "sigla": "IGPP",
+    "descricao": "Instituto para Governança Territorial e Políticas Públicas",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-034",
+    "sigla": "PCFC/FZEA/USP",
+    "descricao": "Prefeitura do Campus Fernando Costa",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-035",
+    "sigla": "PCLQ/ESALQ/USP",
+    "descricao": "Prefeitura do Campus Luiz de Queiroz",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-036",
+    "sigla": "USP",
+    "descricao": "Reitoria da Universidade de São Paulo",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-037",
+    "sigla": "SAA-SP",
+    "descricao": "Secretaria de Agricultura e Abastecimento do Estado de São Paulo",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-038",
+    "sigla": "UNICAMP",
+    "descricao": "Universidade Estadual de Campinas",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-039",
+    "sigla": "UNESP",
+    "descricao": "Universidade Estadual Paulista \"Júlio de Mesquita Filho\"",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-040",
+    "sigla": "UFLA",
+    "descricao": "Universidade Federal de Lavras",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-041",
+    "sigla": "UFMG",
+    "descricao": "Universidade Federal de Minas Gerais",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-042",
+    "sigla": "UFRPE",
+    "descricao": "Universidade Federal Rural de Pernambuco",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-043",
+    "sigla": "UFSCar",
+    "descricao": "Universidade Federal de São Carlos",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-044",
+    "sigla": "UNIFESP",
+    "descricao": "Universidade Federal de São Paulo",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-045",
+    "sigla": "UPV",
+    "descricao": "Universidade Politécnica de Valência",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  },
+  {
+    "id": "EXEC-046",
+    "sigla": "USP",
+    "descricao": "Universidade de São Paulo",
+    "active": true,
+    "categoria": "instituicao_executora",
+    "fonte": "docs/instituicao_executora.csv"
+  }
 ]

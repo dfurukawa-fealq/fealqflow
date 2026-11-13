@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isValidElement, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { TopBar } from '../TopBar';
 import { EnvioContext } from './EnvioContext';
@@ -7,6 +7,15 @@ import { useProcesso, useProcessoNovo } from '../../contexts/ProcessoContext';
 import { armazenamentoPersistenteDisponivel } from '../../utils/safeStorage';
 import { RelatorioFormulario } from './RelatorioFormulario';
 import { useUser } from '../../contexts/UserContext';
+import { KitDocumental } from '../KitDocumental';
+
+const CAMPO_FORMULARIO_VALIDADO = '__fealq_formulario_validado__';
+
+const contemKitDocumental = (conteudo: ReactNode): boolean => {
+  if (Array.isArray(conteudo)) return conteudo.some(contemKitDocumental);
+  if (!isValidElement<{ children?: ReactNode }>(conteudo)) return false;
+  return conteudo.type === KitDocumental || contemKitDocumental(conteudo.props.children);
+};
 
 export interface FormPageLayoutProps {
   /** Trilha completa, incluindo a página atual: ['Área do Coordenador', 'Auxílio Viagem'] */
@@ -28,6 +37,8 @@ export interface FormPageLayoutProps {
   footerCenter?: ReactNode;
   /** Permite forçar a liberação ou bloqueio do envio (ignora contagem de pendências do Kit Documental) */
   podeEnviar?: boolean;
+  /** Valida regras de negócio que não cabem no atributo HTML `required`. */
+  validarFormularioAdicional?: () => boolean;
   /** Coluna direita (4/12). Sem ela o conteúdo ocupa as 12 colunas. */
   sidebar?: ReactNode;
   /** Optional mobile-only step sequence. */
@@ -57,6 +68,7 @@ export const FormPageLayout = ({
   sidebar,
   etapasMobile,
   podeEnviar,
+  validarFormularioAdicional,
   aoSubmeter,
   children,
 }: FormPageLayoutProps) => {
@@ -64,7 +76,10 @@ export const FormPageLayout = ({
   const processo = useProcesso();
   const processoNovo = useProcessoNovo();
   const { usuario } = useUser();
-  const sidebarVisivel = sidebar;
+  const sidebarConteudo = sidebar
+    ? contemKitDocumental(sidebar) ? sidebar : <>{sidebar}<KitDocumental documentos={[]} titulo={`Kit de ${titulo}`} /></>
+    : <KitDocumental documentos={[]} titulo={`Kit de ${titulo}`} />;
+  const sidebarVisivel = sidebarConteudo;
   const somenteLeitura = processo?.somenteLeitura ?? false;
   const mainRef = useRef<HTMLElement>(null);
   const ocupadoRef = useRef(false);
@@ -76,6 +91,39 @@ export const FormPageLayout = ({
   const etapaRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [toast, setToast] = useState<{ tipo: 'sucesso' | 'erro'; mensagem: string } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
+  const persistirValidacaoRef = useRef<((validado: boolean) => Promise<void>) | null>(null);
+  const [formularioValidado, setFormularioValidado] = useState(
+    () => (processo?.dados.campos[CAMPO_FORMULARIO_VALIDADO] ?? processoNovo?.dados.campos[CAMPO_FORMULARIO_VALIDADO]) === true,
+  );
+  const identidadeProcesso = processo?.processo.id ?? (processoNovo ? 'novo' : '');
+
+  useEffect(() => {
+    const flagSalva = processo?.dados.campos[CAMPO_FORMULARIO_VALIDADO] ?? processoNovo?.dados.campos[CAMPO_FORMULARIO_VALIDADO];
+    setFormularioValidado(flagSalva === true);
+  }, [identidadeProcesso]);
+
+  const atualizarValidadeFormulario = useCallback((validado: boolean) => {
+    setFormularioValidado(validado);
+    (processo?.atualizarCampo ?? processoNovo?.atualizarCampo)?.(CAMPO_FORMULARIO_VALIDADO, validado);
+  }, [processo?.atualizarCampo, processoNovo?.atualizarCampo]);
+
+  const prepararValidadeFormulario = useCallback((validado: boolean) => {
+    (processo?.atualizarCampo ?? processoNovo?.atualizarCampo)?.(CAMPO_FORMULARIO_VALIDADO, validado);
+  }, [processo?.atualizarCampo, processoNovo?.atualizarCampo]);
+
+  const confirmarFormulario = useCallback(async (validado: boolean) => {
+    atualizarValidadeFormulario(validado);
+    try {
+      await persistirValidacaoRef.current?.(validado);
+    } catch (falha) {
+      if (validado) atualizarValidadeFormulario(false);
+      throw falha;
+    }
+  }, [atualizarValidadeFormulario]);
+
+  const registrarPersistenciaFormulario = useCallback((persistir: (validado: boolean) => Promise<void>) => {
+    persistirValidacaoRef.current = persistir;
+  }, []);
 
   const mostrarToast = useCallback((tipo: 'sucesso' | 'erro', mensagem: string) => {
     if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
@@ -122,7 +170,12 @@ export const FormPageLayout = ({
     (quantidade: number) => setPendencias(quantidade),
     [],
   );
-  const envio = useMemo(() => ({ registrarPendencias }), [registrarPendencias]);
+  const envio = useMemo(() => ({
+    registrarPendencias,
+    formulario: { id: codigo || titulo, titulo, validado: formularioValidado },
+    registrarPersistenciaFormulario,
+    confirmarFormulario,
+  }), [codigo, titulo, formularioValidado, registrarPendencias, registrarPersistenciaFormulario, confirmarFormulario]);
   const liberado = (podeEnviar ?? (pendencias === null || pendencias === 0))
     && Boolean(processo || (aoSubmeter && (!processoNovo || permitirEnvioSemProcesso))) && !executando && !somenteLeitura;
 
@@ -174,8 +227,16 @@ export const FormPageLayout = ({
     if (!salvar) return;
     void executar(async () => {
       try {
+        const valido = validarCampos(mainRef.current, false);
+        prepararValidadeFormulario(valido);
         await salvar();
-        mostrarToast('sucesso', 'Rascunho salvo com sucesso!');
+        // A criação de um processo novo navega para a rota recém-criada e desmonta
+        // este layout. O sinal de validação já foi incluído no rascunho acima.
+        if (processoNovo) return;
+        await confirmarFormulario(valido);
+        mostrarToast('sucesso', valido
+          ? 'Rascunho salvo. O formulário está completo.'
+          : 'Rascunho salvo. O item do formulário continua pendente até o preenchimento dos campos obrigatórios.');
       } catch (falha) {
         mostrarToast('erro', falha instanceof Error ? falha.message : 'Não foi possível salvar o rascunho.');
         throw falha;
@@ -183,7 +244,7 @@ export const FormPageLayout = ({
     });
   };
 
-  const validarCampos = (escopo: ParentNode | null = mainRef.current) => {
+  const validarCampos = (escopo: ParentNode | null = mainRef.current, apresentarErro = true) => {
     const campos = escopo?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input:required, select:required, textarea:required');
     const pendentes: string[] = [];
     let primeiroPendente: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null = null;
@@ -198,13 +259,20 @@ export const FormPageLayout = ({
       }
     }
     if (primeiroPendente) {
-      primeiroPendente.reportValidity();
-      primeiroPendente.focus();
+      if (apresentarErro) {
+        primeiroPendente.reportValidity();
+        primeiroPendente.focus();
+      }
       const resumo = pendentes.length > 3
         ? `${pendentes.slice(0, 3).join(', ')} e mais ${pendentes.length - 3}.`
         : `${pendentes.join(', ')}.`;
       setErroAcao(`Preencha os campos obrigatórios: ${resumo}`);
-      mostrarToast('erro', 'Há campos obrigatórios pendentes.');
+      if (apresentarErro) mostrarToast('erro', 'Há campos obrigatórios pendentes.');
+      return false;
+    }
+    if (validarFormularioAdicional && !validarFormularioAdicional()) {
+      setErroAcao('Este formulário ainda tem requisitos obrigatórios pendentes. Confira as seções e tente novamente.');
+      if (apresentarErro) mostrarToast('erro', 'Há requisitos obrigatórios pendentes.');
       return false;
     }
     setErroAcao('');
@@ -229,6 +297,13 @@ export const FormPageLayout = ({
       }
     }
     return validarCampos();
+  };
+
+  const invalidarFormularioAoEditar = () => {
+    if (!formularioValidado) return;
+    void confirmarFormulario(false).catch((falha: unknown) => {
+      setErroAcao(falha instanceof Error ? falha.message : 'Não foi possível atualizar o status do Kit Documental.');
+    });
   };
 
   const renderizarConteudo = () => {
@@ -296,7 +371,7 @@ export const FormPageLayout = ({
       <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background print:h-auto print:overflow-visible print:bg-white print:text-black">
         {usuario && <div className="print:hidden"><TopBar /></div>}
 
-        <main ref={mainRef} className="mx-auto flex min-h-0 w-full min-w-0 max-w-[1200px] flex-1 flex-col overflow-y-auto px-sm py-md sm:px-md lg:overflow-hidden lg:px-xl lg:pt-lg print:min-h-0 print:overflow-visible print:px-0 print:py-0">
+        <main ref={mainRef} onChangeCapture={invalidarFormularioAoEditar} className="mx-auto flex min-h-0 w-full min-w-0 max-w-[1200px] flex-1 flex-col overflow-y-auto px-sm py-md sm:px-md lg:overflow-hidden lg:px-xl lg:pt-lg print:min-h-0 print:overflow-visible print:px-0 print:py-0">
           <div className="print:hidden">
             {alerta}
           </div>
@@ -405,7 +480,7 @@ export const FormPageLayout = ({
                   <div className="lg:hidden flex justify-center -mt-xs mb-xs">
                     <span className="block w-12 h-1.5 rounded-full bg-outline-variant" aria-hidden="true" />
                   </div>
-                  <div className="min-w-0 w-full overflow-x-hidden flex flex-col gap-lg">{sidebar}</div>
+                  <div className="min-w-0 w-full overflow-x-hidden flex flex-col gap-lg">{sidebarConteudo}</div>
                 </div>
               </>
             )}
@@ -472,7 +547,20 @@ export const FormPageLayout = ({
                 destaque={liberado}
                 type="button"
                 disabled={!liberado}
-                onClick={() => { if (validarFormulario()) void executar(async () => { if (processo) await processo.enviar(); aoSubmeter?.(); }); }}
+                onClick={() => {
+                  if (!validarFormulario()) { void confirmarFormulario(false); return; }
+                  void executar(async () => {
+                    prepararValidadeFormulario(true);
+                    if (processo) {
+                      await processo.salvar();
+                      await confirmarFormulario(true);
+                      await processo.enviar();
+                    } else {
+                      await confirmarFormulario(true);
+                    }
+                    aoSubmeter?.();
+                  });
+                }}
                 title={liberado ? acaoPrincipal : pendencias === null ? 'Preencha os campos obrigatórios para liberar o envio.' : `Faltam ${pendencias} documento(s) obrigatório(s) no Kit de Documentos.`}
                 className={!liberado ? 'border-transparent bg-surface-variant text-on-surface-variant cursor-not-allowed' : ''}
               />}

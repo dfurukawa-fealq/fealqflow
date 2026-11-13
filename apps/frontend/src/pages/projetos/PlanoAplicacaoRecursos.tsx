@@ -110,6 +110,7 @@ export const PlanoAplicacaoRecursos = () => {
       breadcrumb={['Projetos', 'Plano de Aplicação de Recursos']}
       acaoPrincipal="Salvar e Enviar"
       podeEnviar={podeEnviar}
+      validarFormularioAdicional={() => podeEnviar}
       aoSubmeter={handleSubmeterPlano}
       footerCenter={footerCenter}
       botoesAcoes={

@@ -21,6 +21,8 @@ export interface DocumentoExigido {
   url_template?: string;
   /** Identificador do documento oficial vinculado ao catálogo administrativo. */
   documentoId?: string;
+  /** Item que representa o próprio formulário; sua conclusão depende da validação global. */
+  proprioFormulario?: boolean;
   /** Estado de preenchimento para formulários vinculados com rastreabilidade */
   status?: 'concluido' | 'pendente' | 'em_andamento';
   onAbrirLink?: () => void | Promise<void>;
@@ -105,6 +107,7 @@ const montarKitProgramaApoio = (formularioId: string): DocumentoExigido[] => {
         condicao: item.observacao_condicional,
         acaoEmail: item.acao_email,
         url_template: item.url_template,
+        proprioFormulario: item.identificador === 'formulario',
       };
     });
 };

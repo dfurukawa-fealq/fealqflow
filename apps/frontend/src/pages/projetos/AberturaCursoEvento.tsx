@@ -451,6 +451,7 @@ export const AberturaCursoEvento: React.FC = () => {
       badge="Novo"
       acaoPrincipal="Submeter Protocolo de Evento"
       podeEnviar={podeSubmeter}
+      validarFormularioAdicional={() => podeSubmeter}
       aoSubmeter={handleSubmit}
       sidebar={
         <div className="flex flex-col gap-lg">

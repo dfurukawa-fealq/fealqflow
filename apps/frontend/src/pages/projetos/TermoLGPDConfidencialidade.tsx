@@ -219,6 +219,7 @@ export const TermoLGPDConfidencialidade = () => {
       mostrarRascunho={!processoPai}
       permitirEnvioSemProcesso={Boolean(processoPai)}
       podeEnviar={confirmado}
+      validarFormularioAdicional={() => confirmado}
       aoSubmeter={() => {
         navigate(linkRetorno);
       }}

@@ -241,12 +241,10 @@ const ProcessoNovoProvider = ({ children, rota, processoPaiId }: {
   const credenciaisRef = useRef({ chaveCriacao: gerarUuid(), token: gerarToken() });
 
   const atualizarCampo = useCallback((campo: string, valor: unknown) => {
-    setDados((atual) => {
-      if (JSON.stringify(atual.campos[campo]) === JSON.stringify(valor)) return atual;
-      const proximo = { campos: { ...atual.campos, [campo]: valor } };
-      dadosRef.current = proximo;
-      return proximo;
-    });
+    if (JSON.stringify(dadosRef.current.campos[campo]) === JSON.stringify(valor)) return;
+    const proximo = { campos: { ...dadosRef.current.campos, [campo]: valor } };
+    dadosRef.current = proximo;
+    setDados(proximo);
   }, []);
 
   const selecionarAnexo = useCallback((codigo: string, arquivo: File | null) => {
@@ -326,12 +324,10 @@ const ProcessoProvider = ({ children, processoInicial, token, novaTentativa, som
   const filaRef = useRef<Promise<void>>(Promise.resolve());
 
   const atualizarCampo = useCallback((campo: string, valor: unknown) => {
-    setDados((atual) => {
-      if (JSON.stringify(atual.campos[campo]) === JSON.stringify(valor)) return atual;
-      const proximo = { campos: { ...atual.campos, [campo]: valor } };
-      dadosRef.current = proximo;
-      return proximo;
-    });
+    if (JSON.stringify(dadosRef.current.campos[campo]) === JSON.stringify(valor)) return;
+    const proximo = { campos: { ...dadosRef.current.campos, [campo]: valor } };
+    dadosRef.current = proximo;
+    setDados(proximo);
   }, []);
 
   const salvar = useCallback((): Promise<void> => {

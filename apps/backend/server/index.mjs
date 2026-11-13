@@ -14,6 +14,9 @@ import { executar as executarTipoCadastroCanonico } from '../migrations/013_tipo
 import { executar as executarKitsDocumentais } from '../migrations/014_normalizar_kits_documentais.mjs';
 import { executar as executarAcoesItensKit } from '../migrations/015_acoes_itens_kit_documental.mjs';
 import { executar as executarCodigosFormulariosComoIds } from '../migrations/016_codigos_formularios_como_ids.mjs';
+import { executar as executarUnidadesUSP } from '../migrations/017_catalogo_unidades_usp.mjs';
+import { executar as executarCodigosKits } from '../migrations/018_codigos_kits.mjs';
+import { executar as executarInstituicoesExecutoras } from '../migrations/019_instituicoes_executoras.mjs';
 import { hashPassword, verifyPassword } from './passwords.mjs';
 import { carregarFormulariosArquivo, erroFonteSomenteLeitura, fonteDaArea, fontesDados } from './fontesDados.mjs';
 
@@ -44,6 +47,9 @@ try {
   await executarAcoesItensKit(pool, root);
   await executarProcessos(pool);
   await executarCodigosFormulariosComoIds(pool);
+  await executarUnidadesUSP(pool, root);
+  await executarCodigosKits(pool);
+  await executarInstituicoesExecutoras(pool, root);
 } catch (erro) {
   await pool.end();
   console.error('Falha ao conectar ou migrar o PostgreSQL. Verifique acesso, permissÃµes e migrations.');
@@ -228,6 +234,56 @@ const validarDocumento = (body) => {
   if (body.descricao !== undefined && (typeof body.descricao !== 'string' || body.descricao.length > 500000)) return 'DescriÃ§Ã£o invÃ¡lida ou grande demais.';
   if (body.template_url !== undefined && (typeof body.template_url !== 'string' || body.template_url.length > 2048)) return 'URL de modelo invÃ¡lida.';
   if (body.active !== undefined && typeof body.active !== 'boolean') return 'Status de ativaÃ§Ã£o invÃ¡lido.';
+  return null;
+};
+
+const validarUnidadeUSP = (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corpo JSON inválido.';
+  if (!validarId(body.id)) return 'ID inválido.';
+  if (typeof body.sigla !== 'string' || body.sigla.length > 120) return 'Sigla inválida.';
+  if (typeof body.descricao !== 'string' || !body.descricao.trim() || body.descricao.length > 240) return 'Descrição inválida.';
+  if (body.active !== undefined && typeof body.active !== 'boolean') return 'Status de ativação inválido.';
+  return null;
+};
+
+const validarCondicaoCatalogo = (body) => {
+  const valores = [body.campo_condicional, body.operador_condicional, body.valor_condicional];
+  const preenchidos = valores.filter((valor) => valor !== undefined && valor !== null && valor !== '').length;
+  if (preenchidos !== 0 && preenchidos !== valores.length) return false;
+  if (body.operador_condicional != null && body.operador_condicional !== 'equals') return false;
+  return valores.every((valor) => valor == null || valor === '' || (typeof valor === 'string' && valor.length <= 160));
+};
+
+const validarKitDocumental = (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corpo JSON inválido.';
+  if (body.id !== undefined && !validarId(body.id)) return 'ID inválido.';
+  if (!validarId(body.formulario_id)) return 'formulario_id inválido.';
+  if (typeof body.nome !== 'string' || !body.nome.trim() || body.nome.length > 200) return 'Nome inválido.';
+  if (body.descricao !== undefined && (typeof body.descricao !== 'string' || body.descricao.length > 2000)) return 'Descrição inválida.';
+  if (!Number.isInteger(Number(body.ordem ?? 0)) || Number(body.ordem ?? 0) < 0) return 'Ordem inválida.';
+  if (body.ativo !== undefined && typeof body.ativo !== 'boolean') return 'Status de ativação inválido.';
+  if (!validarCondicaoCatalogo(body)) return 'Condição inválida; informe campo, operador equals e valor juntos.';
+  return null;
+};
+
+const validarItemKitDocumental = (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corpo JSON inválido.';
+  if (body.id !== undefined && !validarId(body.id)) return 'ID inválido.';
+  if (body.kit_id !== undefined && !validarId(body.kit_id)) return 'kit_id inválido.';
+  if (body.cadastro_documento_id != null && !validarId(body.cadastro_documento_id)) return 'cadastro_documento_id inválido.';
+  if (typeof body.identificador !== 'string' || !body.identificador.trim() || body.identificador.length > 120) return 'Identificador inválido.';
+  if (typeof body.titulo !== 'string' || !body.titulo.trim() || body.titulo.length > 240) return 'Título inválido.';
+  if (body.descricao !== undefined && (typeof body.descricao !== 'string' || body.descricao.length > 500000)) return 'Descrição inválida.';
+  if (!['gerado', 'upload', 'externo', 'aceite'].includes(body.tipo)) return 'Tipo de item inválido.';
+  if (body.obrigatorio !== undefined && typeof body.obrigatorio !== 'boolean') return 'obrigatorio inválido.';
+  if (body.permite_anexo !== undefined && typeof body.permite_anexo !== 'boolean') return 'permite_anexo inválido.';
+  if (body.permite_modelo !== undefined && typeof body.permite_modelo !== 'boolean') return 'permite_modelo inválido.';
+  if (body.ativo !== undefined && typeof body.ativo !== 'boolean') return 'Status de ativação inválido.';
+  if (body.url_template !== undefined && (typeof body.url_template !== 'string' || body.url_template.length > 2048)) return 'url_template inválido.';
+  if (body.observacao_condicional !== undefined && (typeof body.observacao_condicional !== 'string' || body.observacao_condicional.length > 2000)) return 'observacao_condicional inválida.';
+  if (body.acao_email !== undefined && body.acao_email !== null && (typeof body.acao_email !== 'object' || Array.isArray(body.acao_email))) return 'acao_email inválida.';
+  if (!Number.isInteger(Number(body.ordem ?? 0)) || Number(body.ordem ?? 0) < 0) return 'Ordem inválida.';
+  if (!validarCondicaoCatalogo(body)) return 'Condição inválida; informe campo, operador equals e valor juntos.';
   return null;
 };
 
@@ -488,6 +544,210 @@ const salvarKitPrincipal = async (executor, formularioId, nomeFormulario, docume
 app.get('/api/health', asyncRoute(async (_request, response) => {
   await pool.query('SELECT 1');
   return response.json({ ok: true, database: 'available', engine: 'postgresql', dataSources: fontesDados });
+}));
+
+// Catálogo de unidades USP. A leitura ativa é pública para formulários futuros;
+// alterações e a listagem administrativa exigem perfil administrador.
+app.get('/api/unidades', asyncRoute(async (_request, response) => {
+  const { rows } = await pool.query("SELECT id, sigla, descricao, active FROM unidades_usp WHERE active = TRUE AND categoria = 'instituicao_executora' ORDER BY descricao");
+  return response.json(rows);
+}));
+
+app.get('/api/instituicoes-executoras', asyncRoute(async (_request, response) => {
+  const { rows } = await pool.query("SELECT id, sigla, descricao, active FROM unidades_usp WHERE active = TRUE AND categoria = 'instituicao_executora' ORDER BY descricao");
+  return response.json(rows);
+}));
+
+app.get('/api/admin/unidades', exigirAdmin, asyncRoute(async (_request, response) => {
+  const { rows } = await pool.query("SELECT id, sigla, descricao, active, criado_em, atualizado_em FROM unidades_usp WHERE categoria = 'instituicao_executora' ORDER BY descricao");
+  return response.json(rows);
+}));
+
+app.post('/api/unidades', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  const error = validarUnidadeUSP(request.body);
+  if (error) return response.status(400).json({ error });
+  try {
+    const { rows } = await pool.query(`INSERT INTO unidades_usp (id, sigla, descricao, active, categoria)
+      VALUES ($1, $2, $3, $4, 'instituicao_executora') RETURNING id, sigla, descricao, active, criado_em, atualizado_em`,
+    [request.body.id.trim(), request.body.sigla.trim() || null, request.body.descricao.trim(), request.body.active !== false]);
+    return response.status(201).json(rows[0]);
+  } catch (erro) {
+    if (erro?.code === '23505') return response.status(409).json({ error: 'Já existe uma instituição com este ID.' });
+    throw erro;
+  }
+}));
+
+app.put('/api/unidades/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  const error = validarUnidadeUSP({ ...request.body, id: request.params.id });
+  if (error) return response.status(400).json({ error });
+  try {
+    const { rows } = await pool.query(`UPDATE unidades_usp SET sigla = $1, descricao = $2, active = $3,
+      atualizado_em = CURRENT_TIMESTAMP WHERE id = $4 AND categoria = 'instituicao_executora' RETURNING id, sigla, descricao, active, criado_em, atualizado_em`,
+    [request.body.sigla.trim() || null, request.body.descricao.trim(), request.body.active !== false, request.params.id]);
+    if (!rows[0]) return response.status(404).json({ error: 'Unidade não encontrada.' });
+    return response.json(rows[0]);
+  } catch (erro) {
+    if (erro?.code === '23505') return response.status(409).json({ error: 'Já existe uma instituição com este ID.' });
+    throw erro;
+  }
+}));
+
+app.delete('/api/unidades/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  const { rowCount } = await pool.query("UPDATE unidades_usp SET active = FALSE, atualizado_em = CURRENT_TIMESTAMP WHERE id = $1 AND categoria = 'instituicao_executora'", [request.params.id]);
+  if (!rowCount) return response.status(404).json({ error: 'Unidade não encontrada.' });
+  return response.status(204).end();
+}));
+
+// CRUD dos kits e seus itens. Formulários e documentos já possuem CRUD próprio;
+// estas rotas expõem a relação normalizada para manutenção administrativa.
+app.get('/api/kits', exigirAdmin, asyncRoute(async (request, response) => {
+  const formularioId = typeof request.query.formulario_id === 'string' ? request.query.formulario_id : '';
+  const valores = formularioId ? [formularioId] : [];
+  const { rows } = await pool.query(`SELECT * FROM kits_documentais ${formularioId ? 'WHERE formulario_id = $1' : ''}
+    ORDER BY formulario_id, ordem, id`, valores);
+  return response.json(rows);
+}));
+
+app.get('/api/kits/:id', exigirAdmin, asyncRoute(async (request, response) => {
+  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  const { rows } = await pool.query('SELECT * FROM kits_documentais WHERE id = $1', [request.params.id]);
+  if (!rows[0]) return response.status(404).json({ error: 'Kit não encontrado.' });
+  return response.json(rows[0]);
+}));
+
+app.post('/api/kits', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  const error = validarKitDocumental(request.body);
+  if (error) return response.status(400).json({ error });
+  const formulario = await pool.query("SELECT 1 FROM cadastros_formularios WHERE id = $1 AND tipo_cadastro = 'formulario'", [request.body.formulario_id]);
+  if (!formulario.rowCount) return response.status(400).json({ error: 'formulario_id não corresponde a um formulário cadastrado.' });
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+    const id = request.body.id || randomUUID();
+    let codigo;
+    {
+      await client.query('SELECT pg_advisory_xact_lock($1)', [731904]);
+      const { rows: sequencia } = await client.query(`SELECT COALESCE(MAX(substring(codigo FROM 4)::INTEGER), 0) + 1 AS proximo
+        FROM kits_documentais WHERE codigo ~ '^KIT[0-9]+$'`);
+      codigo = `KIT${String(sequencia[0].proximo).padStart(3, '0')}`;
+    }
+    const { rows } = await client.query(`INSERT INTO kits_documentais
+      (id, codigo, formulario_id, nome, descricao, campo_condicional, operador_condicional, valor_condicional, ordem, ativo)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+    [id, codigo, request.body.formulario_id, request.body.nome.trim(), request.body.descricao || '',
+      request.body.campo_condicional || null, request.body.operador_condicional || null,
+      request.body.valor_condicional ?? null, Number(request.body.ordem || 0), request.body.ativo !== false]);
+    await client.query('COMMIT');
+    return response.status(201).json(rows[0]);
+  } catch (erro) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (erro?.code === '23505') return response.status(409).json({ error: 'ID de kit já cadastrado.' });
+    throw erro;
+  } finally {
+    client?.release();
+  }
+}));
+
+app.put('/api/kits/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  if (!validarId(request.params.id) || (request.body?.id && request.body.id !== request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  const error = validarKitDocumental({ ...request.body, id: request.params.id });
+  if (error) return response.status(400).json({ error });
+  const formulario = await pool.query("SELECT 1 FROM cadastros_formularios WHERE id = $1 AND tipo_cadastro = 'formulario'", [request.body.formulario_id]);
+  if (!formulario.rowCount) return response.status(400).json({ error: 'formulario_id não corresponde a um formulário cadastrado.' });
+  const { rows } = await pool.query(`UPDATE kits_documentais SET formulario_id = $1, nome = $2, descricao = $3,
+    campo_condicional = $4, operador_condicional = $5, valor_condicional = $6, ordem = $7, ativo = $8,
+    atualizado_em = CURRENT_TIMESTAMP WHERE id = $9 RETURNING *`,
+  [request.body.formulario_id, request.body.nome.trim(), request.body.descricao || '',
+    request.body.campo_condicional || null, request.body.operador_condicional || null,
+    request.body.valor_condicional ?? null, Number(request.body.ordem || 0), request.body.ativo !== false, request.params.id]);
+  if (!rows[0]) return response.status(404).json({ error: 'Kit não encontrado.' });
+  return response.json(rows[0]);
+}));
+
+app.delete('/api/kits/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  const { rowCount } = await pool.query('UPDATE kits_documentais SET ativo = FALSE, atualizado_em = CURRENT_TIMESTAMP WHERE id = $1', [request.params.id]);
+  if (!rowCount) return response.status(404).json({ error: 'Kit não encontrado.' });
+  return response.status(204).end();
+}));
+
+app.get('/api/kits/:id/itens', exigirAdmin, asyncRoute(async (request, response) => {
+  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  const kit = await pool.query('SELECT 1 FROM kits_documentais WHERE id = $1', [request.params.id]);
+  if (!kit.rowCount) return response.status(404).json({ error: 'Kit não encontrado.' });
+  const { rows } = await pool.query('SELECT * FROM itens_kit_documental WHERE kit_id = $1 ORDER BY ordem, id', [request.params.id]);
+  return response.json(rows);
+}));
+
+app.post('/api/kits/:id/itens', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID de kit inválido.' });
+  const error = validarItemKitDocumental(request.body);
+  if (error) return response.status(400).json({ error });
+  const kit = await pool.query('SELECT 1 FROM kits_documentais WHERE id = $1', [request.params.id]);
+  if (!kit.rowCount) return response.status(404).json({ error: 'Kit não encontrado.' });
+  const id = request.body.id || randomUUID();
+  try {
+    const { rows } = await pool.query(`INSERT INTO itens_kit_documental
+      (id, kit_id, cadastro_documento_id, identificador, titulo, descricao, tipo, obrigatorio,
+       permite_anexo, permite_modelo, url_template, observacao_condicional, acao_email,
+       campo_condicional, operador_condicional, valor_condicional, ordem, ativo)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb,$14,$15,$16,$17,$18) RETURNING *`,
+    [id, request.params.id, request.body.cadastro_documento_id || null, request.body.identificador.trim(),
+      request.body.titulo.trim(), request.body.descricao || '', request.body.tipo, request.body.obrigatorio !== false,
+      request.body.permite_anexo ?? request.body.tipo === 'upload',
+      request.body.permite_modelo ?? (request.body.tipo === 'upload' && Boolean(request.body.url_template)),
+      request.body.url_template || '', request.body.observacao_condicional || null,
+      request.body.acao_email ? JSON.stringify(request.body.acao_email) : null,
+      request.body.campo_condicional || null, request.body.operador_condicional || null,
+      request.body.valor_condicional ?? null, Number(request.body.ordem || 0), request.body.ativo !== false]);
+    return response.status(201).json(rows[0]);
+  } catch (erro) {
+    if (erro?.code === '23505') return response.status(409).json({ error: 'ID ou identificador já cadastrado neste kit.' });
+    if (erro?.code === '23503') return response.status(400).json({ error: 'cadastro_documento_id não corresponde a um documento cadastrado.' });
+    throw erro;
+  }
+}));
+
+app.put('/api/itens-kit/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  if (!validarId(request.params.id) || (request.body?.id && request.body.id !== request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  const error = validarItemKitDocumental({ ...request.body, id: request.params.id });
+  if (error) return response.status(400).json({ error });
+  const itemAtual = await pool.query('SELECT kit_id FROM itens_kit_documental WHERE id = $1', [request.params.id]);
+  if (!itemAtual.rowCount) return response.status(404).json({ error: 'Item de kit não encontrado.' });
+  const kitId = request.body.kit_id || itemAtual.rows[0].kit_id;
+  const kitDestino = await pool.query('SELECT 1 FROM kits_documentais WHERE id = $1', [kitId]);
+  if (!kitDestino.rowCount) return response.status(400).json({ error: 'kit_id não corresponde a um kit cadastrado.' });
+  try {
+    const { rows } = await pool.query(`UPDATE itens_kit_documental SET
+      kit_id = $1, cadastro_documento_id = $2, identificador = $3, titulo = $4, descricao = $5, tipo = $6,
+      obrigatorio = $7, permite_anexo = $8, permite_modelo = $9, url_template = $10,
+      observacao_condicional = $11, acao_email = $12::jsonb, campo_condicional = $13,
+      operador_condicional = $14, valor_condicional = $15, ordem = $16, ativo = $17,
+      atualizado_em = CURRENT_TIMESTAMP WHERE id = $18 RETURNING *`,
+    [kitId, request.body.cadastro_documento_id || null, request.body.identificador.trim(), request.body.titulo.trim(),
+      request.body.descricao || '', request.body.tipo, request.body.obrigatorio !== false,
+      request.body.permite_anexo ?? request.body.tipo === 'upload',
+      request.body.permite_modelo ?? (request.body.tipo === 'upload' && Boolean(request.body.url_template)),
+      request.body.url_template || '', request.body.observacao_condicional || null,
+      request.body.acao_email ? JSON.stringify(request.body.acao_email) : null,
+      request.body.campo_condicional || null, request.body.operador_condicional || null,
+      request.body.valor_condicional ?? null, Number(request.body.ordem || 0), request.body.ativo !== false,
+      request.params.id]);
+    return response.json(rows[0]);
+  } catch (erro) {
+    if (erro?.code === '23505') return response.status(409).json({ error: 'Identificador já cadastrado neste kit.' });
+    if (erro?.code === '23503') return response.status(400).json({ error: 'cadastro_documento_id não corresponde a um documento cadastrado.' });
+    throw erro;
+  }
+}));
+
+app.delete('/api/itens-kit/:id', validarOrigem, exigirAdmin, asyncRoute(async (request, response) => {
+  if (!validarId(request.params.id)) return response.status(400).json({ error: 'ID inválido.' });
+  const { rowCount } = await pool.query('UPDATE itens_kit_documental SET ativo = FALSE, atualizado_em = CURRENT_TIMESTAMP WHERE id = $1', [request.params.id]);
+  if (!rowCount) return response.status(404).json({ error: 'Item de kit não encontrado.' });
+  return response.status(204).end();
 }));
 
 app.get('/api/processos', exigirSessao, asyncRoute(async (request, response) => {

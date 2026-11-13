@@ -54,6 +54,9 @@ import { AdminLogin } from './pages/admin/AdminLogin';
 import { GestaoFormularios } from './pages/admin/GestaoFormularios';
 import { GestaoDocumentos } from './pages/admin/GestaoDocumentos';
 import { GestaoUsuarios } from './pages/admin/GestaoUsuarios';
+import { GestaoUnidades } from './pages/admin/GestaoUnidades';
+import { GestaoKits } from './pages/admin/GestaoKits';
+import { GestaoKitDetalhe } from './pages/admin/GestaoKitDetalhe';
 import { Home } from './pages/Home';
 
 const AppRoutes = () => {
@@ -81,6 +84,10 @@ const AppRoutes = () => {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/formularios" element={<RequireAdmin><GestaoFormularios /></RequireAdmin>} />
             <Route path="/admin/documentos" element={<RequireAdmin><GestaoDocumentos /></RequireAdmin>} />
+            <Route path="/admin/unidades" element={<RequireAdmin><GestaoUnidades /></RequireAdmin>} />
+            <Route path="/admin/kits" element={<RequireAdmin><GestaoKits /></RequireAdmin>} />
+            <Route path="/kit/novo" element={<RequireAdmin><GestaoKitDetalhe /></RequireAdmin>} />
+            <Route path="/kit/:id" element={<RequireAdmin><GestaoKitDetalhe /></RequireAdmin>} />
             <Route path="/admin/usuarios" element={<RequireAdmin><GestaoUsuarios /></RequireAdmin>} />
 
             {/* Projetos Routes */}

@@ -15,6 +15,7 @@ const DOCUMENTO_FORMULARIO: DocumentoExigido = {
   descricao: 'Concluído automaticamente após o preenchimento dos campos obrigatórios.',
   tipo: 'gerado',
   obrigatorio: true,
+  proprioFormulario: true,
 };
 
 export const CadastroCoordenador = () => {
@@ -76,6 +77,7 @@ export const CadastroCoordenador = () => {
     acaoPrincipal="Salvar e Cadastrar Coordenador"
     acaoIcone="save"
     podeEnviar={camposObrigatoriosPreenchidos}
+    validarFormularioAdicional={() => camposObrigatoriosPreenchidos}
     aoSubmeter={retornarAoProtocolo}
     sidebar={<KitDocumental acaoNoCard documentos={documentos} nota="O formulário será concluído automaticamente após o preenchimento obrigatório." />}
   >

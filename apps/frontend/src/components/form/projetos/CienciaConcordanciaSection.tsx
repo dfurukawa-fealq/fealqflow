@@ -10,7 +10,7 @@ export const CienciaConcordanciaSection = ({ numero = 6 }: { numero?: number }) 
   const [aprovacao, setAprovacao] = useProcessoState<'conselho' | 'ad_referendum'>('aprovacaoDepto', 'conselho');
   const [data, setData] = useProcessoState('dataAprovacaoConselho', '');
   const [isenta, setIsenta] = useProcessoState<'sim' | 'nao'>('isencaoTaxaDepto', 'nao');
-  const mostrarSecao = (convenioUSP === true || convenioUSP === 'sim') && unidade === 'FZEA';
+  const mostrarSecao = (convenioUSP === true || convenioUSP === 'sim') && (unidade === 'FZEA/USP' || unidade === 'FZEA');
   if (!mostrarSecao) return null;
   return <FormSection numero={numero} icone="account_balance" titulo="Ciência e Concordância do Departamento (USP)">
     <div className="col-span-12 rounded bg-neutral-100 p-sm text-[11px] font-medium text-neutral-800">Incluído em projetos com participação de docentes USP.</div>

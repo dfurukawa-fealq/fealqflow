@@ -47,6 +47,7 @@ export const CadastroFinanciadora = () => {
         permiteAnexo: 'permite_anexo' in item ? item.permite_anexo : undefined,
         permiteModelo: 'permite_modelo' in item ? item.permite_modelo : undefined,
         url_template: 'url_template' in item ? item.url_template : undefined,
+        proprioFormulario: item.identificador.endsWith('-formulario'),
       }));
   }, [kitSelecionado]);
 

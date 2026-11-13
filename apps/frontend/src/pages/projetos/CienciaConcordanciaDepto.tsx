@@ -92,6 +92,7 @@ export const CienciaConcordanciaDepto = () => {
       mostrarRascunho={!processoPai}
       permitirEnvioSemProcesso={Boolean(processoPai)}
       podeEnviar={confirmado}
+      validarFormularioAdicional={() => confirmado}
       aoSubmeter={() => {
         navigate(linkRetorno);
       }}
