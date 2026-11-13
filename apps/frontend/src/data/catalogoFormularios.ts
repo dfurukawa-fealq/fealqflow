@@ -3,7 +3,7 @@ import { PROJETOS } from './projetos';
 import type { DefinicaoFormulario } from './tiposFormularios';
 
 const programasComoDefinicoes: DefinicaoFormulario[] = PROGRAMAS_APOIO.map((programa) => ({
-  id: programa.id,
+  id: programa.formularioId,
   slug: programa.path.split('/').filter(Boolean).pop() || programa.id,
   titulo: programa.titulo,
   area: 'Programa de Apoio',

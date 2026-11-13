@@ -13,6 +13,7 @@ import { executar as executarPerfisTenants } from '../migrations/012_perfis_tena
 import { executar as executarTipoCadastroCanonico } from '../migrations/013_tipo_cadastro_canonico.mjs';
 import { executar as executarKitsDocumentais } from '../migrations/014_normalizar_kits_documentais.mjs';
 import { executar as executarAcoesItensKit } from '../migrations/015_acoes_itens_kit_documental.mjs';
+import { executar as executarCodigosFormulariosComoIds } from '../migrations/016_codigos_formularios_como_ids.mjs';
 import { hashPassword, verifyPassword } from './passwords.mjs';
 import { carregarFormulariosArquivo, erroFonteSomenteLeitura, fonteDaArea, fontesDados } from './fontesDados.mjs';
 
@@ -42,6 +43,7 @@ try {
   await executarKitsDocumentais(pool, root);
   await executarAcoesItensKit(pool, root);
   await executarProcessos(pool);
+  await executarCodigosFormulariosComoIds(pool);
 } catch (erro) {
   await pool.end();
   console.error('Falha ao conectar ou migrar o PostgreSQL. Verifique acesso, permissÃµes e migrations.');
@@ -554,14 +556,13 @@ app.get('/api/processos/resumo', exigirSessao, asyncRoute(async (request, respon
 app.post('/api/processos', validarOrigem, asyncRoute(async (request, response) => {
   const body = request.body || {};
   if (!['projeto', 'apoio'].includes(body.categoria) || typeof body.formularioId !== 'string'
-    || !/^[a-z0-9-]{1,120}$/.test(body.formularioId)
+    || !/^(?:[A-Z]{3}-[A-Z]{3}-\d{3}|[a-z0-9-]{1,120})$/.test(body.formularioId)
     || typeof body.formularioNome !== 'string' || !body.formularioNome.trim() || body.formularioNome.length > 255
     || typeof body.formularioRota !== 'string'
     || (body.processoPaiId !== undefined && body.processoPaiId !== null && !uuidValido(body.processoPaiId))
     || body.formularioRota.length > 255
     || !body.formularioRota.startsWith(body.categoria === 'projeto' ? '/projetos/form-' : '/programas-de-apoio/apoio-')
     || !/^\/[a-z0-9/-]+$/.test(body.formularioRota)
-    || body.formularioId !== body.formularioRota.split('/').pop()
     || typeof body.chaveCriacao !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.chaveCriacao)
     || typeof body.token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(body.token)) {
     return response.status(400).json({ error: 'Categoria e formulÃ¡rio sÃ£o obrigatÃ³rios.' });

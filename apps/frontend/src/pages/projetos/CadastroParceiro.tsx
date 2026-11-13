@@ -37,7 +37,7 @@ export const CadastroParceiro = () => (
   <FormPageLayout
     breadcrumb={['Área do Coordenador', 'Cadastro de Parceiro']}
     titulo="Cadastro de Parceiro"
-    codigo="FR-05-DIR"
+    codigo="PRJ-PAR-001"
     acaoPrincipal="Enviar Cadastro de Parceiro Fechado"
     sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
   >

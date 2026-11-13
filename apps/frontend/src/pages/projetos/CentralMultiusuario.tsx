@@ -26,7 +26,7 @@ export function CentralMultiusuario() {
     <FormPageLayout
       breadcrumb={['Área do Coordenador', 'Central Multiusuário']}
       titulo="Central Multiusuário"
-      codigo="MULTI-01"
+      codigo="PRJ-CMU-001"
       acaoPrincipal="Submeter Pedido"
       sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
     >

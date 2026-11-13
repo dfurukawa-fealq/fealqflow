@@ -107,7 +107,7 @@ export const ProjetosPage = () => {
     },
     {
       id: 'CERT_LGPD',
-      label: 'Termo de LGPD e Confidencialidade (FR 01 - PRO)',
+      label: 'Termo de LGPD e Confidencialidade (PRJ-LGP-005)',
       icon: 'shield',
       req: 'Aceite e Assinatura',
       path: '/projetos/termo-lgpd',

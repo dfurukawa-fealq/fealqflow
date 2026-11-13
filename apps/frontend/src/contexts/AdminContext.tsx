@@ -83,12 +83,16 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     const saved = safeGetItem('@Fealq:orcamentos_v2');
     const defaultOrcamentos: Orcamento[] = PROGRAMAS_APOIO.map((p, idx) => ({
       id: `orc-${idx}`,
-      formularioId: p.id,
+      formularioId: p.formularioId,
       ano: 2026,
       valorGlobal: 100000 + (Math.random() * 200000),
       tetoPorPedido: 2000 + (Math.random() * 8000),
     }));
-    return safeJsonParse(saved, defaultOrcamentos);
+    const orcamentosSalvos = safeJsonParse<Orcamento[]>(saved, defaultOrcamentos);
+    return orcamentosSalvos.map((orcamento) => ({
+      ...orcamento,
+      formularioId: PROGRAMAS_APOIO.find((programa) => programa.id === orcamento.formularioId)?.formularioId || orcamento.formularioId,
+    }));
   });
 
   const recarregarFormularios = async () => {
@@ -269,7 +273,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     // 2. Derive default Formularios
     const defaultForms = PROGRAMAS_APOIO.map((p) => {
       return {
-        id: p.id,
+        id: p.formularioId,
         nome: p.titulo,
         area: 'Programa de Apoio' as const,
         tipo: 'formulario' as const,
@@ -290,14 +294,14 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     const defaultOrcamentos = [
       {
         id: 'orc1',
-        formularioId: 'bolsa-academica-pos',
+        formularioId: 'APO-BPG-001',
         ano: 2026,
         valorGlobal: 100000,
         tetoPorPedido: 5000,
       },
       {
         id: 'orc2',
-        formularioId: 'auxilio-viagem',
+        formularioId: 'APO-VIA-001',
         ano: 2026,
         valorGlobal: 50000,
         tetoPorPedido: 3000,

@@ -12,7 +12,7 @@ export interface FormPageLayoutProps {
   /** Trilha completa, incluindo a página atual: ['Área do Coordenador', 'Auxílio Viagem'] */
   breadcrumb: string[];
   titulo: string;
-  /** Código oficial do formulário, ex. 'CONV-FR-03-CADT'. */
+  /** Código oficial do formulário, ex. 'PRJ-FIN-001'. */
   codigo?: string;
   /** Selo ao lado do título, ex. 'Novo' ou 'Rascunho'. */
   badge?: string;
@@ -30,9 +30,11 @@ export interface FormPageLayoutProps {
   podeEnviar?: boolean;
   /** Coluna direita (4/12). Sem ela o conteúdo ocupa as 12 colunas. */
   sidebar?: ReactNode;
+  /** Optional mobile-only step sequence. */
+  etapasMobile?: Array<{ titulo: string; conteudo: ReactNode }>;
   /** Callback acionado ao clicar no botão de ação principal */
   aoSubmeter?: () => void;
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 /**
@@ -53,6 +55,7 @@ export const FormPageLayout = ({
   botoesAcoes,
   footerCenter,
   sidebar,
+  etapasMobile,
   podeEnviar,
   aoSubmeter,
   children,
@@ -68,6 +71,9 @@ export const FormPageLayout = ({
   const [executando, setExecutando] = useState(false);
   const [erroAcao, setErroAcao] = useState('');
   const [sidebarMobileAberta, setSidebarMobileAberta] = useState(false);
+  const [layoutMobile, setLayoutMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches);
+  const [etapaMobile, setEtapaMobile] = useState(0);
+  const etapaRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [toast, setToast] = useState<{ tipo: 'sucesso' | 'erro'; mensagem: string } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
 
@@ -91,7 +97,7 @@ export const FormPageLayout = ({
     [],
   );
   const envio = useMemo(() => ({ registrarPendencias }), [registrarPendencias]);
-  const liberado = (podeEnviar ?? true) && (pendencias === null || pendencias === 0)
+  const liberado = (podeEnviar ?? (pendencias === null || pendencias === 0))
     && Boolean(processo || (aoSubmeter && (!processoNovo || permitirEnvioSemProcesso))) && !executando && !somenteLeitura;
 
   useEffect(() => {
@@ -151,8 +157,8 @@ export const FormPageLayout = ({
     });
   };
 
-  const validarCampos = () => {
-    const campos = mainRef.current?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input:required, select:required, textarea:required');
+  const validarCampos = (escopo: ParentNode | null = mainRef.current) => {
+    const campos = escopo?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input:required, select:required, textarea:required');
     const pendentes: string[] = [];
     let primeiroPendente: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null = null;
     for (const campo of campos || []) {
@@ -178,6 +184,77 @@ export const FormPageLayout = ({
     setErroAcao('');
     return true;
   };
+
+  const validarFormulario = () => {
+    if (layoutMobile && etapasMobile?.length) {
+      for (let indice = 0; indice < etapasMobile.length; indice += 1) {
+        const campos = etapaRefs.current[indice]?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input:required, select:required, textarea:required');
+        const invalido = Array.from(campos || []).find((campo) => !campo.checkValidity());
+        if (!invalido) continue;
+        setEtapaMobile(indice);
+        const rotulo = invalido.labels?.[0]?.textContent?.replace('*', '').trim() || invalido.getAttribute('aria-label') || 'Campo obrigat\u00f3rio';
+        setErroAcao(`Preencha os campos obrigatÃ³rios: ${rotulo}.`);
+        mostrarToast('erro', 'HÃ¡ campos obrigatÃ³rios pendentes.');
+        window.requestAnimationFrame(() => {
+          invalido.reportValidity();
+          invalido.focus();
+        });
+        return false;
+      }
+    }
+    return validarCampos();
+  };
+
+  const renderizarConteudo = () => {
+    if (!etapasMobile?.length) return children;
+    return (
+      <>
+        <div className="mb-sm rounded-lg border border-outline-variant bg-surface-container-lowest p-md lg:hidden" aria-live="polite">
+          <div className="mb-xs flex items-center justify-between gap-sm text-xs font-semibold text-on-surface-variant">
+            <span>Etapa {etapaMobile + 1} de {etapasMobile.length}</span>
+            <span>{Math.round(((etapaMobile + 1) / etapasMobile.length) * 100)}%</span>
+          </div>
+          <div className="mb-sm h-1.5 overflow-hidden rounded-full bg-surface-variant">
+            <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${((etapaMobile + 1) / etapasMobile.length) * 100}%` }} />
+          </div>
+          <p className="text-sm font-semibold text-primary">{etapasMobile[etapaMobile]?.titulo}</p>
+        </div>
+        {etapasMobile.map((etapa, indice) => (
+          <div
+            key={etapa.titulo}
+            ref={(elemento) => { etapaRefs.current[indice] = elemento; }}
+            className={`flex min-w-0 flex-col gap-lg ${layoutMobile && indice !== etapaMobile ? 'hidden lg:flex' : ''}`}
+          >
+            {etapa.conteudo}
+          </div>
+        ))}
+        <div className="flex items-center justify-between gap-sm pt-sm lg:hidden">
+          <button type="button" onClick={() => setEtapaMobile((atual) => Math.max(0, atual - 1))} disabled={etapaMobile === 0} className="min-h-11 rounded border border-outline-variant px-md text-sm font-semibold text-on-surface disabled:cursor-not-allowed disabled:opacity-40">Anterior</button>
+          <span className="text-xs text-on-surface-variant">{etapaMobile + 1} / {etapasMobile.length}</span>
+          {etapaMobile < etapasMobile.length - 1 ? (
+            <button type="button" onClick={() => {
+              if (validarCampos(etapaRefs.current[etapaMobile])) {
+                setEtapaMobile((atual) => Math.min(etapasMobile.length - 1, atual + 1));
+                setErroAcao('');
+              }
+            }} className="min-h-11 rounded bg-primary px-md text-sm font-semibold text-white">{'Pr\u00f3xima'}</button>
+          ) : <span className="min-w-[88px] text-right text-xs font-semibold text-secondary">{'\u00daltima etapa'}</span>}
+        </div>
+      </>
+    );
+  };
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const atualizarLayout = () => setLayoutMobile(media.matches);
+    atualizarLayout();
+    media.addEventListener('change', atualizarLayout);
+    return () => media.removeEventListener('change', atualizarLayout);
+  }, []);
+
+  useEffect(() => {
+    if (layoutMobile && etapaRefs.current.length) mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [etapaMobile, layoutMobile]);
 
   useEffect(() => {
     if (!sidebarMobileAberta) return;
@@ -256,7 +333,7 @@ export const FormPageLayout = ({
             </div>
           </div>
 
-          {sidebarVisivel && (
+          {sidebarVisivel && !etapasMobile?.length && (
             <button
               type="button"
               onClick={() => setSidebarMobileAberta((aberta) => !aberta)}
@@ -286,7 +363,7 @@ export const FormPageLayout = ({
                   : 'lg:col-span-12 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain'
               }`}
             >
-              {somenteLeitura ? <fieldset disabled className="contents">{children}</fieldset> : children}
+              {somenteLeitura ? <fieldset disabled className="contents">{renderizarConteudo()}</fieldset> : renderizarConteudo()}
             </div>
             {sidebarVisivel && (
               <>
@@ -369,7 +446,7 @@ export const FormPageLayout = ({
                 destaque={liberado}
                 type="button"
                 disabled={!liberado}
-                onClick={() => { if (validarCampos()) void executar(async () => { if (processo) await processo.enviar(); aoSubmeter?.(); }); }}
+                onClick={() => { if (validarFormulario()) void executar(async () => { if (processo) await processo.enviar(); aoSubmeter?.(); }); }}
                 title={liberado ? acaoPrincipal : pendencias === null ? 'Preencha os campos obrigatórios para liberar o envio.' : `Faltam ${pendencias} documento(s) obrigatório(s) no Kit de Documentos.`}
                 className={!liberado ? 'border-transparent bg-surface-variant text-on-surface-variant cursor-not-allowed' : ''}
               />}

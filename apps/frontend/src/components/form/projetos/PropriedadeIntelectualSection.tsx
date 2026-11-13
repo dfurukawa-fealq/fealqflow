@@ -12,12 +12,12 @@ interface PropriedadeIntelectualSectionProps {
 
 export const PropriedadeIntelectualSection = ({ envolvePropriedade, aoAlterarEnvolvimento, percentualUSP, percentualParceiro, aoAlterarPercentualUSP, aoAlterarPercentualParceiro }: PropriedadeIntelectualSectionProps) => (
   <FormSection numero={3} icone="workspace_premium" titulo="Propriedade Intelectual (PI) e Patentes">
-    <div className="col-span-12">
+    <div className="col-span-12 min-w-0">
       <h3 className="mb-3 text-sm font-semibold text-on-surface">Previsão de Propriedade Intelectual</h3>
-      <p className="mb-3 whitespace-nowrap text-[12px] font-bold uppercase text-on-surface-variant">O projeto envolve a criação ou desenvolvimento de propriedade intelectual?</p>
-      <div className="flex flex-nowrap gap-lg whitespace-nowrap">
-        <label className="flex cursor-pointer items-center gap-xs text-[13px] text-on-surface"><input type="radio" name="envolvePropriedade" checked={envolvePropriedade} onChange={() => aoAlterarEnvolvimento(true)} className="h-4 w-4 shrink-0 accent-primary" />Sim, prevê criação de patentes, marcas ou software</label>
-        <label className="flex cursor-pointer items-center gap-xs text-[13px] text-on-surface"><input type="radio" name="envolvePropriedade" checked={!envolvePropriedade} onChange={() => aoAlterarEnvolvimento(false)} className="h-4 w-4 shrink-0 accent-primary" />Não envolve Propriedade Intelectual</label>
+      <p className="mb-3 break-words text-[12px] font-bold uppercase text-on-surface-variant">O projeto envolve a criação ou desenvolvimento de propriedade intelectual?</p>
+      <div className="flex min-w-0 flex-col gap-sm sm:flex-row sm:flex-wrap sm:gap-lg">
+        <label className="flex min-w-0 flex-wrap cursor-pointer items-start gap-xs text-[13px] text-on-surface"><input type="radio" name="envolvePropriedade" checked={envolvePropriedade} onChange={() => aoAlterarEnvolvimento(true)} className="mt-0.5 h-4 w-4 shrink-0 accent-primary" />Sim, prevê criação de patentes, marcas ou software</label>
+        <label className="flex min-w-0 flex-wrap cursor-pointer items-start gap-xs text-[13px] text-on-surface"><input type="radio" name="envolvePropriedade" checked={!envolvePropriedade} onChange={() => aoAlterarEnvolvimento(false)} className="mt-0.5 h-4 w-4 shrink-0 accent-primary" />Não envolve Propriedade Intelectual</label>
       </div>
     </div>
     {envolvePropriedade && <>

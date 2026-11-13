@@ -33,7 +33,7 @@ export const AberturaPublicacao = () => (
       'Protocolo de Abertura de Publicação / Livro',
     ]}
     titulo="Protocolo de Abertura de Publicação / Livro"
-    codigo="CONV-FR-02-PRO"
+    codigo="PRJ-PUB-001"
     acaoPrincipal="Enviar Solicitação de Publicação"
     sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} titulo="Kit de Anexos" />}
   >

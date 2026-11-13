@@ -213,7 +213,7 @@ export const ProjetoPesquisaV2 = () => (
       'Protocolo de Abertura de Projeto de Pesquisa',
     ]}
     titulo="Protocolo de Abertura de Projeto de Pesquisa"
-    codigo="CONV-FR-03-PRO-V2"
+    codigo="PRJ-PSQ-002"
     badge="v2"
     acaoPrincipal="Finalizar e Enviar Mapeamento"
     sidebar={

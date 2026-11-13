@@ -33,7 +33,7 @@ export function AberturaProgramaEPE() {
     <FormPageLayout
       breadcrumb={['Área do Coordenador', 'Abertura de Programa EPE']}
       titulo="Abertura de Programa EPE"
-      codigo="CONV-FR-04-PRO"
+      codigo="PRJ-EPE-001"
       acaoPrincipal="Submeter Programa"
       sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}
     >

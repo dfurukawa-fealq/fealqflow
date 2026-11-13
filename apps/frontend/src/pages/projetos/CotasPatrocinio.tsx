@@ -44,7 +44,7 @@ export const CotasPatrocinio = () => (
   <FormPageLayout
     breadcrumb={['Área do Coordenador', 'Cotas e Contrapartidas de Patrocínio']}
     titulo="Tabela de Cotas e Contrapartidas de Patrocínio"
-    codigo="CONV-FR-06-FOR"
+    codigo="PRJ-COT-001"
     acaoPrincipal="Cadastrar Cotas de Patrocínio"
     acaoIcone="save"
     sidebar={

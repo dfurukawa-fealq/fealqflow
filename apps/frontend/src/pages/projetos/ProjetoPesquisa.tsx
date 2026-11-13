@@ -32,6 +32,7 @@ export const ProjetoPesquisa = () => {
   const [erroAbertura, setErroAbertura] = useState('');
   const { gerarUrlVinculada, registrarAberturaFormulario, statusFormulario } = useRastreabilidade();
   const rotaRetorno = encodeURIComponent(location.pathname);
+  const codigoFormulario = location.pathname.endsWith('/form-pesquisa-v2') ? 'PRJ-PSQ-003' : 'PRJ-PSQ-002';
   const lerCampo = (...nomes: string[]) => {
     const campos = processo?.dados.campos || {};
     return lerTextoProcesso(campos, ...nomes);
@@ -76,7 +77,7 @@ export const ProjetoPesquisa = () => {
   const [validadeCert, setValidadeCert] = useProcessoState('validadeCert', '');
   const [sigiloAceito, setSigiloAceito] = useProcessoState('aceiteTermoSigilo', false);
   const [anuenciaAceita] = useProcessoState('aceiteTermoAnuenciaProjeto', false);
-  const kitSelecionado = kitsDocumentais.find((kit) => kit.formulario_id === 'projeto-pesquisa'
+  const kitSelecionado = kitsDocumentais.find((kit) => kit.formulario_id === codigoFormulario
     && kit.ativo
     && kit.campo_condicional === 'possuiConvenio'
     && kit.operador_condicional === 'equals'
@@ -137,43 +138,58 @@ export const ProjetoPesquisa = () => {
     <FormPageLayout
       breadcrumb={['Área do Coordenador', 'Projetos', 'Processo de Pesquisa']}
       titulo="Processo de Abertura de Projeto de Pesquisa"
-      codigo="CONV-FR-03-PRO"
+      codigo={codigoFormulario}
       acaoPrincipal="Submeter Projeto para FEALQ"
       sidebar={<KitDocumental acaoNoCard documentos={documentosKit} />}
-    >
-      {erroAbertura && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAbertura}</p>}
-      <OrientacoesProjetoSection />
-      <ConvenioUSPSection possuiConvenio={possuiConvenio} aoAlterar={setPossuiConvenio} numeroConvenio={numeroConvenio} numeroProtocolo={numeroProcesso} aoAlterarNumeroConvenio={setNumeroConvenio} aoAlterarNumeroProtocolo={setNumeroProcesso} />
-      {possuiConvenio && (
-        <CertRegimeTrabalhoSection regime={regimeTrabalho} numeroCert={numeroCert} validadeCert={validadeCert} aoAlterarRegime={setRegimeTrabalho} aoAlterarNumeroCert={setNumeroCert} aoAlterarValidadeCert={setValidadeCert} />
-      )}
-      {possuiConvenio && (
-        <PropriedadeIntelectualSection envolvePropriedade={envolvePropriedade} aoAlterarEnvolvimento={setEnvolvePropriedade} percentualUSP={percentualUSP} percentualParceiro={percentualParceiro} aoAlterarPercentualUSP={setPercentualUSP} aoAlterarPercentualParceiro={setPercentualParceiro} />
-      )}
-
-      <FormSection numero={2} icone="science" titulo="Dados do Projeto & Detalhamento Técnico">
-        <Field label="Título do Projeto" span={8} placeholder="Informe o título completo do projeto" obrigatorio />
-        <Field label="Prazo de Execução (meses)" span={4} tipo="number" placeholder="Ex.: 24" />
-        <Field label="Objeto do Projeto" tipo="textarea" placeholder="Descreva o objetivo principal da pesquisa" obrigatorio />
-        <Field label="Objetivo Geral" tipo="textarea" placeholder="Descreva o problema, a metodologia e as etapas da pesquisa" obrigatorio />
-        <Field label="Justificativa" tipo="textarea" placeholder="Descreva a justificativa da pesquisa" obrigatorio />
-        <Field label="Resultados Esperados" tipo="textarea" placeholder="Descreva os resultados esperados" />
-      </FormSection>
-
-      <CoordenadorResponsavelSection numero={4} />
-      <DelegadosEditor delegados={delegados} aoAlterar={setDelegados} />
-      <EquipeTecnicaEditor numero={4} membros={equipe} aoAlterar={setEquipe} />
-      <CronogramaExecucaoSection />
-
-      <FormSection numero={6} icone="account_balance" titulo="Instituições Envolvidas (Financiadoras)">
-        <InstituicoesFinanciadorasSection />
-      </FormSection>
-
-      <CronogramaDesembolsoSection />
-
-      <CienciaConcordanciaSection numero={8} />
-      <TermoAnuenciaProjetoSection />
-      <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => { void abrirTermoLGPD(); }} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
-    </FormPageLayout>
+      etapasMobile={[
+        {
+          titulo: 'Informações do Projeto',
+          conteudo: <>
+            {erroAbertura && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAbertura}</p>}
+            <OrientacoesProjetoSection />
+            <ConvenioUSPSection possuiConvenio={possuiConvenio} aoAlterar={setPossuiConvenio} numeroConvenio={numeroConvenio} numeroProtocolo={numeroProcesso} aoAlterarNumeroConvenio={setNumeroConvenio} aoAlterarNumeroProtocolo={setNumeroProcesso} />
+            {possuiConvenio && <CertRegimeTrabalhoSection regime={regimeTrabalho} numeroCert={numeroCert} validadeCert={validadeCert} aoAlterarRegime={setRegimeTrabalho} aoAlterarNumeroCert={setNumeroCert} aoAlterarValidadeCert={setValidadeCert} />}
+            {possuiConvenio && <PropriedadeIntelectualSection envolvePropriedade={envolvePropriedade} aoAlterarEnvolvimento={setEnvolvePropriedade} percentualUSP={percentualUSP} percentualParceiro={percentualParceiro} aoAlterarPercentualUSP={setPercentualUSP} aoAlterarPercentualParceiro={setPercentualParceiro} />}
+          </>,
+        },
+        {
+          titulo: 'Dados da Pesquisa',
+          conteudo: <FormSection numero={2} icone="science" titulo="Dados do Projeto & Detalhamento Técnico">
+            <Field label="Título do Projeto" span={8} placeholder="Informe o título completo do projeto" obrigatorio />
+            <Field label="Prazo de Execução (meses)" span={4} tipo="number" placeholder="Ex.: 24" />
+            <Field label="Objeto do Projeto" tipo="textarea" placeholder="Descreva o objetivo principal da pesquisa" obrigatorio />
+            <Field label="Objetivo Geral" tipo="textarea" placeholder="Descreva o problema, a metodologia e as etapas da pesquisa" obrigatorio />
+            <Field label="Justificativa" tipo="textarea" placeholder="Descreva a justificativa da pesquisa" obrigatorio />
+            <Field label="Resultados Esperados" tipo="textarea" placeholder="Descreva os resultados esperados" />
+          </FormSection>,
+        },
+        {
+          titulo: 'Responsáveis e Equipe',
+          conteudo: <>
+            <CoordenadorResponsavelSection numero={4} />
+            <DelegadosEditor delegados={delegados} aoAlterar={setDelegados} />
+            <EquipeTecnicaEditor numero={4} membros={equipe} aoAlterar={setEquipe} />
+          </>,
+        },
+        {
+          titulo: 'Cronograma e Recursos',
+          conteudo: <>
+            <CronogramaExecucaoSection />
+            <FormSection numero={6} icone="account_balance" titulo="Instituições Envolvidas (Financiadoras)">
+              <InstituicoesFinanciadorasSection />
+            </FormSection>
+            <CronogramaDesembolsoSection />
+          </>,
+        },
+        {
+          titulo: 'Declarações e Termos',
+          conteudo: <>
+            <CienciaConcordanciaSection numero={8} />
+            <TermoAnuenciaProjetoSection />
+            <TermosLGPDSection aceito={statusFormulario('CERT-LGPD-01') === 'concluido'} urlTermo={urlTermoLGPD} aoAbrirTermo={() => { void abrirTermoLGPD(); }} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
+          </>,
+        },
+      ]}
+    />
   );
 };

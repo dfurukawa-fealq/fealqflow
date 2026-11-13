@@ -30,7 +30,7 @@ export const CadastroPatrocinador = () => (
   <FormPageLayout
     breadcrumb={['Área do Coordenador', 'Cadastro de Patrocinador']}
     titulo="Cadastro de Patrocinador"
-    codigo="CONV-FR-04-CADT"
+    codigo="PRJ-PAT-001"
     acaoPrincipal="Salvar e Enviar Cadastro"
     acaoIcone="save"
     sidebar={<KitDocumental acaoNoCard documentos={DOCUMENTOS} />}

@@ -105,6 +105,7 @@ export const PlanoAplicacaoRecursos = () => {
 
   return (
     <FormPageLayout
+      codigo="PRJ-REC-001"
       titulo="Plano de Aplicação de Recursos - Cursos FZEA"
       breadcrumb={['Projetos', 'Plano de Aplicação de Recursos']}
       acaoPrincipal="Salvar e Enviar"

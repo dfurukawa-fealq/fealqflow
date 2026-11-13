@@ -27,7 +27,7 @@ export const PlanoTrabalho = () => (
   <FormPageLayout
     breadcrumb={['Área do Coordenador', 'Plano de Trabalho']}
     titulo="Plano de Trabalho"
-    codigo="FR16-PRO"
+    codigo="PRJ-PTB-001"
     acaoPrincipal="Finalizar e Validar Plano de Trabalho"
     acaoIcone="verified"
   >

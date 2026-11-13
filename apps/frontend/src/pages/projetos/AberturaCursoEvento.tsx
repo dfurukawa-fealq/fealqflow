@@ -334,7 +334,7 @@ export const AberturaCursoEvento: React.FC = () => {
   //   f. Caracterização acadêmica {anexo não obrigatório}
   //   g. Caracterização financeira {anexo não obrigatório}
 
-  const kitSelecionado = kitsDocumentais.find((kit) => kit.formulario_id === 'projeto-abertura-curso-evento'
+  const kitSelecionado = kitsDocumentais.find((kit) => kit.formulario_id === 'PRJ-CEV-001'
     && kit.ativo
     && kit.campo_condicional === 'possuiConvenio'
     && kit.operador_condicional === 'equals'
@@ -433,7 +433,7 @@ export const AberturaCursoEvento: React.FC = () => {
     <FormPageLayout
       breadcrumb={['Área do Coordenador', 'Projetos', 'Protocolo de Abertura de Curso/Evento']}
       titulo="Protocolo de Abertura de Curso/Evento"
-      codigo="CONV-FR-01-PRO"
+      codigo="PRJ-CEV-001"
       badge="Novo"
       acaoPrincipal="Submeter Protocolo de Evento"
       podeEnviar={podeSubmeter}
@@ -1492,7 +1492,7 @@ export const AberturaCursoEvento: React.FC = () => {
                   className="w-5 h-5 rounded text-primary accent-primary cursor-pointer"
                 />
                 <Link to={urlLGPD} onClick={() => { void processoAtual?.save_state(); registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD); }} className="text-[13px] font-bold text-primary underline hover:text-primary-dark">
-                  Declaro ter lido e aceito integralmente o Termo de LGPD e Confidencialidade (FLAG OBRIGATÓRIA) *
+                  Declaro ter lido e aceito integralmente o Termo de LGPD e Confidencialidade *
                 </Link>
               </label>
 

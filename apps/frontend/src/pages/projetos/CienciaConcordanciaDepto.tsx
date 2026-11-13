@@ -81,7 +81,7 @@ export const CienciaConcordanciaDepto = () => {
     <FormPageLayout
       breadcrumb={['Área do Coordenador', 'Certificações', 'Ciência e Concordância do Departamento']}
       titulo="Ciência e Concordância do Departamento (USP)"
-      codigo="CONV-DP-01-USP"
+      codigo="PRJ-CCD-001"
       badge="USP Obrigatório"
       acaoPrincipal={processoPai ? 'Concluir e Retornar ao Protocolo' : 'Concluir'}
       acaoIcone="verified"

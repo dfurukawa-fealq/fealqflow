@@ -212,7 +212,7 @@ export const TermoLGPDConfidencialidade = () => {
     <FormPageLayout
       breadcrumb={['Área do Coordenador', 'Certificações', 'Termo de LGPD e Confidencialidade']}
       titulo="Termo de Compromisso e Confidencialidade de Dados (LGPD)"
-      codigo="FR 01 – PRO - Rev. 05"
+      codigo="PRJ-LGP-005"
       badge="Obrigatório"
       acaoPrincipal={processoPai ? 'Concluir e Retornar ao Protocolo' : 'Concluir'}
       acaoIcone="verified"

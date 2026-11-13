@@ -1,7 +1,7 @@
 [
   {
     "id": "kit-projeto-pesquisa-com-convenio",
-    "formulario_id": "projeto-pesquisa",
+    "formulario_id": "PRJ-PSQ-002",
     "nome": "Kit de Projeto de Pesquisa com Convênio USP",
     "descricao": "Documentos para projeto com convênio cadastrado na USP.",
     "campo_condicional": "possuiConvenio",
@@ -12,7 +12,7 @@
   },
   {
     "id": "kit-projeto-pesquisa-sem-convenio",
-    "formulario_id": "projeto-pesquisa",
+    "formulario_id": "PRJ-PSQ-002",
     "nome": "Kit de Projeto de Pesquisa sem Convênio USP",
     "descricao": "Documentos para projeto sem convênio cadastrado na USP.",
     "campo_condicional": "possuiConvenio",
@@ -23,7 +23,7 @@
   },
   {
     "id": "kit-curso-evento-com-convenio",
-    "formulario_id": "projeto-abertura-curso-evento",
+    "formulario_id": "PRJ-CEV-001",
     "nome": "Kit de Curso ou Evento com Convênio USP",
     "descricao": "Documentos para curso ou evento com convênio cadastrado na USP.",
     "campo_condicional": "possuiConvenio",
@@ -34,7 +34,7 @@
   },
   {
     "id": "kit-curso-evento-sem-convenio",
-    "formulario_id": "projeto-abertura-curso-evento",
+    "formulario_id": "PRJ-CEV-001",
     "nome": "Kit de Curso ou Evento sem Convênio USP",
     "descricao": "Documentos para curso ou evento sem convênio cadastrado na USP.",
     "campo_condicional": "possuiConvenio",
@@ -45,7 +45,7 @@
   },
   {
     "id": "kit-programa-apoio-bolsa-pos",
-    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-pa-s-graduaa-a-o-4",
+    "formulario_id": "APO-BPG-001",
     "nome": "Kit Documental - Bolsa Acadêmica - Pós-graduação",
     "descricao": "Documentos exigidos para o programa Bolsa Acadêmica - Pós-graduação.",
     "ordem": 1,
@@ -53,7 +53,7 @@
   },
   {
     "id": "kit-programa-apoio-bolsa-graduacao",
-    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-ensino-bolsa-acada-mica-graduaa-a-o-8",
+    "formulario_id": "APO-BAG-001",
     "nome": "Kit Documental - Bolsa Acadêmica - Graduação",
     "descricao": "Documentos exigidos para o programa Bolsa Acadêmica - Graduação.",
     "ordem": 2,
@@ -61,7 +61,7 @@
   },
   {
     "id": "kit-programa-apoio-infraestrutura",
-    "formulario_id": "apoio-edital-infraestrutura-e-melhorias-2026-1",
+    "formulario_id": "APO-INF-001",
     "nome": "Kit Documental - Apoio Infraestrutura e Melhorias",
     "descricao": "Documentos exigidos para o programa Apoio Infraestrutura e Melhorias.",
     "ordem": 3,
@@ -69,7 +69,7 @@
   },
   {
     "id": "kit-programa-apoio-apresentacao-evento",
-    "formulario_id": "apoio-formula-rio-solicitaa-a-o-de-apoio-pesquisa-apresentaa-a-o-trabalho-evento-7",
+    "formulario_id": "APO-EVT-001",
     "nome": "Kit Documental - Apresentação de Trabalho em Evento",
     "descricao": "Documentos exigidos para o programa Apresentação de Trabalho em Evento.",
     "ordem": 4,
@@ -77,7 +77,7 @@
   },
   {
     "id": "kit-programa-apoio-auxilio-viagem",
-    "formulario_id": "apoio-formula-rio-solicitaa-a-o-de-apoio-pesquisa-auxa-lio-viagem-0",
+    "formulario_id": "APO-VIA-001",
     "nome": "Kit Documental - Auxílio Viagem",
     "descricao": "Documentos exigidos para o programa Auxílio Viagem.",
     "ordem": 5,
@@ -85,7 +85,7 @@
   },
   {
     "id": "kit-programa-apoio-auxilio-publicacao",
-    "formulario_id": "apoio-formula-rio-solicitaa-a-o-de-apoio-a-auxa-lio-publicaa-a-es-de-artigos-5",
+    "formulario_id": "APO-PUB-001",
     "nome": "Kit Documental - Auxílio para publicação de artigo",
     "descricao": "Documentos exigidos para o programa Auxílio para publicação de artigo.",
     "ordem": 6,
@@ -93,7 +93,7 @@
   },
   {
     "id": "kit-programa-apoio-interesse-comunidade",
-    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-interesse-da-comunidade-3",
+    "formulario_id": "APO-COM-001",
     "nome": "Kit Documental - Apoio de Interesse da Comunidade",
     "descricao": "Documentos exigidos para o programa Apoio de Interesse da Comunidade.",
     "ordem": 7,
@@ -101,7 +101,7 @@
   },
   {
     "id": "kit-programa-apoio-material-eventos",
-    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-material-eventos-6",
+    "formulario_id": "APO-MAT-001",
     "nome": "Kit Documental - Apoio Material para Eventos",
     "descricao": "Documentos exigidos para o programa Apoio Material para Eventos.",
     "ordem": 8,
@@ -109,7 +109,7 @@
   },
   {
     "id": "kit-programa-apoio-cultura-extensao",
-    "formulario_id": "apoio-formula-rio-de-solicitaa-a-o-de-apoio-cultura-e-extensa-o-universita-ria-2",
+    "formulario_id": "APO-CUL-001",
     "nome": "Kit Documental - Cultura e Extensão Universitária",
     "descricao": "Documentos exigidos para o programa Cultura e Extensão Universitária.",
     "ordem": 9,
@@ -117,7 +117,7 @@
   },
   {
     "id": "kit-financiadora-pessoa-juridica",
-    "formulario_id": "projeto-financiadora",
+    "formulario_id": "PRJ-FIN-001",
     "nome": "Kit de Cadastro de Financiadora - Pessoa Jurídica",
     "descricao": "Documentos para o cadastro de uma financiadora pessoa jurídica.",
     "campo_condicional": "tipoFinanciadora",
@@ -128,7 +128,7 @@
   },
   {
     "id": "kit-financiadora-pessoa-fisica",
-    "formulario_id": "projeto-financiadora",
+    "formulario_id": "PRJ-FIN-001",
     "nome": "Kit de Cadastro de Financiadora - Pessoa Física",
     "descricao": "Documentos para o cadastro de uma financiadora pessoa física.",
     "campo_condicional": "tipoFinanciadora",
@@ -139,13 +139,35 @@
   },
   {
     "id": "kit-financiadora-pessoa-estrangeira",
-    "formulario_id": "projeto-financiadora",
+    "formulario_id": "PRJ-FIN-001",
     "nome": "Kit de Cadastro de Financiadora - Pessoa Estrangeira",
     "descricao": "Documentos para o cadastro de uma financiadora estrangeira.",
     "campo_condicional": "tipoFinanciadora",
     "operador_condicional": "equals",
     "valor_condicional": "PE - Pessoa Estrangeira",
     "ordem": 3,
+    "ativo": true
+  },
+  {
+    "id": "kit-projeto-pesquisa-com-convenio-v3",
+    "formulario_id": "PRJ-PSQ-003",
+    "nome": "Kit de Projeto de Pesquisa com Convênio USP",
+    "descricao": "Documentos para projeto com convênio cadastrado na USP.",
+    "campo_condicional": "possuiConvenio",
+    "operador_condicional": "equals",
+    "valor_condicional": "true",
+    "ordem": 1,
+    "ativo": true
+  },
+  {
+    "id": "kit-projeto-pesquisa-sem-convenio-v3",
+    "formulario_id": "PRJ-PSQ-003",
+    "nome": "Kit de Projeto de Pesquisa sem Convênio USP",
+    "descricao": "Documentos para projeto sem convênio cadastrado na USP.",
+    "campo_condicional": "possuiConvenio",
+    "operador_condicional": "equals",
+    "valor_condicional": "false",
+    "ordem": 2,
     "ativo": true
   }
 ]

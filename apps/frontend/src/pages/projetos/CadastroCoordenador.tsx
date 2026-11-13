@@ -72,9 +72,10 @@ export const CadastroCoordenador = () => {
   <FormPageLayout
     breadcrumb={['Área do Coordenador', 'Cadastro de Coordenador']}
     titulo="Cadastro de Coordenador"
-    codigo="CONV-FR-07-CADT"
+    codigo="PRJ-COO-001"
     acaoPrincipal="Salvar e Cadastrar Coordenador"
     acaoIcone="save"
+    podeEnviar={camposObrigatoriosPreenchidos}
     aoSubmeter={retornarAoProtocolo}
     sidebar={<KitDocumental acaoNoCard documentos={documentos} nota="O formulário será concluído automaticamente após o preenchimento obrigatório." />}
   >

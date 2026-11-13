@@ -31,7 +31,7 @@ const ORIENTACOES_OFICIAIS: OrientacaoItem[] = [
     categoria: 'financeiro',
     resumo: 'Nenhuma despesa pode ser executada sem prévia previsão no Plano de Aplicação aprovado.',
     textoCompleto:
-      'Toda e qualquer despesa, desembolso, pagamento de serviços ou aquisição com recursos do projeto deve obrigatoriamente constar e respeitar os limites fixados no Plano de Aplicação de Recursos (CONV-PL-01) previamente aprovado. Despesas não contempladas ou sem saldo orçamentário suficiente na respectiva categoria serão sumariamente recusadas pelo setor de controladoria.',
+      'Toda e qualquer despesa, desembolso, pagamento de serviços ou aquisição com recursos do projeto deve obrigatoriamente constar e respeitar os limites fixados no Plano de Aplicação de Recursos (PRJ-REC-001) previamente aprovado. Despesas não contempladas ou sem saldo orçamentário suficiente na respectiva categoria serão sumariamente recusadas pelo setor de controladoria.',
   },
   {
     numero: 3,
@@ -194,7 +194,7 @@ export const OrientacoesCoordenador = () => {
     frame.style.height = '1px';
     frame.style.opacity = '0';
     frame.style.pointerEvents = 'none';
-    frame.srcdoc = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Orientações ao Coordenador FEALQ</title><style>body{font-family:Arial,sans-serif;color:#111;line-height:1.5;margin:30px}h1{text-align:center;font-size:18px;border-bottom:1px solid #999;padding-bottom:12px}h2,h3,h4,h5{color:#123b57;margin-top:18px}p{font-size:12px}button{display:none!important}.material-symbols-outlined{display:none!important}@media print{body{margin:18mm}}</style></head><body><h1>Orientações ao Coordenador de Projetos e Eventos</h1><p><strong>ORI-COORD-01 / REV-03</strong> · 15 Diretrizes Institucionais</p>${conteudo}</body></html>`;
+    frame.srcdoc = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Orientações ao Coordenador FEALQ</title><style>body{font-family:Arial,sans-serif;color:#111;line-height:1.5;margin:30px}h1{text-align:center;font-size:18px;border-bottom:1px solid #999;padding-bottom:12px}h2,h3,h4,h5{color:#123b57;margin-top:18px}p{font-size:12px}button{display:none!important}.material-symbols-outlined{display:none!important}@media print{body{margin:18mm}}</style></head><body><h1>Orientações ao Coordenador de Projetos e Eventos</h1><p><strong>PRJ-ORI-003</strong> · 15 Diretrizes Institucionais</p>${conteudo}</body></html>`;
     frame.onload = () => {
       const janela = frame.contentWindow;
       if (!janela) return;
@@ -253,7 +253,7 @@ export const OrientacoesCoordenador = () => {
     <FormPageLayout
       breadcrumb={['Área do Coordenador', 'Certificações', 'Orientações ao Coordenador FEALQ']}
       titulo="Orientações ao Coordenador de Projetos e Eventos"
-      codigo="ORI-COORD-01 / REV-03"
+      codigo="PRJ-ORI-003"
       badge="Leitura Obrigatória"
       acaoPrincipal={processoPai ? 'Concluir e Retornar ao Protocolo' : 'Concluir'}
       acaoIcone="verified"

@@ -4,6 +4,8 @@ import { safeGetItem, safeJsonParse, safeRemoveItem, safeSetItem } from '../util
 import { useUser } from './UserContext';
 import { BackupProcesso, DadosProcesso, DocumentoProcesso, Processo, ProcessoComToken, ProcessoLocal } from '../types/processo';
 import { capturarProcessoPai } from '../utils/processoPai';
+import { PROJETOS_POR_SLUG } from '../data/projetos';
+import { PROGRAMAS_APOIO } from '../data/programasApoio';
 export type { ProcessoLocal } from '../types/processo';
 
 interface ContextoProcesso {
@@ -61,6 +63,17 @@ const nomesFormularios: Record<string, string> = {
   'apoio-comunidade': 'Interesse da Comunidade', 'apoio-material-evento': 'Material para Eventos',
   'apoio-cultura': 'Cultura e Extensão',
 };
+const aliasesRotaFormulario: Record<string, string> = {
+  'form-evento': 'PRJ-CEV-001',
+  'form-curso-evento': 'PRJ-CEV-001',
+};
+const idFormularioDaRota = (rota: string) => {
+  const slug = rota.split('/').pop() || '';
+  return aliasesRotaFormulario[slug]
+    || PROJETOS_POR_SLUG.get(slug)?.id
+    || PROGRAMAS_APOIO.find((programa) => programa.path === rota)?.formularioId
+    || slug;
+};
 export const CHAVE_PROCESSOS_LOCAIS = '@Fealq:processos_locais';
 const registrarProcessoLocal = (processo: ProcessoComToken, processoPaiId?: string | null) => {
   safeSetItem(`@Fealq:processo:${processo.id}`, processo.token);
@@ -96,7 +109,7 @@ const criarProcesso = async (rota: string, chaveCriacao: string, token: string, 
     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       categoria,
-      formularioId: rota.split('/').pop(),
+      formularioId: idFormularioDaRota(rota),
       formularioNome: nomesFormularios[rota.split('/').pop() || ''] || 'Formulário',
       formularioRota: rota,
       chaveCriacao, token, processoPaiId: processoPaiId || null,

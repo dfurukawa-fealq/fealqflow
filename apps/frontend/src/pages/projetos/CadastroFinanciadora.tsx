@@ -27,7 +27,7 @@ export const CadastroFinanciadora = () => {
     const valorMigrado = tiposLegados[tipoFinanciadora];
     if (valorMigrado) setTipoFinanciadora(valorMigrado);
   }, [setTipoFinanciadora, tipoFinanciadora]);
-  const kitSelecionado = kitsDocumentais.find((kit) => kit.formulario_id === 'projeto-financiadora'
+  const kitSelecionado = kitsDocumentais.find((kit) => kit.formulario_id === 'PRJ-FIN-001'
     && kit.ativo
     && 'campo_condicional' in kit
     && kit.campo_condicional === 'tipoFinanciadora'
@@ -54,7 +54,7 @@ export const CadastroFinanciadora = () => {
   <FormPageLayout
     breadcrumb={['Área do Coordenador', 'Cadastro de Financiadora']}
     titulo="Cadastro de Financiadora"
-    codigo="CONV-FR-03-CADT"
+    codigo="PRJ-FIN-001"
     acaoPrincipal="Salvar Financiadora"
     acaoIcone="save"
     sidebar={
