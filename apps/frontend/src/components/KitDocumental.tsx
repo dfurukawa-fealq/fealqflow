@@ -42,7 +42,7 @@ const resumirDescricao = (valor: string) => {
 export const KitDocumental = ({
   documentos,
   titulo = 'Kit de Documentos',
-  nota = 'Anexe os documentos obrigatórios para liberar o envio da solicitação.',
+  nota = 'Conclua os documentos obrigatórios antes de enviar.',
   destaque,
   acaoNoCard = false,
 }: KitDocumentalProps) => {
@@ -52,7 +52,7 @@ export const KitDocumental = ({
   const processo = useProcesso();
   const processoNovo = useProcessoNovo();
   const registrarDocumentos = processo?.somenteLeitura ? undefined : processo?.registrarDocumentos;
-  const { formulario, registrarPersistenciaFormulario } = useEnvio();
+  const { formulario, registrarPersistenciaFormulario, executarAcao } = useEnvio();
   const documentosComFormulario = useMemo(() => {
     if (!formulario) return documentos;
     const ehFormulario = (item: DocumentoExigido) => item.proprioFormulario
@@ -75,7 +75,12 @@ export const KitDocumental = ({
   }, [documentos, formulario]);
   const documentosComStatus = useMemo(() => documentosComFormulario.map((item) => item.proprioFormulario
     ? { ...item, status: formulario?.validado ? 'concluido' as const : 'pendente' as const }
-    : item), [documentosComFormulario, formulario?.validado]);
+    : (() => {
+      if (!item.url_template || !processo) return item;
+      const caminho = new URL(item.url_template, window.location.origin).pathname;
+      const subformularios = processo.dados.campos.__subformularios as Record<string, { campos?: Record<string, unknown> }> | undefined;
+      return subformularios?.[caminho]?.campos?.__fealq_formulario_validado__ === true ? { ...item, status: 'concluido' as const } : item;
+    })()), [documentosComFormulario, formulario?.validado, processo?.dados]);
   const assinaturaDocumentos = documentosComStatus.map((item) => `${item.id}:${item.documentoId || ''}:${item.obrigatorio}:${item.status}:${item.tipo}:${Boolean(item.url_template)}`).join('|');
   const montarEstadoDocumentos = useCallback((validado = formulario?.validado ?? false) => documentosComStatus.map((item) => {
     const concluido = item.proprioFormulario
@@ -95,7 +100,7 @@ export const KitDocumental = ({
       .catch((falha: unknown) => setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível registrar o Kit Documental.'));
   // A assinatura muda apenas quando os requisitos do Kit mudam.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registrarDocumentos, assinaturaDocumentos, montarEstadoDocumentos]);
+  }, [registrarDocumentos, assinaturaDocumentos]);
   const persistirValidacaoFormulario = useCallback(async (validado: boolean) => {
     if (registrarDocumentos) await registrarDocumentos(montarEstadoDocumentos(validado));
   }, [montarEstadoDocumentos, registrarDocumentos]);
@@ -117,7 +122,7 @@ export const KitDocumental = ({
     documentosComStatus.length > 0 ? (concluidos / documentosComStatus.length) * 100 : 0;
 
   // Documentos externos (encaminhados por terceiros) não travam o envio.
-  const pendencias = useMemo(
+  const itensPendentes = useMemo(
     () =>
       documentosComStatus.filter((d) => {
         if (d.proprioFormulario) return false;
@@ -127,18 +132,23 @@ export const KitDocumental = ({
         }
         if ((d.tipo === 'gerado' && !d.url_template) || d.tipo === 'externo') return false;
         return !documentoSalvo(d.id) && !documentoSelecionado(d.id);
-      }).length,
+      }),
     [anexos, documentosComStatus, processo?.documentos, processoNovo?.anexosPendentes],
   );
 
+  const pendencias = itensPendentes.length;
+  const assinaturaPendencias = itensPendentes.map((item) => `${item.id}:${item.label}`).join('|');
   useEffect(() => {
-    registrarPendencias(pendencias);
-  }, [pendencias, registrarPendencias]);
+    registrarPendencias(pendencias, itensPendentes.map(({ id, label }) => ({ id, label })));
+  // A assinatura inclui os nomes e IDs; evita registrar novamente por identidade de array.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendencias, assinaturaPendencias, registrarPendencias]);
 
   const selecionar = async (id: string, arquivo: File | null) => {
     setErroAnexo('');
     setEnviando(id);
     try {
+      await executarAcao(arquivo ? 'anexar_documento' : 'remover_anexo', async () => {
       if (arquivo) {
         if (processo) await processo.anexarDocumento(id, arquivo);
         else if (processoNovo) processoNovo.selecionarAnexo(id, arquivo);
@@ -149,13 +159,14 @@ export const KitDocumental = ({
         else if (processoNovo) processoNovo.selecionarAnexo(id, null);
         setAnexos((atuais) => { const proximo = { ...atuais }; delete proximo[id]; return proximo; });
       }
+      }, { depois: true });
     } catch (falha) {
       setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível salvar o anexo.');
     } finally { setEnviando(null); }
   };
 
   return (
-    <section className="bg-surface-container-low border border-outline-variant rounded shadow-sm p-lg">
+    <section data-kit-documental className="bg-surface-container-low border border-outline-variant rounded shadow-sm p-lg">
       <div className="flex items-center justify-between gap-sm mb-md pb-xs border-b border-surface-variant">
         <div className="flex items-center gap-sm min-w-0">
           <span className="material-symbols-outlined text-primary-container">
@@ -195,7 +206,7 @@ export const KitDocumental = ({
             emitido={processo?.documentos.find((item) => item.id === doc.id)?.emitido ?? false}
             somenteLeitura={processo?.somenteLeitura ?? false}
             enviando={enviando === doc.id}
-            onBaixar={arquivoSalvo => { if (processo) void processo.baixarDocumento(doc.id, arquivoSalvo).catch((falha: unknown) => setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível baixar o anexo.')); }}
+            onBaixar={arquivoSalvo => { if (processo) void executarAcao('baixar_anexo', () => processo.baixarDocumento(doc.id, arquivoSalvo)).catch((falha: unknown) => setErroAnexo(falha instanceof Error ? falha.message : 'Não foi possível baixar o anexo.')); }}
             onSelecionar={(a) => { void selecionar(doc.id, a); }}
             acaoNoCard={acaoNoCard}
           />
@@ -251,15 +262,13 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
   // Todo documento obrigatório pendente sinaliza ação necessária. Quando há
   // URL, o card também é navegável; uploads continuam usando o anexo interno.
   const cardComMotion = acaoNoCard && !concluido && (doc.obrigatorio || Boolean(doc.url_template));
+  const { executarAcao: executarAcaoDocumento } = useEnvio();
   const abrirDocumento = async () => {
     if (!doc.url_template || abrindo) return;
     setAbrindo(true);
     setErroAbertura('');
     try {
-    // Persiste o rascunho antes de sair da tela para manter os dados
-    // disponíveis nos subformulários vinculados ao processo.
-    if (processo) await processo.save_state();
-    else if (processoNovo) await processoNovo.salvar();
+    await executarAcaoDocumento(arquivoPdfCatalogo ? 'baixar_documento' : 'abrir_item_kit', async (processoSalvoId) => {
     await doc.onAbrirLink?.();
     if (arquivoPdfCatalogo) {
       const link = document.createElement('a');
@@ -270,9 +279,14 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
     }
     // Mantém o vínculo com o pai sem recarregar os assets relativos da SPA.
     const destino = new URL(doc.url_template, window.location.origin);
-    const processoPai = processo?.processo.id || new URLSearchParams(window.location.search).get('processo');
-    if (processoPai) destino.searchParams.set('processo_pai', processoPai);
-    navigate(`${destino.pathname}${destino.search}${destino.hash}`);
+    const processoPai = processoSalvoId || processo?.processo.id || new URLSearchParams(window.location.search).get('processo');
+    if (processoPai && destino.origin === window.location.origin) {
+      destino.searchParams.set('processo_pai', processoPai);
+      if (!destino.searchParams.has('rota_retorno')) destino.searchParams.set('rota_retorno', window.location.pathname);
+    }
+    if (destino.origin === window.location.origin) navigate(`${destino.pathname}${destino.search}${destino.hash}`);
+    else window.location.assign(destino.href);
+    });
     } catch (falha: unknown) {
       setErroAbertura(falha instanceof Error ? falha.message : 'Não foi possível abrir o documento. Tente novamente.');
     } finally {
@@ -345,6 +359,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
                   Concluído
                 </span>
                 {!acaoNoCard && !somenteLeitura && <Link
+                  data-salvamento-gerenciado
                   to={doc.url_template}
                   onClick={(evento) => {
                     evento.preventDefault();
@@ -369,6 +384,7 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
                   </span>
                 </span>
                 {!acaoNoCard && !somenteLeitura && <Link
+                  data-salvamento-gerenciado
                   to={doc.url_template}
                   onClick={(evento) => {
                     evento.preventDefault();
@@ -384,8 +400,8 @@ const ItemDocumento = ({ doc, arquivo, arquivoSalvo, preenchido, emitido, envian
             )}
           </div>
         ) : gerado ? (
-          <span className="text-secondary text-[11px] font-bold uppercase shrink-0">
-            Concluído
+          <span className={`${concluido ? 'text-secondary' : 'text-on-surface-variant'} text-[11px] font-bold uppercase shrink-0`}>
+            {concluido ? 'Conclu\u00eddo' : 'Pendente'}
           </span>
         ) : doc.tipo === 'externo' ? (
           <span className="text-on-surface-variant text-[11px] font-bold uppercase shrink-0">

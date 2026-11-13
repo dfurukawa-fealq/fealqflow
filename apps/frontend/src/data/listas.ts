@@ -1,23 +1,7 @@
 /** Listas compartilhadas pelos formulários do FealqFlow. */
-export const TIPOS_EVENTO = [
-  'Conferencia',
-  'Congresso',
-  'Curso',
-  'Debate',
-  'Encontro',
-  'Estagio',
-  'Exposicao',
-  'Feira',
-  'Forum',
-  'Jornada',
-  'Mesa',
-  'Oficina',
-  'Palestra',
-  'Participacao',
-  'Programa',
-  'Reuniao',
-  'Semanal',
-] as const;
+import tiposEvento from '../../../../data/tipos_evento.json';
+
+export const TIPOS_EVENTO: readonly string[] = tiposEvento;
 
 export type TipoEvento = typeof TIPOS_EVENTO[number];
 

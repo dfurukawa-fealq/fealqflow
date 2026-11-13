@@ -4,6 +4,7 @@ import { safeGetItem, safeJsonParse, safeRemoveItem, safeSetItem } from '../util
 import { useUser } from './UserContext';
 import { BackupProcesso, DadosProcesso, DocumentoProcesso, Processo, ProcessoComToken, ProcessoLocal } from '../types/processo';
 import { capturarProcessoPai } from '../utils/processoPai';
+import { saoRotasDoMesmoFormulario } from '../utils/rotasProcesso';
 import { PROJETOS_POR_SLUG } from '../data/projetos';
 import { PROGRAMAS_APOIO } from '../data/programasApoio';
 export type { ProcessoLocal } from '../types/processo';
@@ -27,6 +28,9 @@ interface ContextoProcesso {
 }
 
 interface ContextoProcessoNovo {
+  processoPai: { id: string; rota: string; protocolo: string } | null;
+  processoId: string | null;
+  salvarSemNavegar: () => Promise<string>;
   dados: DadosProcesso;
   erro: string;
   salvando: boolean;
@@ -148,6 +152,10 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
       }).then((carregado) => {
         if (!ativo) return;
         if (carregado.formulario_rota !== location.pathname) {
+          if (saoRotasDoMesmoFormulario(carregado.formulario_rota, location.pathname)) {
+            navigate(`${carregado.formulario_rota}${location.search}`, { replace: true });
+            return;
+          }
           const parametrosAtuais = new URLSearchParams(location.search);
           const processoPaiCapturado = capturarProcessoPai(parametrosAtuais, true);
           if (processoPaiCapturado && !parametrosAtuais.has('processo_pai')) {
@@ -191,7 +199,7 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
     </main>
   );
   if (!id) return (
-    <ProcessoNovoProvider rota={location.pathname} processoPaiId={capturarProcessoPai(parametros)}>
+    <ProcessoNovoProvider key={`${location.pathname}:${capturarProcessoPai(parametros) || "novo"}`} rota={location.pathname} processoPaiId={capturarProcessoPai(parametros)}>
       {children}
     </ProcessoNovoProvider>
   );
@@ -200,6 +208,16 @@ export const ProcessoRoute = ({ children }: { children: ReactNode }) => {
   if (!processoEditavel && !somenteLeituraSolicitada) return (
     <main className="mx-auto flex w-full max-w-[600px] flex-col gap-md p-lg">
       <h1 className="text-xl font-bold text-primary">Processo enviado</h1>
+      {processo.processo_pai_id && <button type="button" className="self-start rounded border border-outline-variant px-md py-sm text-primary" onClick={() => {
+        const rotaSolicitada = parametros.get('rota_retorno');
+        const rotaPai = rotaSolicitada === '/projetos/form-pesquisa-v2' || rotaSolicitada === '/projetos/form-pesquisa'
+          ? rotaSolicitada
+          : '/projetos/form-curso-evento';
+        const busca = new URLSearchParams(location.search);
+        busca.delete('processo_pai');
+        busca.set('processo', processo.processo_pai_id!);
+        navigate(`${rotaPai}?${busca.toString()}`);
+      }}>Voltar ao processo principal</button>}
       <p>O processo {processo.protocolo} foi registrado. Para preencher novamente, inicie outra tentativa.</p>
       <button type="button" className="self-start rounded bg-primary px-md py-sm text-white" onClick={() => void novaTentativa().catch((falha: unknown) => setErro(falha instanceof Error ? falha.message : 'Não foi possível iniciar outra tentativa.'))}>Iniciar nova tentativa</button>
     </main>
@@ -237,7 +255,40 @@ const ProcessoNovoProvider = ({ children, rota, processoPaiId }: {
   const [anexosPendentes, setAnexosPendentes] = useState<Record<string, File>>({});
   const dadosRef = useRef(dados);
   const anexosPendentesRef = useRef(anexosPendentes);
-  const criacaoRef = useRef<Promise<void> | null>(null);
+  const anexosEnviadosRef = useRef<Record<string, File>>({});
+  const anexosRemovidosRef = useRef(new Set<string>());
+  const ultimoSnapshotSalvoRef = useRef('');
+  const filaCriacaoRef = useRef<Promise<unknown>>(Promise.resolve());
+  const criadoRef = useRef<ProcessoComToken | null>(null);
+  const [processoId, setProcessoId] = useState<string | null>(processoPaiId);
+  const [processoPai, setProcessoPai] = useState<ContextoProcessoNovo['processoPai']>(null);
+  const [carregado, setCarregado] = useState(!processoPaiId);
+  const chaveBackupNovo = `@Fealq:subformulario:${processoPaiId || rota}:${rota}`;
+  useEffect(() => {
+    if (!processoPaiId) return;
+    let ativo = true;
+    const headers = { 'x-processo-token': safeGetItem(`@Fealq:processo:${processoPaiId}`) || '' };
+    fetch(`/api/processos/${processoPaiId}`, { credentials: 'same-origin', headers }).then(async (resposta) => {
+      if (!resposta.ok) throw new Error(await mensagemErro(resposta));
+      const pai = await resposta.json() as Processo;
+      if (!ativo) return;
+      setProcessoPai({ id: pai.id, rota: pai.formulario_rota, protocolo: pai.protocolo });
+      const salvos = (pai.dados_json.campos.__subformularios as Record<string, DadosProcesso> | undefined)?.[rota];
+      const backup = safeJsonParse<DadosProcesso | null>(safeGetItem(chaveBackupNovo), null);
+      const iniciais = backup || salvos || { campos: {} };
+      ultimoSnapshotSalvoRef.current = JSON.stringify(salvos || { campos: {} });
+      dadosRef.current = iniciais;
+      setDados(iniciais);
+      setCarregado(true);
+    }).catch((falha: unknown) => { if (ativo) setErro(falha instanceof Error ? falha.message : 'Falha ao carregar dados vinculados.'); });
+    return () => { ativo = false; };
+  }, [processoPaiId, rota, chaveBackupNovo]);
+  useEffect(() => {
+    if (carregado && Object.keys(dados.campos).length) {
+      safeSetItem(chaveBackupNovo, JSON.stringify(dados));
+      if (criadoRef.current) safeSetItem(`@Fealq:rascunho:${criadoRef.current.id}`, JSON.stringify({ versao: criadoRef.current.versao, dados }));
+    }
+  }, [dados, carregado, chaveBackupNovo]);
   const credenciaisRef = useRef({ chaveCriacao: gerarUuid(), token: gerarToken() });
 
   const atualizarCampo = useCallback((campo: string, valor: unknown) => {
@@ -252,55 +303,91 @@ const ProcessoNovoProvider = ({ children, rota, processoPaiId }: {
     if (arquivo && !['application/pdf', 'image/png', 'image/jpeg'].includes(arquivo.type)) throw new Error('Envie um arquivo PDF, PNG ou JPEG.');
     setAnexosPendentes((atuais) => {
       const proximos = { ...atuais };
-      if (arquivo) proximos[codigo] = arquivo;
-      else delete proximos[codigo];
+      if (arquivo) { proximos[codigo] = arquivo; anexosRemovidosRef.current.delete(codigo); }
+      else { delete proximos[codigo]; if (anexosEnviadosRef.current[codigo]) anexosRemovidosRef.current.add(codigo); }
       anexosPendentesRef.current = proximos;
       return proximos;
     });
   }, []);
 
-  const salvar = useCallback((): Promise<void> => {
-    if (criacaoRef.current) return criacaoRef.current;
-    const tarefa = (async () => {
+  const salvarSemNavegar = useCallback((): Promise<string> => {
+    const tarefa = filaCriacaoRef.current.catch(() => undefined).then(async () => {
       setSalvando(true);
       setErro('');
-      const { chaveCriacao, token: tokenCriacao } = credenciaisRef.current;
       try {
-        const novo = await criarProcesso(rota, chaveCriacao, tokenCriacao, processoPaiId);
-        registrarProcessoLocal(novo, processoPaiId);
-        const resposta = await fetch(`/api/processos/${novo.id}`, {
-          method: 'PATCH',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json', 'x-processo-token': tokenCriacao },
-          body: JSON.stringify({
-            dados: dadosRef.current,
-            versao: novo.versao,
-            ...resumoDosCampos(dadosRef.current),
-          }),
+        const snapshot = JSON.parse(JSON.stringify(dadosRef.current)) as DadosProcesso;
+        if (!processoPaiId && !criadoRef.current) {
+          const novo = await criarProcesso(rota, credenciaisRef.current.chaveCriacao, credenciaisRef.current.token);
+          criadoRef.current = novo;
+          registrarProcessoLocal(novo);
+          safeSetItem(`@Fealq:rascunho:${novo.id}`, JSON.stringify({ versao: novo.versao, dados: snapshot }));
+          setProcessoId(novo.id);
+          const consultaAtual = new URLSearchParams(window.location.search);
+          consultaAtual.set('processo', novo.id);
+          window.history.replaceState(window.history.state, '', `${rota}?${consultaAtual.toString()}`);
+        }
+        const id = processoPaiId || criadoRef.current!.id;
+        const token = safeGetItem(`@Fealq:processo:${id}`) || '';
+        const headers = { 'Content-Type': 'application/json', 'x-processo-token': token };
+        const leitura = await fetch(`/api/processos/${id}`, { credentials: 'same-origin', headers });
+        if (!leitura.ok) throw new Error(await mensagemErro(leitura));
+        const atual = await leitura.json() as Processo;
+        const dadosSalvar = processoPaiId ? { campos: {
+          ...atual.dados_json.campos,
+          __subformularios: { ...(atual.dados_json.campos.__subformularios as Record<string, unknown> || {}), [rota]: snapshot },
+        } } : snapshot;
+        const resposta = await fetch(`/api/processos/${id}`, {
+          method: 'PATCH', credentials: 'same-origin', headers,
+          body: JSON.stringify({ dados: dadosSalvar, versao: atual.versao, ...(processoPaiId ? {} : resumoDosCampos(snapshot)) }),
         });
         if (!resposta.ok) throw new Error(await mensagemErro(resposta));
+        const atualizado = await resposta.json() as { versao: number };
+        if (criadoRef.current) criadoRef.current.versao = atualizado.versao;
         for (const [codigo, arquivo] of Object.entries(anexosPendentesRef.current)) {
-          await enviarAnexoProcesso(novo.id, tokenCriacao, codigo, arquivo);
+          if (anexosEnviadosRef.current[codigo] !== arquivo) {
+            await enviarAnexoProcesso(id, token, codigo, arquivo);
+            anexosEnviadosRef.current[codigo] = arquivo;
+          }
         }
-        const busca = new URLSearchParams(location.search);
-        busca.delete('inicio');
-        busca.set('processo', novo.id);
-        navigate(`${rota}?${busca.toString()}`, { replace: true });
+        for (const codigo of anexosRemovidosRef.current) {
+          const remocao = await fetch(`/api/processos/${id}/documentos/${encodeURIComponent(codigo)}`, { method: 'DELETE', credentials: 'same-origin', headers });
+          if (!remocao.ok) throw new Error(await mensagemErro(remocao));
+          delete anexosEnviadosRef.current[codigo];
+          anexosRemovidosRef.current.delete(codigo);
+        }
+        ultimoSnapshotSalvoRef.current = JSON.stringify(snapshot);
+        if (JSON.stringify(snapshot) === JSON.stringify(dadosRef.current)) {
+          safeRemoveItem(chaveBackupNovo);
+          if (criadoRef.current) safeRemoveItem(`@Fealq:rascunho:${id}`);
+        } else if (criadoRef.current) safeSetItem(`@Fealq:rascunho:${id}`, JSON.stringify({ versao: atualizado.versao, dados: dadosRef.current }));
+        return id;
       } catch (falha) {
-        const mensagem = falha instanceof Error ? falha.message : 'Não foi possível criar e salvar o rascunho.';
-        setErro(mensagem);
-        criacaoRef.current = null;
+        setErro(falha instanceof Error ? falha.message : 'Falha ao salvar rascunho.');
         throw falha;
-      } finally {
-        setSalvando(false);
-      }
-    })();
-    criacaoRef.current = tarefa;
+      } finally { setSalvando(false); }
+    });
+    filaCriacaoRef.current = tarefa;
     return tarefa;
-  }, [location.search, navigate, processoPaiId, rota]);
+  }, [processoPaiId, rota, chaveBackupNovo]);
 
-  const valor = useMemo<ContextoProcessoNovo>(() => ({ dados, erro, salvando, anexosPendentes, atualizarCampo, selecionarAnexo, salvar }),
-    [dados, erro, salvando, anexosPendentes, atualizarCampo, selecionarAnexo, salvar]);
+  useEffect(() => {
+    if (!carregado || (!processoPaiId && !criadoRef.current) || JSON.stringify(dados) === ultimoSnapshotSalvoRef.current) return;
+    const timer = window.setTimeout(() => { void salvarSemNavegar().catch(() => undefined); }, 900);
+    return () => window.clearTimeout(timer);
+  }, [dados, carregado, processoPaiId, salvarSemNavegar]);
+
+  const salvar = useCallback(async () => {
+    const id = await salvarSemNavegar();
+    if (processoPaiId) return;
+    const busca = new URLSearchParams(location.search);
+    busca.delete('inicio');
+    busca.set('processo', id);
+    navigate(`${rota}?${busca.toString()}`, { replace: true });
+  }, [salvarSemNavegar, processoPaiId, location.search, navigate, rota]);
+
+  const valor = useMemo<ContextoProcessoNovo>(() => ({ processoPai, processoId, salvarSemNavegar, dados, erro, salvando, anexosPendentes, atualizarCampo, selecionarAnexo, salvar }),
+    [processoPai, processoId, salvarSemNavegar, dados, erro, salvando, anexosPendentes, atualizarCampo, selecionarAnexo, salvar]);
+  if (!carregado) return <p role="status" className="p-lg">{erro || 'Carregando dados do processo principal...'}</p>;
   return <ProcessoNovoContext.Provider value={valor}>{children}</ProcessoNovoContext.Provider>;
 };
 

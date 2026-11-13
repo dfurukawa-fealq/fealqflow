@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useProcessoState } from '../../contexts/ProcessoContext';
+import { useProcesso, useProcessoNovo, useProcessoState } from '../../contexts/ProcessoContext';
 import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
@@ -22,6 +22,9 @@ export const CadastroCoordenador = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { marcarFormularioConcluido } = useRastreabilidade();
+  const processo = useProcesso();
+  const processoNovo = useProcessoNovo();
+  const processoPai = searchParams.get('processo_pai');
   const [nome, setNome] = useProcessoState('cadastroCoordenadorNome', '', ['campo:Nome Completo']);
   const [cpf, setCpf] = useProcessoState('cadastroCoordenadorCpf', '', ['campo:CPF']);
   const [rg, setRg] = useProcessoState('cadastroCoordenadorRg', '', ['campo:RG']);
@@ -52,21 +55,35 @@ export const CadastroCoordenador = () => {
     ...DOCUMENTO_FORMULARIO,
     status: camposObrigatoriosPreenchidos ? 'concluido' : 'pendente',
   }];
-  const retornarAoProtocolo = () => {
-    marcarFormularioConcluido('CONV-FR-07-CADT', { origem: 'Protocolo de Abertura de Curso/Evento' });
-    const processoPai = searchParams.get('processo_pai');
+  const urlRetorno = () => {
+    if (!processoPai) return null;
     const protocolo = searchParams.get('protocolo');
     const sessao = searchParams.get('sessao');
-    if (processoPai) {
-      const rotaSolicitada = searchParams.get('rota_retorno');
-      const rotaRetorno = rotaSolicitada === '/projetos/form-pesquisa-v2' || rotaSolicitada === '/projetos/form-pesquisa'
-        ? rotaSolicitada
-        : '/projetos/form-curso-evento';
-      const parametros = new URLSearchParams({ processo: processoPai });
-      if (protocolo) parametros.set('protocolo', protocolo);
-      if (sessao) parametros.set('sessao', sessao);
-      navigate(`${rotaRetorno}?${parametros.toString()}`);
-    }
+    const rotaSolicitada = searchParams.get('rota_retorno');
+    const rotasRetorno = ['/projetos/form-curso', '/projetos/form-evento', '/projetos/form-curso-evento', '/projetos/form-pesquisa', '/projetos/form-pesquisa-v2'];
+    const rotaRetorno = processoNovo?.processoPai?.rota
+      || (rotaSolicitada && rotasRetorno.includes(rotaSolicitada) ? rotaSolicitada : '/projetos/form-curso-evento');
+    const parametros = new URLSearchParams({ processo: processoPai });
+    if (protocolo) parametros.set('protocolo', protocolo);
+    if (sessao) parametros.set('sessao', sessao);
+    return `${rotaRetorno}?${parametros.toString()}`;
+  };
+  const cancelarCadastro = () => {
+    const destino = urlRetorno();
+    if (destino) navigate(destino);
+    else navigate(-1);
+  };
+  const retornarAoProtocolo = () => {
+    marcarFormularioConcluido('CONV-FR-07-CADT', {
+      origem: 'Protocolo de Abertura de Curso/Evento',
+      campos: processo?.dados.campos ?? processoNovo?.dados.campos ?? {},
+      nome, cpf, rg, dataNascimento, sexo, nacionalidade,
+      telefoneWhatsApp, telefoneResidencial, telefoneComercial,
+      universidade, unidade, cargo, emailInstitucional, telefoneRamal,
+      banco, agencia, contaCorrente, enderecoPrincipalCompleto,
+      status: 'concluido',
+    });
+    cancelarCadastro();
   };
 
   return (
@@ -74,8 +91,12 @@ export const CadastroCoordenador = () => {
     breadcrumb={['Área do Coordenador', 'Cadastro de Coordenador']}
     titulo="Cadastro de Coordenador"
     codigo="PRJ-COO-001"
-    acaoPrincipal="Salvar e Cadastrar Coordenador"
+    acaoPrincipal={processoPai ? 'Concluir e Retornar ao Protocolo' : 'Salvar e Cadastrar Coordenador'}
     acaoIcone="save"
+    mostrarRascunho={!processoPai}
+    permitirEnvioSemProcesso={Boolean(processoPai)}
+    subformularioVinculado={Boolean(processoPai)}
+    aoCancelar={processoPai ? cancelarCadastro : undefined}
     podeEnviar={camposObrigatoriosPreenchidos}
     validarFormularioAdicional={() => camposObrigatoriosPreenchidos}
     aoSubmeter={retornarAoProtocolo}

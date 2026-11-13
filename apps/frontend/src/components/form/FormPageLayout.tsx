@@ -8,6 +8,7 @@ import { armazenamentoPersistenteDisponivel } from '../../utils/safeStorage';
 import { RelatorioFormulario } from './RelatorioFormulario';
 import { useUser } from '../../contexts/UserContext';
 import { KitDocumental } from '../KitDocumental';
+import { useAcoesFormulario } from './useAcoesFormulario';
 
 const CAMPO_FORMULARIO_VALIDADO = '__fealq_formulario_validado__';
 
@@ -35,7 +36,7 @@ export interface FormPageLayoutProps {
   permitirEnvioSemProcesso?: boolean;
   botoesAcoes?: ReactNode;
   footerCenter?: ReactNode;
-  /** Permite forçar a liberação ou bloqueio do envio (ignora contagem de pendências do Kit Documental) */
+  /** Regra adicional de envio; documentos obrigatorios pendentes sempre bloqueiam. */
   podeEnviar?: boolean;
   /** Valida regras de negócio que não cabem no atributo HTML `required`. */
   validarFormularioAdicional?: () => boolean;
@@ -45,6 +46,8 @@ export interface FormPageLayoutProps {
   etapasMobile?: Array<{ titulo: string; conteudo: ReactNode }>;
   /** Callback acionado ao clicar no botão de ação principal */
   aoSubmeter?: () => void;
+  aoCancelar?: () => void;
+  subformularioVinculado?: boolean;
   children?: ReactNode;
 }
 
@@ -69,6 +72,8 @@ export const FormPageLayout = ({
   etapasMobile,
   podeEnviar,
   validarFormularioAdicional,
+  aoCancelar,
+  subformularioVinculado = false,
   aoSubmeter,
   children,
 }: FormPageLayoutProps) => {
@@ -76,6 +81,7 @@ export const FormPageLayout = ({
   const processo = useProcesso();
   const processoNovo = useProcessoNovo();
   const { usuario } = useUser();
+  const acoes = useAcoesFormulario();
   const sidebarConteudo = sidebar
     ? contemKitDocumental(sidebar) ? sidebar : <>{sidebar}<KitDocumental documentos={[]} titulo={`Kit de ${titulo}`} /></>
     : <KitDocumental documentos={[]} titulo={`Kit de ${titulo}`} />;
@@ -166,17 +172,19 @@ export const FormPageLayout = ({
 
   // null = a página não tem Kit Documental; o envio segue bloqueado se podeEnviar não for informado.
   const [pendencias, setPendencias] = useState<number | null>(null);
-  const registrarPendencias = useCallback(
-    (quantidade: number) => setPendencias(quantidade),
-    [],
-  );
+  const [documentosPendentes, setDocumentosPendentes] = useState<Array<{ id: string; label: string }>>([]);
+  const registrarPendencias = useCallback((quantidade: number, itens: Array<{ id: string; label: string }> = []) => {
+    setPendencias(quantidade);
+    setDocumentosPendentes((atuais) => JSON.stringify(atuais) === JSON.stringify(itens) ? atuais : itens);
+  }, []);
   const envio = useMemo(() => ({
+    executarAcao: acoes.executarAcao,
     registrarPendencias,
     formulario: { id: codigo || titulo, titulo, validado: formularioValidado },
     registrarPersistenciaFormulario,
     confirmarFormulario,
-  }), [codigo, titulo, formularioValidado, registrarPendencias, registrarPersistenciaFormulario, confirmarFormulario]);
-  const liberado = (podeEnviar ?? (pendencias === null || pendencias === 0))
+  }), [acoes.executarAcao, codigo, titulo, formularioValidado, registrarPendencias, registrarPersistenciaFormulario, confirmarFormulario]);
+  const liberado = podeEnviar !== false && pendencias === 0
     && Boolean(processo || (aoSubmeter && (!processoNovo || permitirEnvioSemProcesso))) && !executando && !somenteLeitura;
 
   useEffect(() => {
@@ -212,12 +220,12 @@ export const FormPageLayout = ({
     */
   }, []);
 
-  const executar = async (acao: () => Promise<void>) => {
+  const executar = async (acao: () => Promise<void>, nome = 'acao_formulario') => {
     if (ocupadoRef.current) return;
     ocupadoRef.current = true;
     setExecutando(true);
     setErroAcao('');
-    try { await acao(); }
+    try { await acoes.executarAcao(nome, acao, { atualizarRota: false }); }
     catch (falha) { setErroAcao(falha instanceof Error ? falha.message : 'Não foi possível concluir a operação.'); }
     finally { ocupadoRef.current = false; setExecutando(false); }
   };
@@ -241,7 +249,7 @@ export const FormPageLayout = ({
         mostrarToast('erro', falha instanceof Error ? falha.message : 'Não foi possível salvar o rascunho.');
         throw falha;
       }
-    });
+    }, 'salvar_rascunho');
   };
 
   const validarCampos = (escopo: ParentNode | null = mainRef.current, apresentarErro = true) => {
@@ -306,6 +314,37 @@ export const FormPageLayout = ({
     });
   };
 
+  const salvarDecisao = (evento: React.ChangeEvent<HTMLElement>) => {
+    invalidarFormularioAoEditar();
+    const campo = evento.target;
+    if (campo instanceof HTMLSelectElement || (campo instanceof HTMLInputElement && ['checkbox', 'radio'].includes(campo.type))) {
+      window.setTimeout(() => { void acoes.executarAcao('alterar_flag', () => {}, { antes: false, depois: true }).catch((erro: unknown) => setErroAcao(erro instanceof Error ? erro.message : 'Falha ao salvar decisao.')); }, 0);
+    }
+  };
+  const salvarAntesDoLink = (evento: React.MouseEvent<HTMLElement>) => {
+    const link = (evento.target as HTMLElement).closest('a[href]') as HTMLAnchorElement | null;
+    if (!link || link.hasAttribute('data-salvamento-gerenciado') || evento.button !== 0 || somenteLeitura) return;
+    const destino = new URL(link.href, window.location.origin);
+    if (!['http:', 'https:', 'mailto:'].includes(destino.protocol)) return;
+    evento.preventDefault();
+    window.setTimeout(() => { void executar(async () => {
+      const processoId = processo?.processo.id || processoNovo?.processoId || new URLSearchParams(window.location.search).get('processo');
+      if (processoId && destino.origin === window.location.origin && /\/form-/.test(destino.pathname) && !destino.searchParams.has('processo')) {
+        destino.searchParams.set('processo_pai', processoId);
+        if (!destino.searchParams.has('rota_retorno')) destino.searchParams.set('rota_retorno', window.location.pathname);
+      }
+      if (link.hasAttribute('download') || link.target === '_blank' || destino.protocol === 'mailto:') {
+        const temporario = document.createElement('a');
+        temporario.href = destino.href;
+        temporario.target = link.target;
+        temporario.rel = 'noopener noreferrer';
+        if (link.hasAttribute('download')) temporario.download = link.download;
+        temporario.click();
+      } else if (destino.origin === window.location.origin) navigate(`${destino.pathname}${destino.search}${destino.hash}`);
+      else window.location.assign(destino.href);
+    }, link.hasAttribute('download') ? 'baixar_modelo' : 'abrir_url'); }, 0);
+  };
+
   const renderizarConteudo = () => {
     if (!etapasMobile?.length) return children;
     return (
@@ -368,12 +407,13 @@ export const FormPageLayout = ({
 
   return (
     <EnvioContext.Provider value={envio}>
-      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background print:h-auto print:overflow-visible print:bg-white print:text-black">
+      <div onClickCapture={salvarAntesDoLink} className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background print:h-auto print:overflow-visible print:bg-white print:text-black">
         {usuario && <div className="print:hidden"><TopBar /></div>}
 
-        <main ref={mainRef} onChangeCapture={invalidarFormularioAoEditar} className="mx-auto flex min-h-0 w-full min-w-0 max-w-[1200px] flex-1 flex-col overflow-y-auto px-sm py-md sm:px-md lg:overflow-hidden lg:px-xl lg:pt-lg print:min-h-0 print:overflow-visible print:px-0 print:py-0">
+        <main ref={mainRef} onChangeCapture={salvarDecisao} className="mx-auto flex min-h-0 w-full min-w-0 max-w-[1200px] flex-1 flex-col overflow-y-auto px-sm py-md sm:px-md lg:overflow-hidden lg:px-xl lg:pt-lg print:min-h-0 print:overflow-visible print:px-0 print:py-0">
           <div className="print:hidden">
             {alerta}
+            {processoNovo?.processoPai && <p className="mb-sm text-xs text-primary" data-processo-principal={processoNovo.processoPai.id}>Processo principal: <strong>{processoNovo.processoPai.protocolo}</strong></p>}
           </div>
           {(erroAcao || processo?.erro || processoNovo?.erro) && <p role="alert" className="mb-md rounded border border-error bg-red-50 p-sm text-sm text-error">{erroAcao || processo?.erro || processoNovo?.erro}</p>}
           {processoNovo && !permitirEnvioSemProcesso && <p className="mb-md rounded border border-primary/25 bg-primary/5 p-sm text-xs text-primary">Este formulário ainda não criou um processo. Você pode selecionar os anexos agora; clique em <strong>Salvar Rascunho</strong> para gerar o protocolo, enviar os arquivos selecionados e habilitar o envio.</p>}
@@ -480,7 +520,15 @@ export const FormPageLayout = ({
                   <div className="lg:hidden flex justify-center -mt-xs mb-xs">
                     <span className="block w-12 h-1.5 rounded-full bg-outline-variant" aria-hidden="true" />
                   </div>
-                  <div className="min-w-0 w-full overflow-x-hidden flex flex-col gap-lg">{sidebarConteudo}</div>
+                  <div className="min-w-0 w-full overflow-x-hidden flex flex-col gap-lg">{sidebarConteudo}
+                    <details className="rounded border border-outline-variant bg-surface-container-lowest p-sm text-xs">
+                      <summary className="cursor-pointer font-semibold">Histórico do processo ({acoes.eventos.length})</summary>
+                      <button type="button" className="my-sm text-primary underline" onClick={() => void acoes.atualizarHistorico()}>Atualizar histórico</button>
+                      {acoes.erroHistorico && <p role="alert" className="text-error">{acoes.erroHistorico}</p>}
+                      <ol className="max-h-72 space-y-sm overflow-y-auto">{acoes.eventos.map((evento) => <li key={evento.id} className="border-b border-outline-variant pb-xs"><time>{new Date(evento.criado_em).toLocaleString('pt-BR')}</time><br /><strong>{evento.acao}</strong> - {evento.resultado}{evento.detalhe && <p>{evento.detalhe}</p>}</li>)}</ol>
+                      {!acoes.eventos.length && <p>As ações serão registradas ao salvar este processo.</p>}
+                    </details>
+                  </div>
                 </div>
               </>
             )}
@@ -513,6 +561,13 @@ export const FormPageLayout = ({
             </button>
           )}
 
+          {Boolean(pendencias && pendencias > 0) && <div role="status" className="flex flex-wrap items-center justify-between gap-xs rounded border border-amber-300 bg-amber-50 p-sm text-xs text-amber-950">
+            <p>Documentos obrigatórios pendentes no kit: {documentosPendentes.map((item) => item.label).join('; ')}.</p>
+            <button type="button" className="shrink-0 font-semibold underline" onClick={() => {
+              setSidebarMobileAberta(true);
+              window.requestAnimationFrame(() => mainRef.current?.querySelector('[data-kit-documental]')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+            }}>Ver documentos pendentes</button>
+          </div>}
           {footerCenter && <div className="flex min-w-0 justify-center lg:hidden">{footerCenter}</div>}
           <div className="flex min-w-0 w-full flex-wrap items-center justify-between gap-xs lg:flex-nowrap">
             <div className="flex min-w-0 shrink-0 items-center gap-xs">
@@ -522,13 +577,17 @@ export const FormPageLayout = ({
                 type="button"
                 disabled={executando}
                 onClick={() => void executar(async () => {
+                  if (aoCancelar) {
+                    aoCancelar();
+                    return;
+                  }
                   if (somenteLeitura && processo) {
                     navigate(processo.processo.categoria === 'projeto' ? '/projetos/painel' : '/programas-de-apoio/painel');
                     return;
                   }
                   if (processo) await processo.salvar();
                   navigate(-1);
-                })}
+                }, 'cancelar')}
                 className="border-outline-variant text-on-surface shadow-sm"
               />
               {footerCenter && <div className="hidden min-w-0 lg:flex">{footerCenter}</div>}
@@ -537,7 +596,7 @@ export const FormPageLayout = ({
               <RelatorioFormulario titulo={titulo} />
               {botoesAcoes}
               {processo && !somenteLeitura && <FormActionButton texto="Reiniciar" icone="restart_alt" type="button" disabled={executando} onClick={() => {
-                if (window.confirm('Iniciar uma nova tentativa? O processo atual será preservado.')) void executar(async () => { await processo.salvar(); await processo.novaTentativa(); });
+                if (window.confirm('Iniciar uma nova tentativa? O processo atual será preservado.')) void executar(async () => { await processo.salvar(); await processo.novaTentativa(); }, 'reiniciar');
               }} />}
               {mostrarRascunho && !somenteLeitura && <FormActionButton texto="Salvar Rascunho" icone="save" destaque={Boolean(processoNovo)} type="button" disabled={(!processo && !processoNovo) || executando || processoNovo?.salvando} onClick={salvarRascunho} />}
               {somenteLeitura && <span className="px-sm py-xs text-xs font-semibold text-on-surface-variant">Somente leitura</span>}
@@ -551,15 +610,16 @@ export const FormPageLayout = ({
                   if (!validarFormulario()) { void confirmarFormulario(false); return; }
                   void executar(async () => {
                     prepararValidadeFormulario(true);
-                    if (processo) {
+                    if (processo && !subformularioVinculado && !permitirEnvioSemProcesso) {
                       await processo.salvar();
                       await confirmarFormulario(true);
                       await processo.enviar();
                     } else {
                       await confirmarFormulario(true);
                     }
+                    if ((subformularioVinculado || permitirEnvioSemProcesso) && processoNovo) await processoNovo.salvarSemNavegar();
                     aoSubmeter?.();
-                  });
+                  }, 'concluir_formulario');
                 }}
                 title={liberado ? acaoPrincipal : pendencias === null ? 'Preencha os campos obrigatórios para liberar o envio.' : `Faltam ${pendencias} documento(s) obrigatório(s) no Kit de Documentos.`}
                 className={!liberado ? 'border-transparent bg-surface-variant text-on-surface-variant cursor-not-allowed' : ''}

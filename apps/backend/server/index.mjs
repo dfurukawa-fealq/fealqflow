@@ -17,6 +17,7 @@ import { executar as executarCodigosFormulariosComoIds } from '../migrations/016
 import { executar as executarUnidadesUSP } from '../migrations/017_catalogo_unidades_usp.mjs';
 import { executar as executarCodigosKits } from '../migrations/018_codigos_kits.mjs';
 import { executar as executarInstituicoesExecutoras } from '../migrations/019_instituicoes_executoras.mjs';
+import { executar as executarEventosProcesso } from '../migrations/020_eventos_processo.mjs';
 import { hashPassword, verifyPassword } from './passwords.mjs';
 import { carregarFormulariosArquivo, erroFonteSomenteLeitura, fonteDaArea, fontesDados } from './fontesDados.mjs';
 
@@ -50,6 +51,7 @@ try {
   await executarUnidadesUSP(pool, root);
   await executarCodigosKits(pool);
   await executarInstituicoesExecutoras(pool, root);
+  await executarEventosProcesso(pool);
 } catch (erro) {
   await pool.end();
   console.error('Falha ao conectar ou migrar o PostgreSQL. Verifique acesso, permissÃµes e migrations.');
@@ -874,6 +876,36 @@ const autorizarProcesso = async (request, response, next) => {
   return next();
 };
 
+const auditarAcaoProcesso = (request, response, next) => {
+  const processoId = request.params.id;
+  const acao = `${request.method.toLowerCase()}_${request.path.split('/').filter(Boolean).join('_') || 'rascunho'}`.replace(/[^a-z0-9_-]/gi, '_').slice(0, 120);
+  response.once('finish', () => {
+    void pool.query('INSERT INTO processo_eventos(processo_id, acao, resultado, detalhe) VALUES ($1,$2,$3,$4)',
+      [processoId, acao, response.statusCode < 400 ? 'sucesso' : 'falha', `HTTP ${response.statusCode}`])
+      .catch(() => console.error('Falha ao registrar evento do processo.'));
+  });
+  next();
+};
+app.use('/api/processos/:id', (request, response, next) => {
+  if (request.method === 'GET' || request.path === '/eventos') return next();
+  return asyncRoute(autorizarProcesso)(request, response, () => auditarAcaoProcesso(request, response, next));
+});
+
+app.get('/api/processos/:id/eventos', asyncRoute(autorizarProcesso), asyncRoute(async (request, response) => {
+  const { rows } = await pool.query('SELECT id, acao, resultado, detalhe, criado_em FROM processo_eventos WHERE processo_id = $1 ORDER BY id DESC LIMIT 100', [request.params.id]);
+  response.json(rows);
+}));
+
+app.post('/api/processos/:id/eventos', validarOrigem, asyncRoute(autorizarProcesso), asyncRoute(async (request, response) => {
+  const { acao, resultado, detalhe = '' } = request.body || {};
+  if (typeof acao !== 'string' || !/^[a-z0-9_:-]{1,120}$/i.test(acao)
+    || !['inicio', 'sucesso', 'falha'].includes(resultado) || typeof detalhe !== 'string' || detalhe.length > 500) {
+    return response.status(400).json({ error: 'Evento inválido.' });
+  }
+  const { rows } = await pool.query('INSERT INTO processo_eventos(processo_id, acao, resultado, detalhe) VALUES ($1,$2,$3,$4) RETURNING id, acao, resultado, detalhe, criado_em', [request.params.id, acao, resultado, detalhe]);
+  response.status(201).json(rows[0]);
+}));
+
 app.get('/api/processos/:id', asyncRoute(autorizarProcesso), asyncRoute(async (request, response) => {
   const { rows } = await pool.query(`
     SELECT id, protocolo, categoria, formulario_id, formulario_nome, formulario_rota, processo_pai_id,
@@ -929,10 +961,20 @@ app.post('/api/processos/:id/enviar', validarOrigem, asyncRoute(autorizarProcess
   const { versao } = request.body || {};
   if (!Number.isInteger(versao) || versao < 0) return response.status(400).json({ error: 'VersÃ£o invÃ¡lida.' });
   const { rows: pendencias } = await pool.query(`
-    SELECT COUNT(*)::int AS total FROM processo_documentos
-    WHERE processo_id = $1 AND obrigatorio = TRUE AND status NOT IN ('enviado', 'validado')
+    SELECT d.nome AS id, COALESCE((
+      SELECT i.titulo FROM itens_kit_documental i
+      JOIN kits_documentais k ON k.id = i.kit_id
+      WHERE k.formulario_id = p.formulario_id AND i.identificador = d.nome
+      ORDER BY k.ativo DESC, i.ativo DESC, i.ordem LIMIT 1
+    ), CASE WHEN d.nome LIKE 'formulario-%' THEN 'Formul\u00e1rio principal' ELSE d.nome END) AS titulo
+    FROM processo_documentos d JOIN processos p ON p.id = d.processo_id
+    WHERE d.processo_id = $1 AND d.obrigatorio = TRUE AND d.status NOT IN ('enviado', 'validado')
+    ORDER BY d.nome
   `, [request.params.id]);
-  if (pendencias[0].total > 0) return response.status(409).json({ error: 'Conclua os documentos obrigatÃ³rios antes de enviar.' });
+  if (pendencias.length > 0) return response.status(409).json({
+    error: `Conclua os documentos obrigat\u00f3rios do Kit de Documenta\u00e7\u00e3o antes de enviar. Pendentes: ${pendencias.map((item) => item.titulo).join('; ')}.`,
+    pendencias,
+  });
   const { rows } = await pool.query(`
     UPDATE processos SET status = 'enviado', enviado_em = CURRENT_TIMESTAMP, atualizado_em = CURRENT_TIMESTAMP,
       versao = versao + 1

@@ -17,6 +17,7 @@ export interface Processo {
   formulario_id: string;
   formulario_nome: string;
   formulario_rota: string;
+  processo_pai_id?: string | null;
   status: string;
   criado_em?: string;
   enviado_em?: string | null;

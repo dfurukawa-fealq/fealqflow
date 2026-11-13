@@ -1,3 +1,4 @@
+import { useAcoesFormulario } from '../../components/form/useAcoesFormulario';
 import { useProcessoState } from '../../contexts/ProcessoContext';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -63,6 +64,10 @@ const normalizarLote = (lote: LoteInscricao): LoteInscricao => {
   };
 };
 
+const loteTemDados = (lote: LoteInscricao) => Boolean(
+  lote.descricao.trim() || lote.valorCentavos > 0 || lote.vagas > 0 || lote.dataInicio || lote.dataFim,
+);
+
 const TIPO_EVENTO_LEGADO: Record<string, string> = { 'Simp\u00c3\u00b3sio': '', 'Simpósio': '' };
 const FORMATO_LEGADO: Record<string, 'Online (Síncrono)' | 'Online (Assíncrono)' | 'Híbrido'> = {
   'Online (S\u00c3\u00adncrono)': 'Online (Síncrono)',
@@ -73,6 +78,7 @@ const FORMATO_LEGADO: Record<string, 'Online (Síncrono)' | 'Online (Assíncrono
 export const AberturaCursoEvento: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { executarAcao } = useAcoesFormulario();
   const processoAtual = useProcesso();
   const { protocolId, gerarUrlVinculada, statusFormulario, registrarAberturaFormulario, marcarFormularioConcluido } = useRastreabilidade();
   const statusPlanoRecursos = statusFormulario('CONV-PL-01');
@@ -124,9 +130,7 @@ export const AberturaCursoEvento: React.FC = () => {
   const [coordTelefone, setCoordTelefone] = useProcessoState('coordTelefone', '');
 
   // Delegados de Gestão (Conveniar / USP)
-  const [delegados, setDelegados] = useProcessoState<Delegado[]>('delegados', [
-    { id: 'inicial', nome: '', cpf: '', telefone: '', email: '', nivelAcesso: 'Nivel 2 - Criador' },
-  ]);
+  const [delegados, setDelegados] = useProcessoState<Delegado[]>('delegados', []);
 
   // Equipe Técnica / Comissão de Apoio
   const [equipeTecnica, setEquipeTecnica] = useProcessoState<MembroEquipe[]>('equipeTecnica', []);
@@ -147,9 +151,7 @@ export const AberturaCursoEvento: React.FC = () => {
   // --- SEÇÃO 5: EXECUÇÃO DO PROJETO (VALORES & INSCRIÇÕES) ---
   const [tipoInscricao, setTipoInscricao] = useProcessoState<'gratuito' | 'pago'>('tipoInscricao', 'pago');
   const [vagasGratuitas, setVagasGratuitas] = useProcessoState('vagasGratuitas', '');
-  const [lotes, setLotes] = useProcessoState<LoteInscricao[]>('lotes', [
-    { id: 'inicial', descricao: '', valorCentavos: 0, vagas: 0, dataInicio: '', dataFim: '' },
-  ]);
+  const [lotes, setLotes] = useProcessoState<LoteInscricao[]>('lotes', []);
   const [novoLote, setNovoLote] = useProcessoState<LoteInscricao>('loteNovo', { id: '', descricao: '', valorCentavos: 0, vagas: 0, dataInicio: '', dataFim: '' });
   const [investimentoTexto, setInvestimentoTexto] = useProcessoState('investimentoTexto', '');
   const [informacoesAdicionais, setInformacoesAdicionais] = useProcessoState('informacoesAdicionais', '');
@@ -218,7 +220,7 @@ export const AberturaCursoEvento: React.FC = () => {
 
   const adicionarLote = () => {
     if (!novoLote.descricao.trim()) return;
-    setLotes(prev => [...prev.map(normalizarLote), { ...normalizarLote(novoLote), id: gerarIdLocal() }]);
+    setLotes(prev => [...prev.filter(loteTemDados).map(normalizarLote), { ...normalizarLote(novoLote), id: gerarIdLocal() }]);
     setNovoLote({ id: '', descricao: '', valorCentavos: 0, vagas: 0, dataInicio: '', dataFim: '' });
   /*
     setLotes(prev => [
@@ -245,7 +247,7 @@ export const AberturaCursoEvento: React.FC = () => {
   };
 
   // Totais de lotes
-  const lotesNormalizados = useMemo(() => lotes.map(normalizarLote), [lotes]);
+  const lotesNormalizados = useMemo(() => lotes.filter(loteTemDados).map(normalizarLote), [lotes]);
   const novoLoteNormalizado = useMemo(() => normalizarLote(novoLote), [novoLote]);
   useEffect(() => {
     if (JSON.stringify(lotes) !== JSON.stringify(lotesNormalizados)) setLotes(lotesNormalizados);
@@ -300,10 +302,13 @@ export const AberturaCursoEvento: React.FC = () => {
   );
 
   const abrirTermoLGPD = async () => {
-    registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlLGPD);
     try {
-      await processoAtual?.save_state();
-      navigate(urlLGPD);
+      await executarAcao('abrir_termo_lgpd', async (id) => {
+        const destino = new URL(urlLGPD, window.location.origin);
+        destino.searchParams.set('processo_pai', id);
+        registrarAberturaFormulario('CERT-LGPD-01', 'Termo LGPD', destino.pathname + destino.search);
+        navigate(destino.pathname + destino.search);
+      });
     } catch (falha) {
       setAvisoValidacao(falha instanceof Error
         ? `NÃ£o foi possÃ­vel salvar o rascunho antes de abrir o termo: ${falha.message}`
@@ -470,7 +475,7 @@ export const AberturaCursoEvento: React.FC = () => {
             percentual={percentualConclusao}
             nota={
               podeSubmeter
-                ? 'Campos essenciais e Termo de LGPD preenchidos com sucesso. Pronto para submissão do protocolo!'
+                ? 'Campos principais preenchidos. Confira os documentos obrigat\u00f3rios no Kit de Documenta\u00e7\u00e3o.'
                 : !isLGPDValido
                   ? 'Confirme a leitura e o aceite do Termo de LGPD e Confidencialidade no Kit de Documentação (FLAG OBRIGATÓRIA).'
                   : 'Preencha o título do evento e os dados do coordenador para liberar a submissão.'

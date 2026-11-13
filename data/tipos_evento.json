@@ -1,5 +1,5 @@
 [
-  "Conferencia",
+"Conferencia",
   "Congresso",
   "Curso",
   "Debate",
@@ -15,5 +15,14 @@
   "Participacao",
   "Programa",
   "Reuniao",
-  "Semanal"
+  "Semanal",
+  "Seminario",
+  "Simposio",
+  "Treinamento",
+  "Visita Tecnica",
+  "Workshop",
+  "Webinar",
+  "Teste",
+  "Curso Fechado",
+  "Apresentacao Musical"
 ]

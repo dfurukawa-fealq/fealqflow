@@ -187,7 +187,10 @@ export const RastreabilidadeProvider = ({ children }: { children: ReactNode }) =
   const gerarUrlVinculada = (path: string, formCodigo: string, formNome: string, processoPaiId?: string) => {
     const separator = path.includes('?') ? '&' : '?';
     const processoPai = processoPaiId || capturarProcessoPai(searchParams, true);
-    const url = `${path}${separator}protocolo=${encodeURIComponent(protocolId)}&sessao=${encodeURIComponent(sessionId)}&origem=${encodeURIComponent(sessao.formOrigem)}&form_codigo=${encodeURIComponent(formCodigo)}${processoPai ? `&processo_pai=${encodeURIComponent(processoPai)}` : ''}`;
+    const possuiRotaRetorno = new URL(path, window.location.origin).searchParams.has('rota_retorno');
+    const retorno = processoPai && searchParams.has('processo') && !possuiRotaRetorno
+      ? `&rota_retorno=${encodeURIComponent(location.pathname)}` : '';
+    const url = `${path}${separator}protocolo=${encodeURIComponent(protocolId)}&sessao=${encodeURIComponent(sessionId)}&origem=${encodeURIComponent(sessao.formOrigem)}&form_codigo=${encodeURIComponent(formCodigo)}${processoPai ? `&processo_pai=${encodeURIComponent(processoPai)}` : ''}${retorno}`;
     return url;
   };
 

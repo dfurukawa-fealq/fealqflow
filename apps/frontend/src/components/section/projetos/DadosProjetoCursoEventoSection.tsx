@@ -32,7 +32,7 @@ export function DadosProjetoCursoEventoSection(props: Props) {
     <FormSection numero={props.numero ?? 2} icone="event" titulo="Dados do Projeto & Detalhamento Técnico">
       <Field label="Título do Curso/Evento" span={9} placeholder="Ex: Simpósio de Tecnologia Agrícola e Sustentabilidade" obrigatorio valor={props.titulo} onChange={props.aoAlterarTitulo} />
       <Field label="Edição" span={3} placeholder="Ex: 5ª Edição" valor={props.edicao} onChange={props.aoAlterarEdicao} />
-      <InputSearchList label="Tipo de Evento" span={4} opcoes={TIPOS_EVENTO} placeholder="Digite ou selecione um tipo de evento" valor={props.tipoEvento} onChange={props.aoAlterarTipoEvento} hint="Espelha a classificação de eventos do SAP/FEALQ" />
+      <InputSearchList label="Tipo de Evento" span={4} opcoes={TIPOS_EVENTO} placeholder="Digite ou selecione um tipo de evento" valor={props.tipoEvento} onChange={props.aoAlterarTipoEvento} obrigatorio somenteOpcoes hint="Espelha a classificação de eventos do SAP/FEALQ" />
       <Field label="Público-Alvo" span={5} placeholder="Estudantes, Pesquisadores, Profissionais do Setor" obrigatorio valor={props.publicoAlvo} onChange={props.aoAlterarPublicoAlvo} />
       <Field label="Carga Horária (h)" span={3} tipo="number" placeholder="Ex: 40" obrigatorio valor={props.cargaHoraria} onChange={props.aoAlterarCargaHoraria} />
       <Field label="Data de Início" span={3} tipo="date" valor={props.dataInicio} onChange={props.aoAlterarDataInicio} obrigatorio />

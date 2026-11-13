@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { NumericFormat } from 'react-number-format';
 import { FormPageLayout } from '../../components/form/FormPageLayout';
 import { FormSection } from '../../components/form/FormSection';
@@ -9,6 +9,7 @@ import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 
 export const PlanoAplicacaoRecursos = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { protocolId, marcarFormularioConcluido } = useRastreabilidade();
   const [salvoSucesso, setSalvoSucesso] = useState(false);
 
@@ -109,6 +110,10 @@ export const PlanoAplicacaoRecursos = () => {
       titulo="Plano de Aplicação de Recursos - Cursos FZEA"
       breadcrumb={['Projetos', 'Plano de Aplicação de Recursos']}
       acaoPrincipal="Salvar e Enviar"
+      permitirEnvioSemProcesso={veioDeFormularioPai}
+      subformularioVinculado={veioDeFormularioPai}
+      mostrarRascunho={!veioDeFormularioPai}
+      aoCancelar={veioDeFormularioPai ? () => navigate(linkRetorno) : undefined}
       podeEnviar={podeEnviar}
       validarFormularioAdicional={() => podeEnviar}
       aoSubmeter={handleSubmeterPlano}

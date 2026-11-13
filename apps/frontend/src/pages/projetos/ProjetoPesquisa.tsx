@@ -1,3 +1,4 @@
+import { useAcoesFormulario } from '../../components/form/useAcoesFormulario';
 import { useProcesso, useProcessoState } from '../../contexts/ProcessoContext';
 import { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -28,6 +29,7 @@ import { InstituicoesFinanciadorasSection } from '../../components/form/projetos
 export const ProjetoPesquisa = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { executarAcao } = useAcoesFormulario();
   const processo = useProcesso();
   const [erroAbertura, setErroAbertura] = useState('');
   const { gerarUrlVinculada, registrarAberturaFormulario, statusFormulario } = useRastreabilidade();
@@ -47,12 +49,13 @@ export const ProjetoPesquisa = () => {
   }).toString();
   const urlTermoLGPD = gerarUrlVinculada(`/projetos/termo-lgpd?rota_retorno=${rotaRetorno}`, 'CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', processo?.processo.id);
   const abrirTermoLGPD = async () => {
-    setErroAbertura('');
     try {
-      if (!processo) throw new Error('Salve o rascunho antes de abrir o Termo de LGPD.');
-      await processo.save_state();
-      registrarAberturaFormulario('CERT-LGPD-01', 'Termo de LGPD e Confidencialidade', urlTermoLGPD);
-      navigate(urlTermoLGPD);
+      await executarAcao('abrir_termo_lgpd', async (id) => {
+        const destino = new URL(urlTermoLGPD, window.location.origin);
+        destino.searchParams.set('processo_pai', id);
+        registrarAberturaFormulario('CERT-LGPD-01', 'Termo LGPD', destino.pathname + destino.search);
+        navigate(destino.pathname + destino.search);
+      });
     } catch (falha: unknown) {
       setErroAbertura(falha instanceof Error ? falha.message : 'Não foi possível abrir o termo. Tente novamente.');
     }
