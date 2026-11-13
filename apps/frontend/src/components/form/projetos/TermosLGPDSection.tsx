@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 import { FormSection } from '../FormSection';
 import { TermoSigiloCard } from './TermoSigiloCard';
 
-interface TermosLGPDSectionProps { aceito: boolean; urlTermo: string; aoAbrirTermo: () => void; sigiloAceito?: boolean; aoAceitarSigilo?: () => void; }
+interface TermosLGPDSectionProps { aceito: boolean; urlTermo: string; aoAbrirTermo: () => void; sigiloAceito?: boolean; aoAceitarSigilo?: () => void; numero?: number; }
 
-export const TermosLGPDSection = ({ aceito, urlTermo, aoAbrirTermo, sigiloAceito = false, aoAceitarSigilo }: TermosLGPDSectionProps) => (
-  <FormSection numero={7} icone="verified_user" titulo="Termos de LGPD e Confidencialidade">
+export const TermosLGPDSection = ({ aceito, urlTermo, aoAbrirTermo, sigiloAceito = false, aoAceitarSigilo, numero = 7 }: TermosLGPDSectionProps) => (
+  <FormSection numero={numero} icone="verified_user" titulo="Termos de LGPD e Confidencialidade">
     <div className="col-span-12 rounded-lg border border-outline-variant bg-surface-container-low p-sm">
       <div className="flex items-start gap-sm border-b border-outline-variant pb-sm">
         <span className="material-symbols-outlined text-primary">security</span>

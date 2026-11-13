@@ -11,6 +11,7 @@ import { useRastreabilidade } from '../../contexts/RastreabilidadeContext';
 import { useProcesso } from '../../contexts/ProcessoContext';
 import { formatCPF } from '../../utils/formatters';
 import { gerarIdLocal } from '../../utils/id';
+import { numerarSecoesVisiveis } from '../../utils/numeracaoSecoes';
 import { EquipeTecnicaEditor } from '../../components/form/projetos/EquipeTecnicaEditor';
 import { TermosLGPDSection } from '../../components/form/projetos/TermosLGPDSection';
 import { converterReaisParaCentavos, CurrencyInput, formatarCentavosComoMoeda } from '../../components/form/CurrencyInput';
@@ -165,6 +166,19 @@ export const AberturaCursoEvento: React.FC = () => {
   const [submetidoSucesso, setSubmetidoSucesso] = useState(false);
   const [avisoValidacao, setAvisoValidacao] = useState('');
   const [sigiloAceito, setSigiloAceito] = useProcessoState('aceiteTermoSigilo', false);
+
+  const mostrarCienciaDepartamento = possuiConvenio === 'sim' && coordUnidade === 'FZEA';
+  const numeroSecoes = numerarSecoesVisiveis([
+    { id: 'informacoes' },
+    { id: 'dadosProjeto' },
+    { id: 'coordenador' },
+    { id: 'delegados' },
+    { id: 'equipeTecnica' },
+    { id: 'instituicoes' },
+    { id: 'execucao' },
+    { id: 'cienciaDepartamento', visivel: mostrarCienciaDepartamento },
+    { id: 'termos' },
+  ] as const);
 
   // Funções de manipulação de delegados
   const adicionarDelegado = () => {
@@ -526,7 +540,7 @@ export const AberturaCursoEvento: React.FC = () => {
       {/* 1. INFORMAÇÕES SOBRE O PROJETO (CONVÊNIO USP) */}
       <OrientacoesProjetoSection />
       <FormSection
-        numero={1}
+        numero={numeroSecoes.informacoes ?? 1}
         icone="description"
         titulo="Informações sobre o Projeto & Convênio USP"
       >
@@ -591,6 +605,7 @@ export const AberturaCursoEvento: React.FC = () => {
       </FormSection>
 
       <DadosProjetoCursoEventoSection
+        numero={numeroSecoes.dadosProjeto ?? 2}
         titulo={titulo} aoAlterarTitulo={setTitulo} edicao={edicao} aoAlterarEdicao={setEdicao}
         tipoEvento={tipoEvento} aoAlterarTipoEvento={setTipoEvento} publicoAlvo={publicoAlvo} aoAlterarPublicoAlvo={setPublicoAlvo}
         cargaHoraria={cargaHoraria} aoAlterarCargaHoraria={setCargaHoraria} dataInicio={dataInicio} aoAlterarDataInicio={setDataInicio}
@@ -912,12 +927,12 @@ export const AberturaCursoEvento: React.FC = () => {
       </FormSection>}
 
       {/* 4. INSTITUIÇÕES ENVOLVIDAS (IN COMPANY & PATROCÍNIO) */}
-      <CoordenadorResponsavelSection numero={3} />
-      <DelegadosEditor delegados={delegados} aoAlterar={setDelegados} />
-      <EquipeTecnicaEditor membros={equipeTecnica.map((membro) => ({ ...membro, vinculo: membro.departamento }))} aoAlterar={(membros) => setEquipeTecnica(membros.map((membro) => ({ ...membro, departamento: membro.vinculo })))} />
+      <CoordenadorResponsavelSection numero={numeroSecoes.coordenador ?? 3} />
+      <DelegadosEditor numero={numeroSecoes.delegados ?? 4} delegados={delegados} aoAlterar={setDelegados} />
+      <EquipeTecnicaEditor numero={numeroSecoes.equipeTecnica ?? 5} membros={equipeTecnica.map((membro) => ({ ...membro, vinculo: membro.departamento }))} aoAlterar={(membros) => setEquipeTecnica(membros.map((membro) => ({ ...membro, departamento: membro.vinculo })))} />
 
       <FormSection
-        numero={4}
+        numero={numeroSecoes.instituicoes ?? 6}
         icone="handshake"
         titulo="Instituições Envolvidas (Parcerias & Patrocínio)"
       >
@@ -1128,7 +1143,7 @@ export const AberturaCursoEvento: React.FC = () => {
 
       {/* 5. EXECUÇÃO DO PROJETO (VALORES & INSCRIÇÕES) */}
       <FormSection
-        numero={5}
+        numero={numeroSecoes.execucao ?? 7}
         icone="payments"
         titulo="Execução do Projeto (Valores & Inscrições)"
       >
@@ -1429,10 +1444,10 @@ export const AberturaCursoEvento: React.FC = () => {
           </div>
         </div>
       </FormSection>}
-      <CienciaConcordanciaSection numero={6} />
+      {mostrarCienciaDepartamento && <CienciaConcordanciaSection numero={numeroSecoes.cienciaDepartamento ?? 8} />}
 
       {/* 7. TERMOS, LGPD E DECLARAÇÕES FINAIS */}
-      <TermosLGPDSection aceito={isLGPDValido} urlTermo={urlLGPD} aoAbrirTermo={() => { void abrirTermoLGPD(); }} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
+      <TermosLGPDSection numero={numeroSecoes.termos ?? 9} aceito={isLGPDValido} urlTermo={urlLGPD} aoAbrirTermo={() => { void abrirTermoLGPD(); }} sigiloAceito={sigiloAceito} aoAceitarSigilo={() => setSigiloAceito(true)} />
       <div className="hidden">
       <FormSection
         numero={7}

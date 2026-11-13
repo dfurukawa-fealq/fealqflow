@@ -8,6 +8,7 @@ type FormatoRealizacao = 'Presencial' | 'Online (Síncrono)' | 'Online (Assíncr
 type Resposta = 'sim' | 'nao';
 
 interface Props {
+  numero?: number;
   titulo: string; aoAlterarTitulo: (valor: string) => void;
   edicao: string; aoAlterarEdicao: (valor: string) => void;
   tipoEvento: string; aoAlterarTipoEvento: (valor: string) => void;
@@ -28,7 +29,7 @@ export function DadosProjetoCursoEventoSection(props: Props) {
   const presencial = props.formato === 'Presencial' || props.formato === 'Híbrido';
 
   return (
-    <FormSection numero={2} icone="event" titulo="Dados do Projeto & Detalhamento Técnico">
+    <FormSection numero={props.numero ?? 2} icone="event" titulo="Dados do Projeto & Detalhamento Técnico">
       <Field label="Título do Curso/Evento" span={9} placeholder="Ex: Simpósio de Tecnologia Agrícola e Sustentabilidade" obrigatorio valor={props.titulo} onChange={props.aoAlterarTitulo} />
       <Field label="Edição" span={3} placeholder="Ex: 5ª Edição" valor={props.edicao} onChange={props.aoAlterarEdicao} />
       <InputSearchList label="Tipo de Evento" span={4} opcoes={TIPOS_EVENTO} placeholder="Digite ou selecione um tipo de evento" valor={props.tipoEvento} onChange={props.aoAlterarTipoEvento} hint="Espelha a classificação de eventos do SAP/FEALQ" />
